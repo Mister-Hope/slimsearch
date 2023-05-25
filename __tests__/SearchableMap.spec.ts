@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -22,7 +21,7 @@ describe("SearchableMap", () => {
     "borderline",
     "bo",
   ];
-  const keyValues = strings.map((key, i) => [key, i]);
+  const keyValues = strings.map<[string, number]>((key, i) => [key, i]);
   const object = keyValues.reduce((obj, [key, value]) => ({
     ...obj,
     [key]: value,
@@ -121,8 +120,8 @@ describe("SearchableMap", () => {
 
   describe("forEach", () => {
     it("iterates through each entry", () => {
-      const entries = [];
-      const fn = (key, value) => entries.push([key, value]);
+      const entries: [key: string, value: unknown][] = [];
+      const fn = (key: string, value: unknown) => entries.push([key, value]);
       const map = SearchableMap.from(keyValues);
 
       map.forEach(fn);
@@ -210,6 +209,7 @@ describe("SearchableMap", () => {
     it("throws error if the given key is not a string", () => {
       const map = new SearchableMap();
 
+      // @ts-expect-error
       expect(() => map.set(123, "foo")).toThrow("key must be a string");
     });
   });
@@ -245,6 +245,7 @@ describe("SearchableMap", () => {
     it("throws error if the given key is not a string", () => {
       const map = new SearchableMap();
 
+      // @ts-expect-error
       expect(() => map.update(123, () => {})).toThrow("key must be a string");
     });
   });
@@ -307,7 +308,7 @@ describe("SearchableMap", () => {
 
   describe("fuzzyGet", () => {
     const terms = ["summer", "acqua", "aqua", "acquire", "poisson", "qua"];
-    const keyValues = terms.map((key, i) => [key, i]);
+    const keyValues = terms.map<[string, number]>((key, i) => [key, i]);
     const map = SearchableMap.from(keyValues);
 
     it("returns all entries having the given maximum edit distance from the given key", () => {
@@ -315,9 +316,7 @@ describe("SearchableMap", () => {
         const results = map.fuzzyGet("acqua", distance);
         const entries = Array.from(results);
 
-        expect(
-          entries.map(([key, [value, dist]]) => [key, dist]).sort()
-        ).toEqual(
+        expect(entries.map(([key, [, dist]]) => [key, dist]).sort()).toEqual(
           terms
             .map((term) => [term, editDistance("acqua", term)])
             .filter(([, d]) => d <= distance)
@@ -385,7 +384,7 @@ describe("SearchableMap", () => {
           const fuzzy = map.fuzzyGet(terms[0], maxDist);
 
           expect(
-            Array.from(fuzzy, ([key, [value, dist]]) => [key, dist]).sort()
+            Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort()
           ).toEqual(
             uniqueTerms
               .map((term) => [term, editDistance(terms[0], term)])
