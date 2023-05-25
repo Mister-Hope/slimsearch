@@ -6,7 +6,6 @@ import {
   defaultOptions,
   defaultSearchOptions,
   defaultVacuumConditions,
-  defaultVacuumOptions,
 } from "./defaults.js";
 import {
   type AsPlainObject,
@@ -16,17 +15,13 @@ import {
   type Options,
   type Query,
   type SearchOptions,
-  type SearchResult,
   type SerializedIndexEntry,
-  type Suggestion,
   type VacuumConditions,
-  type VacuumOptions,
 } from "./typings.js";
 import {
   type QuerySpec,
   type RawResult,
   assignUniqueTerm,
-  byScore,
   calcBM25Score,
   combinators,
   createMap,
@@ -34,6 +29,7 @@ import {
   objectToNumericMap,
   termToQuerySpec,
 } from "./utils.js";
+import { maybeAutoVacuum } from "./vaccum.js";
 
 type SearchOptionsWithDefaults = SearchOptions & {
   boost: { [fieldName: string]: number };
@@ -529,19 +525,7 @@ export class MiniSearch<T = any> {
     this._documentCount -= 1;
     this._dirtCount += 1;
 
-    this.maybeAutoVacuum();
-  }
-
-  private maybeAutoVacuum(): void {
-    if (this._options.autoVacuum === false) return;
-
-    const { minDirtFactor, minDirtCount, batchSize, batchWait } =
-      this._options.autoVacuum;
-
-    this.conditionalVacuum(
-      { batchSize, batchWait },
-      { minDirtCount, minDirtFactor }
-    );
+    maybeAutoVacuum(this);
   }
 
   /**
@@ -567,7 +551,7 @@ export class MiniSearch<T = any> {
       this._options.autoVacuum = autoVacuum;
     }
 
-    this.maybeAutoVacuum();
+    maybeAutoVacuum(this);
   }
 
   /**
@@ -591,130 +575,6 @@ export class MiniSearch<T = any> {
 
     this.discard(id);
     this.add(updatedDocument);
-  }
-
-  /**
-   * Triggers a manual vacuuming, cleaning up references to discarded documents
-   * from the inverted index
-   *
-   * Vacuuming is only useful for applications that use the
-   * [[MiniSearch.discard]] or [[MiniSearch.replace]] methods.
-   *
-   * By default, vacuuming is performed automatically when needed (controlled by
-   * the `autoVacuum` field in [[Options]]), so there is usually no need to call
-   * this method, unless one wants to make sure to perform vacuuming at a
-   * specific moment.
-   *
-   * Vacuuming traverses all terms in the inverted index in batches, and cleans
-   * up references to discarded documents from the posting list, allowing memory
-   * to be released.
-   *
-   * The method takes an optional object as argument with the following keys:
-   *
-   *   - `batchSize`: the size of each batch (1000 by default)
-   *
-   *   - `batchWait`: the number of milliseconds to wait between batches (10 by
-   *   default)
-   *
-   * On large indexes, vacuuming could have a non-negligible cost: batching
-   * avoids blocking the thread for long, diluting this cost so that it is not
-   * negatively affecting the application. Nonetheless, this method should only
-   * be called when necessary, and relying on automatic vacuuming is usually
-   * better.
-   *
-   * It returns a promise that resolves (to undefined) when the clean up is
-   * completed. If vacuuming is already ongoing at the time this method is
-   * called, a new one is enqueued immediately after the ongoing one, and a
-   * corresponding promise is returned. However, no more than one vacuuming is
-   * enqueued on top of the ongoing one, even if this method is called more
-   * times (enqueuing multiple ones would be useless).
-   *
-   * @param options  Configuration options for the batch size and delay. See
-   * [[VacuumOptions]].
-   */
-  vacuum(options: VacuumOptions = {}): Promise<void> {
-    return this.conditionalVacuum(options);
-  }
-
-  private conditionalVacuum(
-    options: VacuumOptions,
-    conditions?: VacuumConditions
-  ): Promise<void> {
-    // If a vacuum is already ongoing, schedule another as soon as it finishes,
-    // unless there's already one enqueued. If one was already enqueued, do not
-    // enqueue another on top, but make sure that the conditions are the
-    // broadest.
-    if (this._currentVacuum) {
-      this._enqueuedVacuumConditions =
-        this._enqueuedVacuumConditions && conditions;
-      if (this._enqueuedVacuum != null) return this._enqueuedVacuum;
-
-      this._enqueuedVacuum = this._currentVacuum.then(() => {
-        const conditions = this._enqueuedVacuumConditions;
-
-        this._enqueuedVacuumConditions = defaultVacuumConditions;
-
-        return this.performVacuuming(options, conditions);
-      });
-
-      return this._enqueuedVacuum;
-    }
-
-    if (this.vacuumConditionsMet(conditions) === false)
-      return Promise.resolve();
-
-    this._currentVacuum = this.performVacuuming(options);
-
-    return this._currentVacuum;
-  }
-
-  private async performVacuuming(
-    options: VacuumOptions,
-    conditions?: VacuumConditions
-  ): Promise<void> {
-    const initialDirtCount = this._dirtCount;
-
-    if (this.vacuumConditionsMet(conditions)) {
-      const batchSize = options.batchSize || defaultVacuumOptions.batchSize;
-      const batchWait = options.batchWait || defaultVacuumOptions.batchWait;
-      let i = 1;
-
-      for (const [term, fieldsData] of this._index) {
-        for (const [fieldId, fieldIndex] of fieldsData)
-          for (const [shortId] of fieldIndex) {
-            if (this._documentIds.has(shortId)) continue;
-
-            if (fieldIndex.size <= 1) fieldsData.delete(fieldId);
-            else fieldIndex.delete(shortId);
-          }
-
-        if (this._index.get(term)!.size === 0) this._index.delete(term);
-
-        if (i % batchSize === 0)
-          await new Promise((resolve) => setTimeout(resolve, batchWait));
-
-        i += 1;
-      }
-
-      this._dirtCount -= initialDirtCount;
-    }
-
-    // Make the next lines always async, so they execute after this function returns
-    await null;
-
-    this._currentVacuum = this._enqueuedVacuum;
-    this._enqueuedVacuum = null;
-  }
-
-  private vacuumConditionsMet(conditions?: VacuumConditions) {
-    if (conditions == null) return true;
-
-    let { minDirtCount, minDirtFactor } = conditions;
-
-    minDirtCount = minDirtCount || defaultAutoVacuumOptions.minDirtCount;
-    minDirtFactor = minDirtFactor || defaultAutoVacuumOptions.minDirtFactor;
-
-    return this.dirtCount >= minDirtCount && this.dirtFactor >= minDirtFactor;
   }
 
   /**
@@ -768,262 +628,6 @@ export class MiniSearch<T = any> {
   }
 
   /**
-   * Search for documents matching the given search query.
-   *
-   * The result is a list of scored document IDs matching the query, sorted by
-   * descending score, and each including data about which terms were matched and
-   * in which fields.
-   *
-   * ### Basic usage:
-   *
-   * ```javascript
-   * // Search for "zen art motorcycle" with default options: terms have to match
-   * // exactly, and individual terms are joined with OR
-   * miniSearch.search('zen art motorcycle')
-   * // => [ { id: 2, score: 2.77258, match: { ... } }, { id: 4, score: 1.38629, match: { ... } } ]
-   * ```
-   *
-   * ### Restrict search to specific fields:
-   *
-   * ```javascript
-   * // Search only in the 'title' field
-   * miniSearch.search('zen', { fields: ['title'] })
-   * ```
-   *
-   * ### Field boosting:
-   *
-   * ```javascript
-   * // Boost a field
-   * miniSearch.search('zen', { boost: { title: 2 } })
-   * ```
-   *
-   * ### Prefix search:
-   *
-   * ```javascript
-   * // Search for "moto" with prefix search (it will match documents
-   * // containing terms that start with "moto" or "neuro")
-   * miniSearch.search('moto neuro', { prefix: true })
-   * ```
-   *
-   * ### Fuzzy search:
-   *
-   * ```javascript
-   * // Search for "ismael" with fuzzy search (it will match documents containing
-   * // terms similar to "ismael", with a maximum edit distance of 0.2 term.length
-   * // (rounded to nearest integer)
-   * miniSearch.search('ismael', { fuzzy: 0.2 })
-   * ```
-   *
-   * ### Combining strategies:
-   *
-   * ```javascript
-   * // Mix of exact match, prefix search, and fuzzy search
-   * miniSearch.search('ismael mob', {
-   *  prefix: true,
-   *  fuzzy: 0.2
-   * })
-   * ```
-   *
-   * ### Advanced prefix and fuzzy search:
-   *
-   * ```javascript
-   * // Perform fuzzy and prefix search depending on the search term. Here
-   * // performing prefix and fuzzy search only on terms longer than 3 characters
-   * miniSearch.search('ismael mob', {
-   *  prefix: term => term.length > 3
-   *  fuzzy: term => term.length > 3 ? 0.2 : null
-   * })
-   * ```
-   *
-   * ### Combine with AND:
-   *
-   * ```javascript
-   * // Combine search terms with AND (to match only documents that contain both
-   * // "motorcycle" and "art")
-   * miniSearch.search('motorcycle art', { combineWith: 'AND' })
-   * ```
-   *
-   * ### Combine with AND_NOT:
-   *
-   * There is also an AND_NOT combinator, that finds documents that match the
-   * first term, but do not match any of the other terms. This combinator is
-   * rarely useful with simple queries, and is meant to be used with advanced
-   * query combinations (see later for more details).
-   *
-   * ### Filtering results:
-   *
-   * ```javascript
-   * // Filter only results in the 'fiction' category (assuming that 'category'
-   * // is a stored field)
-   * miniSearch.search('motorcycle art', {
-   *   filter: (result) => result.category === 'fiction'
-   * })
-   * ```
-   *
-   * ### Advanced combination of queries:
-   *
-   * It is possible to combine different subqueries with OR, AND, and AND_NOT,
-   * and even with different search options, by passing a query expression
-   * tree object as the first argument, instead of a string.
-   *
-   * ```javascript
-   * // Search for documents that contain "zen" and ("motorcycle" or "archery")
-   * miniSearch.search({
-   *   combineWith: 'AND',
-   *   queries: [
-   *     'zen',
-   *     {
-   *       combineWith: 'OR',
-   *       queries: ['motorcycle', 'archery']
-   *     }
-   *   ]
-   * })
-   *
-   * // Search for documents that contain ("apple" or "pear") but not "juice" and
-   * // not "tree"
-   * miniSearch.search({
-   *   combineWith: 'AND_NOT',
-   *   queries: [
-   *     {
-   *       combineWith: 'OR',
-   *       queries: ['apple', 'pear']
-   *     },
-   *     'juice',
-   *     'tree'
-   *   ]
-   * })
-   * ```
-   *
-   * Each node in the expression tree can be either a string, or an object that
-   * supports all `SearchOptions` fields, plus a `queries` array field for
-   * subqueries.
-   *
-   * Note that, while this can become complicated to do by hand for complex or
-   * deeply nested queries, it provides a formalized expression tree API for
-   * external libraries that implement a parser for custom query languages.
-   *
-   * @param query  Search query
-   * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
-   */
-  search(query: Query, searchOptions: SearchOptions = {}): SearchResult[] {
-    const combinedResults = this.executeQuery(query, searchOptions);
-
-    const results = [];
-
-    for (const [docId, { score, terms, match }] of combinedResults) {
-      // Final score takes into account the number of matching QUERY terms.
-      // The end user will only receive the MATCHED terms.
-      const quality = terms.length;
-
-      const result = {
-        id: this._documentIds.get(docId),
-        score: score * quality,
-        terms: Object.keys(match),
-        match,
-      };
-
-      Object.assign(result, this._storedFields.get(docId));
-      if (searchOptions.filter == null || searchOptions.filter(result))
-        results.push(result);
-    }
-
-    results.sort(byScore);
-
-    return results;
-  }
-
-  /**
-   * Provide suggestions for the given search query
-   *
-   * The result is a list of suggested modified search queries, derived from the
-   * given search query, each with a relevance score, sorted by descending score.
-   *
-   * By default, it uses the same options used for search, except that by
-   * default it performs prefix search on the last term of the query, and
-   * combine terms with `'AND'` (requiring all query terms to match). Custom
-   * options can be passed as a second argument. Defaults can be changed upon
-   * calling the `MiniSearch` constructor, by passing a `autoSuggestOptions`
-   * option.
-   *
-   * ### Basic usage:
-   *
-   * ```javascript
-   * // Get suggestions for 'neuro':
-   * miniSearch.autoSuggest('neuro')
-   * // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 0.46240 } ]
-   * ```
-   *
-   * ### Multiple words:
-   *
-   * ```javascript
-   * // Get suggestions for 'zen ar':
-   * miniSearch.autoSuggest('zen ar')
-   * // => [
-   * //  { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
-   * //  { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 }
-   * // ]
-   * ```
-   *
-   * ### Fuzzy suggestions:
-   *
-   * ```javascript
-   * // Correct spelling mistakes using fuzzy search:
-   * miniSearch.autoSuggest('neromancer', { fuzzy: 0.2 })
-   * // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 1.03998 } ]
-   * ```
-   *
-   * ### Filtering:
-   *
-   * ```javascript
-   * // Get suggestions for 'zen ar', but only within the 'fiction' category
-   * // (assuming that 'category' is a stored field):
-   * miniSearch.autoSuggest('zen ar', {
-   *   filter: (result) => result.category === 'fiction'
-   * })
-   * // => [
-   * //  { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
-   * //  { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 }
-   * // ]
-   * ```
-   *
-   * @param queryString  Query string to be expanded into suggestions
-   * @param options  Search options. The supported options and default values
-   * are the same as for the `search` method, except that by default prefix
-   * search is performed on the last term in the query, and terms are combined
-   * with `'AND'`.
-   * @return  A sorted array of suggestions sorted by relevance score.
-   */
-  autoSuggest(queryString: string, options: SearchOptions = {}): Suggestion[] {
-    options = { ...this._options.autoSuggestOptions, ...options };
-
-    const suggestions: Map<
-      string,
-      Omit<Suggestion, "suggestion"> & { count: number }
-    > = new Map();
-
-    for (const { score, terms } of this.search(queryString, options)) {
-      const phrase = terms.join(" ");
-      const suggestion = suggestions.get(phrase);
-
-      if (suggestion != null) {
-        suggestion.score += score;
-        suggestion.count += 1;
-      } else {
-        suggestions.set(phrase, { score, terms, count: 1 });
-      }
-    }
-
-    const results = [];
-
-    for (const [suggestion, { score, terms, count }] of suggestions)
-      results.push({ suggestion, terms, score: score / count });
-
-    results.sort(byScore);
-
-    return results;
-  }
-
-  /**
    * Total number of documents available to search
    */
   get documentCount(): number {
@@ -1035,36 +639,6 @@ export class MiniSearch<T = any> {
    */
   get termCount(): number {
     return this._index.size;
-  }
-
-  /**
-   * Deserializes a JSON index (serialized with `JSON.stringify(miniSearch)`)
-   * and instantiates a MiniSearch instance. It should be given the same options
-   * originally used when serializing the index.
-   *
-   * ### Usage:
-   *
-   * ```javascript
-   * // If the index was serialized with:
-   * let miniSearch = new MiniSearch({ fields: ['title', 'text'] })
-   * miniSearch.addAll(documents)
-   *
-   * const json = JSON.stringify(miniSearch)
-   * // It can later be deserialized like this:
-   * miniSearch = MiniSearch.loadJSON(json, { fields: ['title', 'text'] })
-   * ```
-   *
-   * @param json  JSON-serialized index
-   * @param options  configuration options, same as the constructor
-   * @return An instance of MiniSearch deserialized from the given JSON.
-   */
-  static loadJSON<T = any>(json: string, options: Options<T>): MiniSearch<T> {
-    if (options == null)
-      throw new Error(
-        "MiniSearch: loadJSON should be given the same options used when serializing the index"
-      );
-
-    return this.loadJS(JSON.parse(json), options);
   }
 
   /**
@@ -1092,69 +666,6 @@ export class MiniSearch<T = any> {
     if (defaultOptions.hasOwnProperty(optionName))
       return getOwnProperty(defaultOptions, optionName);
     else throw new Error(`MiniSearch: unknown option "${optionName}"`);
-  }
-
-  /**
-   * @ignore
-   */
-  static loadJS<T = any>(
-    js: AsPlainObject,
-    options: Options<T>
-  ): MiniSearch<T> {
-    const {
-      index,
-      documentCount,
-      nextId,
-      documentIds,
-      fieldIds,
-      fieldLength,
-      averageFieldLength,
-      storedFields,
-      dirtCount,
-      serializationVersion,
-    } = js;
-
-    if (serializationVersion !== 1 && serializationVersion !== 2)
-      throw new Error(
-        "MiniSearch: cannot deserialize an index created with an incompatible version"
-      );
-
-    const miniSearch = new MiniSearch(options);
-
-    miniSearch._documentCount = documentCount;
-    miniSearch._nextId = nextId;
-    miniSearch._documentIds = objectToNumericMap(documentIds);
-    miniSearch._idToShortId = new Map<any, number>();
-    miniSearch._fieldIds = fieldIds;
-    miniSearch._fieldLength = objectToNumericMap(fieldLength);
-    miniSearch._avgFieldLength = averageFieldLength;
-    miniSearch._storedFields = objectToNumericMap(storedFields);
-    miniSearch._dirtCount = dirtCount || 0;
-    miniSearch._index = new SearchableMap();
-
-    for (const [shortId, id] of miniSearch._documentIds)
-      miniSearch._idToShortId.set(id, shortId);
-
-    for (const [term, data] of index) {
-      const dataMap = new Map() as FieldTermData;
-
-      for (const fieldId of Object.keys(data)) {
-        let indexEntry = data[fieldId];
-
-        // Version 1 used to nest the index entry inside a field called ds
-        if (serializationVersion === 1)
-          indexEntry = indexEntry.ds as unknown as SerializedIndexEntry;
-
-        dataMap.set(
-          parseInt(fieldId, 10),
-          objectToNumericMap(indexEntry) as DocumentTermFreqs
-        );
-      }
-
-      miniSearch._index.set(term, dataMap);
-    }
-
-    return miniSearch;
   }
 
   /**
@@ -1605,3 +1116,94 @@ export class MiniSearch<T = any> {
     }
   }
 }
+
+export const loadIndex = <T = any>(
+  {
+    index,
+    documentCount,
+    nextId,
+    documentIds,
+    fieldIds,
+    fieldLength,
+    averageFieldLength,
+    storedFields,
+    dirtCount,
+    serializationVersion,
+  }: AsPlainObject,
+  options: Options<T>
+): MiniSearch<T> => {
+  if (serializationVersion !== 1 && serializationVersion !== 2)
+    throw new Error(
+      "MiniSearch: cannot deserialize an index created with an incompatible version"
+    );
+
+  const miniSearch = new MiniSearch(options);
+
+  miniSearch._documentCount = documentCount;
+  miniSearch._nextId = nextId;
+  miniSearch._documentIds = objectToNumericMap(documentIds);
+  miniSearch._idToShortId = new Map<any, number>();
+  miniSearch._fieldIds = fieldIds;
+  miniSearch._fieldLength = objectToNumericMap(fieldLength);
+  miniSearch._avgFieldLength = averageFieldLength;
+  miniSearch._storedFields = objectToNumericMap(storedFields);
+  miniSearch._dirtCount = dirtCount || 0;
+  miniSearch._index = new SearchableMap();
+
+  for (const [shortId, id] of miniSearch._documentIds)
+    miniSearch._idToShortId.set(id, shortId);
+
+  for (const [term, data] of index) {
+    const dataMap = new Map() as FieldTermData;
+
+    for (const fieldId of Object.keys(data)) {
+      let indexEntry = data[fieldId];
+
+      // Version 1 used to nest the index entry inside a field called ds
+      if (serializationVersion === 1)
+        indexEntry = indexEntry.ds as unknown as SerializedIndexEntry;
+
+      dataMap.set(
+        parseInt(fieldId, 10),
+        objectToNumericMap(indexEntry) as DocumentTermFreqs
+      );
+    }
+
+    miniSearch._index.set(term, dataMap);
+  }
+
+  return miniSearch;
+};
+
+/**
+ * Deserializes a JSON index (serialized with `JSON.stringify(miniSearch)`)
+ * and instantiates a MiniSearch instance. It should be given the same options
+ * originally used when serializing the index.
+ *
+ * ### Usage:
+ *
+ * ```javascript
+ * // If the index was serialized with:
+ * let miniSearch = new MiniSearch({ fields: ['title', 'text'] })
+ * miniSearch.addAll(documents)
+ *
+ * const json = JSON.stringify(miniSearch)
+ * // It can later be deserialized like this:
+ * miniSearch = MiniSearch.loadJSON(json, { fields: ['title', 'text'] })
+ * ```
+ *
+ * @param json  JSON-serialized index
+ * @param options  configuration options, same as the constructor
+ * @return An instance of MiniSearch deserialized from the given JSON.
+ */
+export const loadJSONIndex = <T = any>(
+  json: string,
+  options: Options<T>
+): MiniSearch<T> => {
+  if (options == null)
+    throw new Error(
+      "MiniSearch: loadJSON should be given the same options used when serializing the index"
+    );
+
+  return loadIndex(JSON.parse(json), options);
+};

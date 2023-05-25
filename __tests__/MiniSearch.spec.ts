@@ -1,7 +1,13 @@
 // @ts-nocheck
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MiniSearch } from "../src/MiniSearch.js";
+import {
+  MiniSearch,
+  autoSuggest,
+  loadJSONIndex,
+  search,
+  vacuum,
+} from "../src/index.js";
 
 describe("MiniSearch", () => {
   describe("constructor", () => {
@@ -70,7 +76,7 @@ describe("MiniSearch", () => {
         text: "Nel mezzo del cammin di nostra vita",
       });
 
-      const results = ms.search("vita");
+      const results = search(ms, "vita");
 
       expect(results[0].id).toEqual(123);
     });
@@ -186,7 +192,7 @@ describe("MiniSearch", () => {
         ms.add({ id: 123, text: "foobar" });
       }).not.toThrowError();
 
-      expect(ms.search("bar")).toHaveLength(1);
+      expect(search(ms, "bar")).toHaveLength(1);
     });
   });
 
@@ -222,8 +228,8 @@ describe("MiniSearch", () => {
       expect(ms.documentCount).toEqual(3);
       ms.remove(documents[0]);
       expect(ms.documentCount).toEqual(2);
-      expect(ms.search("commedia").length).toEqual(0);
-      expect(ms.search("vita").map(({ id }) => id)).toEqual([3]);
+      expect(search(ms, "commedia").length).toEqual(0);
+      expect(search(ms, "vita").map(({ id }) => id)).toEqual([3]);
       expect(console.warn).not.toHaveBeenCalled();
     });
 
@@ -246,7 +252,7 @@ describe("MiniSearch", () => {
 
     it("does not remove terms from other documents", () => {
       ms.remove(documents[0]);
-      expect(ms.search("cammin").length).toEqual(1);
+      expect(search(ms, "cammin").length).toEqual(1);
     });
 
     it("removes re-added document", () => {
@@ -278,7 +284,7 @@ describe("MiniSearch", () => {
         ms.remove(document);
       }).not.toThrowError();
 
-      expect(ms.search("vita")).toEqual([]);
+      expect(search(ms, "vita")).toEqual([]);
     });
 
     it("cleans up the index", () => {
@@ -318,7 +324,7 @@ describe("MiniSearch", () => {
         ms.remove(document);
       }).not.toThrowError();
 
-      expect(ms.search("vita")).toEqual([]);
+      expect(search(ms, "vita")).toEqual([]);
     });
 
     it("does not crash when the document has field named like default properties of object", () => {
@@ -335,10 +341,10 @@ describe("MiniSearch", () => {
     it("does not reassign IDs", () => {
       ms.remove(documents[0]);
       ms.add(documents[0]);
-      expect(ms.search("commedia").map((result) => result.id)).toEqual([
+      expect(search(ms, "commedia").map((result) => result.id)).toEqual([
         documents[0].id,
       ]);
-      expect(ms.search("nova").map((result) => result.id)).toEqual([
+      expect(search(ms, "nova").map((result) => result.id)).toEqual([
         documents[documents.length - 1].id,
       ]);
     });
@@ -365,7 +371,7 @@ describe("MiniSearch", () => {
         ms.remove(document);
       }).not.toThrowError();
 
-      expect(ms.search("bar")).toHaveLength(0);
+      expect(search(ms, "bar")).toHaveLength(0);
     });
 
     describe("when using custom per-field extraction/tokenizer/processing", () => {
@@ -416,8 +422,8 @@ describe("MiniSearch", () => {
         expect(ms.documentCount).toEqual(3);
         ms.remove(documents[0]);
         expect(ms.documentCount).toEqual(2);
-        expect(ms.search("commedia").length).toEqual(0);
-        expect(ms.search("vita").map(({ id }) => id)).toEqual([3]);
+        expect(search(ms, "commedia").length).toEqual(0);
+        expect(search(ms, "vita").map(({ id }) => id)).toEqual([3]);
         expect(console.warn).not.toHaveBeenCalled();
       });
     });
@@ -509,7 +515,7 @@ describe("MiniSearch", () => {
     });
 
     it("removes all documents from the index if called with no argument", () => {
-      const empty = MiniSearch.loadJSON(JSON.stringify(ms), {
+      const empty = loadJSONIndex(JSON.stringify(ms), {
         fields: ["title", "text"],
       });
 
@@ -528,9 +534,9 @@ describe("MiniSearch", () => {
       ms.removeAll([documents[0], documents[2]]);
 
       expect(ms.documentCount).toEqual(1);
-      expect(ms.search("commedia").length).toEqual(0);
-      expect(ms.search("vita").length).toEqual(0);
-      expect(ms.search("lago").length).toEqual(1);
+      expect(search(ms, "commedia").length).toEqual(0);
+      expect(search(ms, "vita").length).toEqual(0);
+      expect(search(ms, "lago").length).toEqual(1);
     });
 
     it("raises an error if called with a falsey argument", () => {
@@ -559,12 +565,12 @@ describe("MiniSearch", () => {
 
       ms.addAll(documents);
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([1, 2]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
       expect([1, 2].map((id) => ms.has(id))).toEqual([true, true]);
 
       ms.discard(1);
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([2]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2]);
       expect([1, 2].map((id) => ms.has(id))).toEqual([false, true]);
     });
 
@@ -586,7 +592,7 @@ describe("MiniSearch", () => {
       ];
 
       ms.addAll(documents);
-      const clone = MiniSearch.loadJSON(JSON.stringify(ms), {
+      const clone = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
       });
 
@@ -614,16 +620,16 @@ describe("MiniSearch", () => {
       ms.discard(1);
       ms.add({ id: 1, text: "Some new stuff" });
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([1, 2]);
-      expect(ms.search("new").map((doc) => doc.id)).toEqual([1]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
+      expect(search(ms, "new").map((doc) => doc.id)).toEqual([1]);
 
       ms.discard(1);
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([2]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2]);
 
       ms.add({ id: 1, text: "Some newer stuff" });
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([1, 2]);
-      expect(ms.search("new").map((doc) => doc.id)).toEqual([]);
-      expect(ms.search("newer").map((doc) => doc.id)).toEqual([1]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
+      expect(search(ms, "new").map((doc) => doc.id)).toEqual([]);
+      expect(search(ms, "newer").map((doc) => doc.id)).toEqual([1]);
     });
 
     it("leaves the index in the same state as removal when all terms are searched at least once", () => {
@@ -631,7 +637,7 @@ describe("MiniSearch", () => {
       const document = { id: 1, text: "Some stuff" };
 
       ms.add(document);
-      const clone = MiniSearch.loadJSON(JSON.stringify(ms), {
+      const clone = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
         storeFields: ["text"],
       });
@@ -641,12 +647,12 @@ describe("MiniSearch", () => {
 
       expect(ms).not.toEqual(clone);
 
-      const results = ms.search("some stuff");
+      const results = search(ms, "some stuff");
 
       expect(ms._index).toEqual(clone._index);
 
       // Results are the same after the first search
-      expect(ms.search("stuff")).toEqual(results);
+      expect(search(ms, "stuff")).toEqual(results);
     });
 
     it("triggers auto vacuum by default", () => {
@@ -826,7 +832,7 @@ describe("MiniSearch", () => {
       // But before the enqueued vacuum is ran, we invoke a manual vacuum with
       // no conditions, so it should run even with a dirt count below
       // minDirtCount
-      ms.vacuum();
+      vacuum(ms);
 
       while (ms.isVacuuming) await ms._currentVacuum;
 
@@ -845,12 +851,12 @@ describe("MiniSearch", () => {
 
       ms.addAll(documents);
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([1, 2, 3]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2, 3]);
       expect([1, 2, 3].map((id) => ms.has(id))).toEqual([true, true, true]);
 
       ms.discardAll([1, 3]);
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([2]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2]);
       expect([1, 2, 3].map((id) => ms.has(id))).toEqual([false, true, false]);
     });
 
@@ -911,15 +917,15 @@ describe("MiniSearch", () => {
 
       ms.addAll(documents);
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([1, 2]);
-      expect(ms.search("quite").map((doc) => doc.id)).toEqual([1]);
-      expect(ms.search("even").map((doc) => doc.id)).toEqual([]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
+      expect(search(ms, "quite").map((doc) => doc.id)).toEqual([1]);
+      expect(search(ms, "even").map((doc) => doc.id)).toEqual([]);
 
       ms.replace({ id: 1, text: "Some even more interesting stuff" });
 
-      expect(ms.search("stuff").map((doc) => doc.id)).toEqual([2, 1]);
-      expect(ms.search("quite").map((doc) => doc.id)).toEqual([]);
-      expect(ms.search("even").map((doc) => doc.id)).toEqual([1]);
+      expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2, 1]);
+      expect(search(ms, "quite").map((doc) => doc.id)).toEqual([]);
+      expect(search(ms, "even").map((doc) => doc.id)).toEqual([1]);
     });
 
     it("raises error if a document with the given ID does not exist", () => {
@@ -942,7 +948,7 @@ describe("MiniSearch", () => {
       ];
 
       ms.addAll(documents);
-      const clone = MiniSearch.loadJSON(JSON.stringify(ms), {
+      const clone = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
         storeFields: ["text"],
       });
@@ -954,7 +960,7 @@ describe("MiniSearch", () => {
 
       expect(ms).not.toEqual(clone);
 
-      await ms.vacuum({ batchSize: 1 });
+      await vacuum(ms, { batchSize: 1 });
 
       expect(ms).toEqual(clone);
       expect(ms.isVacuuming).toEqual(false);
@@ -962,7 +968,7 @@ describe("MiniSearch", () => {
 
     it("schedules a second vacuum right after the current one completes, if one is ongoing", async () => {
       const ms = new MiniSearch({ fields: ["text"] });
-      const empty = MiniSearch.loadJSON(JSON.stringify(ms), {
+      const empty = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
       });
       const documents = [
@@ -976,10 +982,10 @@ describe("MiniSearch", () => {
       ms.discard(2);
       ms.add({ id: 3, text: "Even more stuff" });
 
-      ms.vacuum({ batchSize: 1, batchWait: 50 });
+      vacuum(ms, { batchSize: 1, batchWait: 50 });
       ms.discard(3);
 
-      await ms.vacuum();
+      await vacuum(ms);
 
       expect(ms._index).toEqual(empty._index);
       expect(ms.isVacuuming).toEqual(false);
@@ -996,9 +1002,9 @@ describe("MiniSearch", () => {
       ms.discard(1);
       ms.discard(2);
 
-      const a = ms.vacuum({ batchSize: 1, batchWait: 50 });
-      const b = ms.vacuum();
-      const c = ms.vacuum();
+      const a = vacuum(ms, { batchSize: 1, batchWait: 50 });
+      const b = vacuum(ms);
+      const c = vacuum(ms);
 
       expect(a).not.toBe(b);
       expect(b).toBe(c);
@@ -1017,7 +1023,7 @@ describe("MiniSearch", () => {
       ];
 
       ms.addAll(documents);
-      await ms.vacuum({ batchSize: ms.termCount + 1 });
+      await vacuum(ms, { batchSize: ms.termCount + 1 });
       expect(ms.isVacuuming).toEqual(false);
     });
   });
@@ -1214,7 +1220,7 @@ describe("MiniSearch", () => {
     ms.addAll(documents);
 
     it("returns scored results", () => {
-      const results = ms.search("vita");
+      const results = search(ms, "vita");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ id }) => id).sort()).toEqual([1, 3]);
@@ -1222,7 +1228,7 @@ describe("MiniSearch", () => {
     });
 
     it("returns stored fields in the results", () => {
-      const results = ms.search("del");
+      const results = search(ms, "del");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ lang }) => lang).sort()).toEqual([
@@ -1238,13 +1244,13 @@ describe("MiniSearch", () => {
     });
 
     it("returns empty array if there is no match", () => {
-      const results = ms.search("paguro");
+      const results = search(ms, "paguro");
 
       expect(results).toEqual([]);
     });
 
     it("returns empty array for empty search", () => {
-      const results = ms.search("");
+      const results = search(ms, "");
 
       expect(results).toEqual([]);
     });
@@ -1253,13 +1259,13 @@ describe("MiniSearch", () => {
       let results;
 
       expect(() => {
-        results = ms.search("sottomarino aeroplano");
+        results = search(ms, "sottomarino aeroplano");
       }).not.toThrowError();
       expect(results.length).toEqual(0);
     });
 
     it("boosts fields", () => {
-      const results = ms.search("vita", { boost: { title: 2 } });
+      const results = search(ms, "vita", { boost: { title: 2 } });
 
       expect(results.map(({ id }) => id)).toEqual([3, 1]);
       expect(results[0].score).toBeGreaterThan(results[1].score);
@@ -1271,7 +1277,7 @@ describe("MiniSearch", () => {
       ms.add({ id: 1, constructor: "something" });
       ms.add({ id: 2, constructor: "something else" });
 
-      const results = ms.search("something");
+      const results = search(ms, "something");
 
       results.forEach((result) => {
         expect(Number.isFinite(result.score)).toBe(true);
@@ -1279,14 +1285,14 @@ describe("MiniSearch", () => {
     });
 
     it("searches only selected fields", () => {
-      const results = ms.search("vita", { fields: ["title"] });
+      const results = search(ms, "vita", { fields: ["title"] });
 
       expect(results).toHaveLength(1);
       expect(results[0].id).toEqual(3);
     });
 
     it("searches only selected fields even if other fields are boosted", () => {
-      const results = ms.search("vita", {
+      const results = search(ms, "vita", {
         fields: ["title"],
         boost: { text: 2 },
       });
@@ -1296,79 +1302,79 @@ describe("MiniSearch", () => {
     });
 
     it("combines results with OR by default", () => {
-      const results = ms.search("cammin como sottomarino");
+      const results = search(ms, "cammin como sottomarino");
 
       expect(results.length).toEqual(2);
       expect(results.map(({ id }) => id)).toEqual([2, 1]);
     });
 
     it("combines results with AND if combineWith is AND", () => {
-      const results = ms.search("vita cammin", { combineWith: "AND" });
+      const results = search(ms, "vita cammin", { combineWith: "AND" });
 
       expect(results.length).toEqual(1);
       expect(results.map(({ id }) => id)).toEqual([1]);
       expect(
-        ms.search("vita sottomarino", { combineWith: "AND" }).length
+        search(ms, "vita sottomarino", { combineWith: "AND" }).length
       ).toEqual(0);
       expect(
-        ms.search("sottomarino vita", { combineWith: "AND" }).length
+        search(ms, "sottomarino vita", { combineWith: "AND" }).length
       ).toEqual(0);
     });
 
     it("combines results with AND_NOT if combineWith is AND_NOT", () => {
-      const results = ms.search("vita cammin", { combineWith: "AND_NOT" });
+      const results = search(ms, "vita cammin", { combineWith: "AND_NOT" });
 
       expect(results.length).toEqual(1);
       expect(results.map(({ id }) => id)).toEqual([3]);
       expect(
-        ms.search("vita sottomarino", { combineWith: "AND_NOT" }).length
+        search(ms, "vita sottomarino", { combineWith: "AND_NOT" }).length
       ).toEqual(2);
       expect(
-        ms.search("sottomarino vita", { combineWith: "AND_NOT" }).length
+        search(ms, "sottomarino vita", { combineWith: "AND_NOT" }).length
       ).toEqual(0);
     });
 
     it("returns empty results for empty search", () => {
-      expect(ms.search("")).toEqual([]);
-      expect(ms.search("", { combineWith: "OR" })).toEqual([]);
-      expect(ms.search("", { combineWith: "AND" })).toEqual([]);
-      expect(ms.search("", { combineWith: "AND_NOT" })).toEqual([]);
+      expect(search(ms, "")).toEqual([]);
+      expect(search(ms, "", { combineWith: "OR" })).toEqual([]);
+      expect(search(ms, "", { combineWith: "AND" })).toEqual([]);
+      expect(search(ms, "", { combineWith: "AND_NOT" })).toEqual([]);
     });
 
     it("executes fuzzy search", () => {
-      const results = ms.search("camin memory", { fuzzy: 2 });
+      const results = search(ms, "camin memory", { fuzzy: 2 });
 
       expect(results.length).toEqual(2);
       expect(results.map(({ id }) => id)).toEqual([1, 3]);
     });
 
     it("executes fuzzy search with maximum fuzziness", () => {
-      const results = ms.search("comedia", { fuzzy: 0.6, maxFuzzy: 3 });
+      const results = search(ms, "comedia", { fuzzy: 0.6, maxFuzzy: 3 });
 
       expect(results.length).toEqual(1);
       expect(results.map(({ id }) => id)).toEqual([1]);
     });
 
     it("executes prefix search", () => {
-      const results = ms.search("que", { prefix: true });
+      const results = search(ms, "que", { prefix: true });
 
       expect(results.length).toEqual(2);
       expect(results.map(({ id }) => id)).toEqual([2, 3]);
     });
 
     it("combines prefix search and fuzzy search", () => {
-      const results = ms.search("cammino quel", { fuzzy: 0.25, prefix: true });
+      const results = search(ms, "cammino quel", { fuzzy: 0.25, prefix: true });
 
       expect(results.length).toEqual(3);
       expect(results.map(({ id }) => id)).toEqual([2, 1, 3]);
     });
 
     it("assigns weights to prefix matches and fuzzy matches", () => {
-      const exact = ms.search("cammino quel");
+      const exact = search(ms, "cammino quel");
 
       expect(exact.map(({ id }) => id)).toEqual([2]);
 
-      const prefixLast = ms.search("cammino quel", {
+      const prefixLast = search(ms, "cammino quel", {
         fuzzy: true,
         prefix: true,
         weights: { prefix: 0.1 },
@@ -1377,7 +1383,7 @@ describe("MiniSearch", () => {
       expect(prefixLast.map(({ id }) => id)).toEqual([2, 1, 3]);
       expect(prefixLast[0].score).toEqual(exact[0].score);
 
-      const fuzzyLast = ms.search("cammino quel", {
+      const fuzzyLast = search(ms, "cammino quel", {
         fuzzy: true,
         prefix: true,
         weights: { fuzzy: 0.1 },
@@ -1397,8 +1403,8 @@ describe("MiniSearch", () => {
       ms.addAll(documents);
       expect(ms.documentCount).toEqual(documents.length);
 
-      const exact = ms.search("gente");
-      const combined = ms.search("gente", { fuzzy: 0.2, prefix: true });
+      const exact = search(ms, "gente");
+      const combined = search(ms, "gente", { fuzzy: 0.2, prefix: true });
 
       expect(combined.map(({ id }) => id)).toEqual([1, 2]);
       expect(combined[0].score).toEqual(exact[0].score);
@@ -1408,7 +1414,7 @@ describe("MiniSearch", () => {
     it("accepts a function to compute fuzzy and prefix options from term", () => {
       const fuzzy = vi.fn((term) => (term.length > 4 ? 2 : false));
       const prefix = vi.fn((term) => term.length > 4);
-      const results = ms.search("quel comedia", { fuzzy, prefix });
+      const results = search(ms, "quel comedia", { fuzzy, prefix });
 
       expect(fuzzy).toHaveBeenNthCalledWith(1, "quel", 0, ["quel", "comedia"]);
       expect(fuzzy).toHaveBeenNthCalledWith(2, "comedia", 1, [
@@ -1428,8 +1434,8 @@ describe("MiniSearch", () => {
       const query = "divina commedia nova";
       const boostFactor = 1.234;
       const boostDocument = vi.fn((id, term) => boostFactor);
-      const resultsWithoutBoost = ms.search(query);
-      const results = ms.search(query, { boostDocument });
+      const resultsWithoutBoost = search(ms, query);
+      const results = search(ms, query, { boostDocument });
 
       expect(boostDocument).toHaveBeenCalledWith(1, "divina", {});
       expect(boostDocument).toHaveBeenCalledWith(1, "commedia", {});
@@ -1444,8 +1450,8 @@ describe("MiniSearch", () => {
     it("skips document if boostDocument returns a falsy value", () => {
       const query = "vita";
       const boostDocument = vi.fn((id, term) => (id === 3 ? null : 1));
-      const resultsWithoutBoost = ms.search(query);
-      const results = ms.search(query, { boostDocument });
+      const resultsWithoutBoost = search(ms, query);
+      const results = search(ms, query, { boostDocument });
 
       expect(resultsWithoutBoost.map(({ id }) => id)).toContain(3);
       expect(results.map(({ id }) => id)).not.toContain(3);
@@ -1453,7 +1459,7 @@ describe("MiniSearch", () => {
 
     it("uses a specific search-time tokenizer if specified", () => {
       const tokenize = (string) => string.split("X");
-      const results = ms.search("divinaXcommedia", { tokenize });
+      const results = search(ms, "divinaXcommedia", { tokenize });
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ id }) => id).sort()).toEqual([1]);
@@ -1462,7 +1468,7 @@ describe("MiniSearch", () => {
     it("uses a specific search-time term processing function if specified", () => {
       const processTerm = (string) =>
         string.replace(/1/g, "i").replace(/4/g, "a").toLowerCase();
-      const results = ms.search("d1v1n4", { processTerm });
+      const results = search(ms, "d1v1n4", { processTerm });
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ id }) => id).sort()).toEqual([1]);
@@ -1470,7 +1476,7 @@ describe("MiniSearch", () => {
 
     it("rejects falsy terms", () => {
       const processTerm = (term) => (term === "quel" ? null : term);
-      const results = ms.search("quel commedia", { processTerm });
+      const results = search(ms, "quel commedia", { processTerm });
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ id }) => id).sort()).toEqual([1]);
@@ -1479,14 +1485,14 @@ describe("MiniSearch", () => {
     it("allows processTerm to expand a single term into several terms", () => {
       const processTerm = (string) =>
         string === "divinacommedia" ? ["divina", "commedia"] : string;
-      const results = ms.search("divinacommedia", { processTerm });
+      const results = search(ms, "divinacommedia", { processTerm });
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ id }) => id).sort()).toEqual([1]);
     });
 
     it("allows custom filtering of results on the basis of stored fields", () => {
-      const results = ms.search("del", {
+      const results = search(ms, "del", {
         filter: ({ category }) => category === "poetry",
       });
 
@@ -1506,14 +1512,14 @@ describe("MiniSearch", () => {
 
       ms.addAll(documents);
 
-      expect(ms.search("very")[0].score).toBeGreaterThan(
-        ms.search("very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score
+      expect(search(ms, "very")[0].score).toBeGreaterThan(
+        search(ms, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score
       );
-      expect(ms.search("something")[1].score).toBeGreaterThan(
-        ms.search("something", { bm25: { k: 1.2, b: 1, d: 0.5 } })[1].score
+      expect(search(ms, "something")[1].score).toBeGreaterThan(
+        search(ms, "something", { bm25: { k: 1.2, b: 1, d: 0.5 } })[1].score
       );
-      expect(ms.search("something")[1].score).toBeGreaterThan(
-        ms.search("something", { bm25: { k: 1.2, b: 0.7, d: 0.1 } })[1].score
+      expect(search(ms, "something")[1].score).toBeGreaterThan(
+        search(ms, "something", { bm25: { k: 1.2, b: 0.7, d: 0.1 } })[1].score
       );
 
       // Defaults are taken from the searchOptions passed to the constructor
@@ -1524,14 +1530,14 @@ describe("MiniSearch", () => {
 
       other.addAll(documents);
 
-      expect(other.search("very")).toEqual(
-        ms.search("very", { bm25: { k: 1, b: 0.7, d: 0.5 } })
+      expect(search(other, "very")).toEqual(
+        search(ms, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })
       );
     });
 
     describe("when passing a query tree", () => {
       it("searches according to the given combination", () => {
-        const results = ms.search({
+        const results = search(ms, {
           combineWith: "OR",
           queries: [
             {
@@ -1551,7 +1557,7 @@ describe("MiniSearch", () => {
       });
 
       it("uses the given options for each subquery, cascading them properly", () => {
-        const results = ms.search({
+        const results = search(ms, {
           combineWith: "OR",
           fuzzy: true,
           queries: [
@@ -1576,7 +1582,7 @@ describe("MiniSearch", () => {
       });
 
       it("uses the search options in the second argument as default", () => {
-        const reference = ms.search({
+        const reference = search(ms, {
           queries: [
             { fields: ["text"], queries: ["vita"] },
             { fields: ["title"], queries: ["promessi"] },
@@ -1584,7 +1590,8 @@ describe("MiniSearch", () => {
         });
 
         // Boost field
-        let results = ms.search(
+        let results = search(
+          ms,
           {
             queries: [
               { fields: ["text"], queries: ["vita"] },
@@ -1600,7 +1607,8 @@ describe("MiniSearch", () => {
         );
 
         // Combine with AND
-        results = ms.search(
+        results = search(
+          ms,
           {
             queries: [
               { fields: ["text"], queries: ["vita"] },
@@ -1613,7 +1621,8 @@ describe("MiniSearch", () => {
         expect(results.length).toEqual(0);
 
         // Combine with AND, then override it with OR
-        results = ms.search(
+        results = search(
+          ms,
           {
             queries: [
               { fields: ["text"], queries: ["vita"] },
@@ -1651,7 +1660,7 @@ describe("MiniSearch", () => {
       ms.addAll(documents);
 
       it("reports information about matched terms and fields", () => {
-        const results = ms.search("vita nova");
+        const results = search(ms, "vita nova");
 
         expect(results.length).toBeGreaterThan(0);
         expect(results.map(({ match }) => match)).toEqual([
@@ -1665,7 +1674,7 @@ describe("MiniSearch", () => {
       });
 
       it("reports correct info when combining terms with AND", () => {
-        const results = ms.search("vita nova", { combineWith: "AND" });
+        const results = search(ms, "vita nova", { combineWith: "AND" });
 
         expect(results.map(({ match }) => match)).toEqual([
           { vita: ["title", "text"], nova: ["title"] },
@@ -1674,7 +1683,7 @@ describe("MiniSearch", () => {
       });
 
       it("reports correct info for fuzzy and prefix queries", () => {
-        const results = ms.search("vi nuova", { fuzzy: 0.2, prefix: true });
+        const results = search(ms, "vi nuova", { fuzzy: 0.2, prefix: true });
 
         expect(results.map(({ match }) => match)).toEqual([
           { vita: ["title", "text"], nova: ["title"] },
@@ -1687,7 +1696,7 @@ describe("MiniSearch", () => {
       });
 
       it("reports correct info for many fuzzy and prefix queries", () => {
-        const results = ms.search("vi nuova m de", {
+        const results = search(ms, "vi nuova m de", {
           fuzzy: 0.2,
           prefix: true,
         });
@@ -1719,7 +1728,7 @@ describe("MiniSearch", () => {
         });
         const query = "some search query";
 
-        ms.search(query);
+        search(ms, query);
         expect(tokenize).toHaveBeenCalledWith(query);
       });
 
@@ -1731,7 +1740,7 @@ describe("MiniSearch", () => {
         });
         const query = "some search query";
 
-        ms.search(query);
+        search(ms, query);
         query.split(/\W+/).forEach((term) => {
           expect(processTerm).toHaveBeenCalledWith(term);
         });
@@ -1746,10 +1755,10 @@ describe("MiniSearch", () => {
 
         specialWords.forEach((word) => {
           expect(() => {
-            ms.search(word);
+            search(ms, word);
           }).not.toThrowError();
 
-          const results = ms.search(word);
+          const results = search(ms, word);
 
           expect(results[0].id).toEqual(1);
           expect(results[0].match[processTerm(word)]).toEqual(["text"]);
@@ -1829,7 +1838,7 @@ describe("MiniSearch", () => {
         // This should be fairly easy. We test that exact matches come before
         // prefix matches, and that hits in shorter fields (title) come before
         // hits in longer fields (description)
-        const hits = ms.search("lamb", { fuzzy: 1, prefix: true });
+        const hits = search(ms, "lamb", { fuzzy: 1, prefix: true });
 
         expect(hits.map(({ title }) => title)).toEqual([
           // Exact title match.
@@ -1856,7 +1865,7 @@ describe("MiniSearch", () => {
         // title than it does in the description. One result, 'Rams', has a very
         // short description with an exact match, but it should never outrank
         // the result with an exact match in the title AND description.
-        const hits = ms.search("sheep", { fuzzy: 1, prefix: true });
+        const hits = search(ms, "sheep", { fuzzy: 1, prefix: true });
 
         expect(hits.map(({ title }) => title)).toEqual([
           // Has 'sheep' in title and once in a description of average length.
@@ -1878,31 +1887,31 @@ describe("MiniSearch", () => {
 
       it("returns best results for shaun", () => {
         // Two movies contain the query in the title. Pick the shorter title.
-        expect(ms.search("shaun the sheep")[0].title).toEqual(
+        expect(search(ms, "shaun the sheep")[0].title).toEqual(
           "Shaun the Sheep"
         );
         expect(
-          ms.search("shaun the sheep", { fuzzy: 1, prefix: true })[0].title
+          search(ms, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title
         ).toEqual("Shaun the Sheep");
       });
 
       it("returns best results for chirin", () => {
         // The title contains neither 'sheep' nor the character name. Movies
         // that have 'sheep' or 'the' in the title should not outrank this.
-        expect(ms.search("chirin the sheep")[0].title).toEqual("Ringing Bell");
+        expect(search(ms, "chirin the sheep")[0].title).toEqual("Ringing Bell");
         expect(
-          ms.search("chirin the sheep", { fuzzy: 1, prefix: true })[0].title
+          search(ms, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title
         ).toEqual("Ringing Bell");
       });
 
       it("returns best results for judah", () => {
         // Title contains the character's name, but the word 'sheep' never
         // occurs. Other movies that do contain 'sheep' should not outrank this.
-        expect(ms.search("judah the sheep")[0].title).toEqual(
+        expect(search(ms, "judah the sheep")[0].title).toEqual(
           "The Lion of Judah"
         );
         expect(
-          ms.search("judah the sheep", { fuzzy: 1, prefix: true })[0].title
+          search(ms, "judah the sheep", { fuzzy: 1, prefix: true })[0].title
         ).toEqual("The Lion of Judah");
       });
 
@@ -1912,7 +1921,7 @@ describe("MiniSearch", () => {
         // specific. Does not contain 'sheep' at all! Because 'sheep' is a
         // slightly more common term in the dataset, that should not cause other
         // results to outrank this.
-        expect(ms.search("bounding sheep", { fuzzy: 1 })[0].title).toEqual(
+        expect(search(ms, "bounding sheep", { fuzzy: 1 })[0].title).toEqual(
           "Boundin'"
         );
       });
@@ -1973,7 +1982,7 @@ describe("MiniSearch", () => {
       });
 
       it("returns best results for witch queen", () => {
-        const hits = ms.search("witch queen", { fuzzy: 1, prefix: true });
+        const hits = search(ms, "witch queen", { fuzzy: 1, prefix: true });
 
         expect(hits.map(({ song }) => song)).toEqual([
           // The only result that has both terms. This should not be outranked
@@ -1993,7 +2002,7 @@ describe("MiniSearch", () => {
 
       it("returns best results for queen", () => {
         // The only match where both song and artist contain 'queen'.
-        expect(ms.search("queen", { fuzzy: 1, prefix: true })[0].song).toEqual(
+        expect(search(ms, "queen", { fuzzy: 1, prefix: true })[0].song).toEqual(
           "Killer Queen"
         );
       });
@@ -2020,12 +2029,12 @@ e forse del mio dir poco ti cale`,
       const ms = new MiniSearch({ fields: ["text"] });
 
       ms.addAll(documents);
-      expect(ms.search("perché").length).toBeGreaterThan(0);
-      expect(ms.search("perch").length).toEqual(0);
-      expect(ms.search("luna").length).toBeGreaterThan(0);
+      expect(search(ms, "perché").length).toBeGreaterThan(0);
+      expect(search(ms, "perch").length).toEqual(0);
+      expect(search(ms, "luna").length).toBeGreaterThan(0);
 
-      expect(ms.search("300").length).toBeGreaterThan(0);
-      expect(ms.search("machinery").length).toBeGreaterThan(0);
+      expect(search(ms, "300").length).toBeGreaterThan(0);
+      expect(search(ms, "machinery").length).toBeGreaterThan(0);
     });
 
     it("supports non-latin alphabets", () => {
@@ -2040,11 +2049,11 @@ e forse del mio dir poco ti cale`,
 
       ms.addAll(documents);
 
-      expect(ms.search("софия").map(({ id }) => id)).toEqual([1]);
-      expect(ms.search("アネモネ").map(({ id }) => id)).toEqual([2]);
-      expect(ms.search("τέχνη").map(({ id }) => id)).toEqual([3]);
-      expect(ms.search("الرأس").map(({ id }) => id)).toEqual([4]);
-      expect(ms.search("123").map(({ id }) => id)).toEqual([5]);
+      expect(search(ms, "софия").map(({ id }) => id)).toEqual([1]);
+      expect(search(ms, "アネモネ").map(({ id }) => id)).toEqual([2]);
+      expect(search(ms, "τέχνη").map(({ id }) => id)).toEqual([3]);
+      expect(search(ms, "الرأس").map(({ id }) => id)).toEqual([4]);
+      expect(search(ms, "123").map(({ id }) => id)).toEqual([5]);
     });
   });
 
@@ -2077,7 +2086,7 @@ e forse del mio dir poco ti cale`,
     ms.addAll(documents);
 
     it("returns scored suggestions", () => {
-      const results = ms.autoSuggest("com");
+      const results = autoSuggest(ms, "com");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
@@ -2088,19 +2097,19 @@ e forse del mio dir poco ti cale`,
     });
 
     it("returns empty array if there is no match", () => {
-      const results = ms.autoSuggest("paguro");
+      const results = autoSuggest(ms, "paguro");
 
       expect(results).toEqual([]);
     });
 
     it("returns empty array for empty search", () => {
-      const results = ms.autoSuggest("");
+      const results = autoSuggest(ms, "");
 
       expect(results).toEqual([]);
     });
 
     it("returns scored suggestions for multi-word queries", () => {
-      const results = ms.autoSuggest("vita no");
+      const results = autoSuggest(ms, "vita no");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
@@ -2111,7 +2120,7 @@ e forse del mio dir poco ti cale`,
     });
 
     it("respects the order of the terms in the query", () => {
-      const results = ms.autoSuggest("nostra vi");
+      const results = autoSuggest(ms, "nostra vi");
 
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
         "nostra vita",
@@ -2122,27 +2131,27 @@ e forse del mio dir poco ti cale`,
       let results;
 
       expect(() => {
-        results = ms.autoSuggest("sottomarino aeroplano");
+        results = autoSuggest(ms, "sottomarino aeroplano");
       }).not.toThrowError();
       expect(results.length).toEqual(0);
     });
 
     it("does not duplicate suggested terms", () => {
-      const results = ms.autoSuggest("vita", { fuzzy: true, prefix: true });
+      const results = autoSuggest(ms, "vita", { fuzzy: true, prefix: true });
 
       expect(results[0].suggestion).toEqual("vita");
       expect(results[0].terms).toEqual(["vita"]);
     });
 
     it("applies the given custom filter", () => {
-      let results = ms.autoSuggest("que", {
+      let results = autoSuggest(ms, "que", {
         filter: ({ category }) => category === "fiction",
       });
 
       expect(results[0].suggestion).toEqual("quel");
       expect(results).toHaveLength(1);
 
-      results = ms.autoSuggest("que", {
+      results = autoSuggest(ms, "que", {
         filter: ({ category }) => category === "poetry",
       });
       expect(results[0].suggestion).toEqual("quella");
@@ -2156,7 +2165,7 @@ e forse del mio dir poco ti cale`,
       });
 
       ms.addAll(documents);
-      const results = ms.autoSuggest("nosta vi");
+      const results = autoSuggest(ms, "nosta vi");
 
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
         "nostra vita",
@@ -2171,7 +2180,7 @@ e forse del mio dir poco ti cale`,
       });
 
       ms.addAll(documents);
-      const results = ms.autoSuggest("nosta vi");
+      const results = autoSuggest(ms, "nosta vi");
 
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
         "nostra vita",
@@ -2208,9 +2217,9 @@ e forse del mio dir poco ti cale`,
       ms.addAll(documents);
 
       const json = JSON.stringify(ms);
-      const deserialized = MiniSearch.loadJSON(json, options);
+      const deserialized = loadJSONIndex(json, options);
 
-      expect(ms.search("vita")).toEqual(deserialized.search("vita"));
+      expect(search(ms, "vita")).toEqual(search(deserialized, "vita"));
 
       const original = ms.toJSON();
       const final = deserialized.toJSON();
@@ -2230,7 +2239,7 @@ e forse del mio dir poco ti cale`,
       const json = JSON.stringify(ms);
 
       expect(() => {
-        MiniSearch.loadJSON(json);
+        loadJSONIndex(json);
       }).toThrowError(
         "MiniSearch: loadJSON should be given the same options used when serializing the index"
       );
@@ -2241,7 +2250,7 @@ e forse del mio dir poco ti cale`,
       const json = "{}";
 
       expect(() => {
-        MiniSearch.loadJSON(json, options);
+        loadJSONIndex(json, options);
       }).toThrowError(
         "MiniSearch: cannot deserialize an index created with an incompatible version"
       );
@@ -2252,7 +2261,7 @@ e forse del mio dir poco ti cale`,
       const jsonV1 =
         '{"documentCount":3,"nextId":3,"documentIds":{"0":1,"1":2,"2":3},"fieldIds":{"title":0,"text":1},"fieldLength":{"0":[2,7],"1":[3,6],"2":[2,8]},"averageFieldLength":[2.3333333333333335,7],"storedFields":{"0":{"category":"poetry"},"1":{"category":"fiction"},"2":{"category":"poetry"}},"index":[["memoria",{"1":{"df":1,"ds":{"2":1}}}],["mezzo",{"1":{"df":1,"ds":{"0":1}}}],["mia",{"1":{"df":1,"ds":{"2":1}}}],["libro",{"1":{"df":1,"ds":{"2":1}}}],["lago",{"1":{"df":1,"ds":{"1":1}}}],["parte",{"1":{"df":1,"ds":{"2":1}}}],["promessi",{"0":{"df":1,"ds":{"1":1}}}],["ramo",{"1":{"df":1,"ds":{"1":1}}}],["quella",{"1":{"df":1,"ds":{"2":1}}}],["quel",{"1":{"df":1,"ds":{"1":1}}}],["sposi",{"0":{"df":1,"ds":{"1":1}}}],["in",{"1":{"df":1,"ds":{"2":1}}}],["i",{"0":{"df":1,"ds":{"1":1}}}],["vita",{"0":{"df":1,"ds":{"2":1}},"1":{"df":1,"ds":{"0":1}}}],["nova",{"0":{"df":1,"ds":{"2":1}}}],["nostra",{"1":{"df":1,"ds":{"0":1}}}],["nel",{"1":{"df":1,"ds":{"0":1}}}],["como",{"1":{"df":1,"ds":{"1":1}}}],["commedia",{"0":{"df":1,"ds":{"0":1}}}],["cammin",{"1":{"df":1,"ds":{"0":1}}}],["di",{"1":{"df":2,"ds":{"0":1,"1":1}}}],["divina",{"0":{"df":1,"ds":{"0":1}}}],["della",{"1":{"df":1,"ds":{"2":1}}}],["del",{"1":{"df":3,"ds":{"0":1,"1":1,"2":1}}}]],"serializationVersion":1}';
 
-      const ms1 = MiniSearch.loadJSON(jsonV1, options);
+      const ms1 = loadJSONIndex(jsonV1, options);
       const ms2 = new MiniSearch(options);
 
       ms2.addAll(documents);
@@ -2265,24 +2274,6 @@ e forse del mio dir poco ti cale`,
       expected.index.sort();
 
       expect(original).toEqual(expected);
-    });
-
-    it("allows subclassing and changing .loadJS", () => {
-      class Modified extends MiniSearch {
-        static loadJS(js, options) {
-          return super.loadJS({ ...js, documentCount: 99 }, options);
-        }
-      }
-
-      const options = { fields: ["title", "text"], storeFields: ["category"] };
-      const ms = new MiniSearch(options);
-
-      ms.addAll(documents);
-
-      const json = JSON.stringify(ms);
-      const deserialized = Modified.loadJSON(json, options);
-
-      expect(deserialized.documentCount).toEqual(99);
     });
   });
 
