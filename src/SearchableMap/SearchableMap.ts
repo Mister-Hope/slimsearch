@@ -1,7 +1,7 @@
 /* eslint-disable no-labels */
-import { TreeIterator, ENTRIES, KEYS, VALUES, LEAF } from './TreeIterator'
-import fuzzySearch, { FuzzyResults } from './fuzzySearch'
-import { RadixTree, Entry, Path } from './types'
+import { TreeIterator, ENTRIES, KEYS, VALUES, LEAF } from "./TreeIterator";
+import { type FuzzyResults, fuzzySearch } from "./fuzzySearch";
+import { type RadixTree, type Entry, type Path } from "./types";
 
 /**
  * A class implementing the same interface as a standard JavaScript
@@ -17,18 +17,18 @@ import { RadixTree, Entry, Path } from './types'
  *
  * @typeParam T  The type of the values stored in the map.
  */
-export default class SearchableMap<T = any> {
+export class SearchableMap<T = any> {
   /**
    * @internal
    */
-  _tree: RadixTree<T>
+  _tree: RadixTree<T>;
 
   /**
    * @internal
    */
-  _prefix: string
+  _prefix: string;
 
-  private _size: number | undefined = undefined
+  private _size: number | undefined = undefined;
 
   /**
    * The constructor is normally called without arguments, creating an empty
@@ -38,9 +38,9 @@ export default class SearchableMap<T = any> {
    * The constructor arguments are for internal use, when creating derived
    * mutable views of a map at a prefix.
    */
-  constructor (tree: RadixTree<T> = new Map(), prefix = '') {
-    this._tree = tree
-    this._prefix = prefix
+  constructor(tree: RadixTree<T> = new Map(), prefix = "") {
+    this._tree = tree;
+    this._prefix = prefix;
   }
 
   /**
@@ -71,58 +71,63 @@ export default class SearchableMap<T = any> {
    * @param prefix  The prefix
    * @return A [[SearchableMap]] representing a mutable view of the original Map at the given prefix
    */
-  atPrefix (prefix: string): SearchableMap<T> {
-    if (!prefix.startsWith(this._prefix)) { throw new Error('Mismatched prefix') }
+  atPrefix(prefix: string): SearchableMap<T> {
+    if (!prefix.startsWith(this._prefix)) {
+      throw new Error("Mismatched prefix");
+    }
 
-    const [node, path] = trackDown(this._tree, prefix.slice(this._prefix.length))
+    const [node, path] = trackDown(
+      this._tree,
+      prefix.slice(this._prefix.length)
+    );
 
     if (node === undefined) {
-      const [parentNode, key] = last(path)
+      const [parentNode, key] = last(path);
 
       for (const k of parentNode!.keys()) {
         if (k !== LEAF && k.startsWith(key)) {
-          const node = new Map()
-          node.set(k.slice(key.length), parentNode!.get(k)!)
-          return new SearchableMap(node, prefix)
+          const node = new Map();
+          node.set(k.slice(key.length), parentNode!.get(k)!);
+          return new SearchableMap(node, prefix);
         }
       }
     }
 
-    return new SearchableMap<T>(node, prefix)
+    return new SearchableMap<T>(node, prefix);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
    */
-  clear (): void {
-    this._size = undefined
-    this._tree.clear()
+  clear(): void {
+    this._size = undefined;
+    this._tree.clear();
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
    * @param key  Key to delete
    */
-  delete (key: string): void {
-    this._size = undefined
-    return remove(this._tree, key)
+  delete(key: string): void {
+    this._size = undefined;
+    return remove(this._tree, key);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
    * @return An iterator iterating through `[key, value]` entries.
    */
-  entries () {
-    return new TreeIterator(this, ENTRIES)
+  entries() {
+    return new TreeIterator(this, ENTRIES);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
    * @param fn  Iteration function
    */
-  forEach (fn: (key: string, value: T, map: SearchableMap) => void): void {
+  forEach(fn: (key: string, value: T, map: SearchableMap) => void): void {
     for (const [key, value] of this) {
-      fn(key, value, this)
+      fn(key, value, this);
     }
   }
 
@@ -154,8 +159,8 @@ export default class SearchableMap<T = any> {
    * @param maxEditDistance  The maximum edit distance (Levenshtein)
    * @return A Map of the matching keys to their value and edit distance
    */
-  fuzzyGet (key: string, maxEditDistance: number): FuzzyResults<T> {
-    return fuzzySearch<T>(this._tree, key, maxEditDistance)
+  fuzzyGet(key: string, maxEditDistance: number): FuzzyResults<T> {
+    return fuzzySearch<T>(this._tree, key, maxEditDistance);
   }
 
   /**
@@ -164,9 +169,9 @@ export default class SearchableMap<T = any> {
    * @return Value associated to the key, or `undefined` if the key is not
    * found.
    */
-  get (key: string): T | undefined {
-    const node = lookup<T>(this._tree, key)
-    return node !== undefined ? node.get(LEAF) : undefined
+  get(key: string): T | undefined {
+    const node = lookup<T>(this._tree, key);
+    return node !== undefined ? node.get(LEAF) : undefined;
   }
 
   /**
@@ -174,17 +179,17 @@ export default class SearchableMap<T = any> {
    * @param key  Key
    * @return True if the key is in the map, false otherwise
    */
-  has (key: string): boolean {
-    const node = lookup(this._tree, key)
-    return node !== undefined && node.has(LEAF)
+  has(key: string): boolean {
+    const node = lookup(this._tree, key);
+    return node !== undefined && node.has(LEAF);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
    * @return An `Iterable` iterating through keys
    */
-  keys () {
-    return new TreeIterator(this, KEYS)
+  keys() {
+    return new TreeIterator(this, KEYS);
   }
 
   /**
@@ -193,26 +198,30 @@ export default class SearchableMap<T = any> {
    * @param value  Value to associate to the key
    * @return The [[SearchableMap]] itself, to allow chaining
    */
-  set (key: string, value: T): SearchableMap<T> {
-    if (typeof key !== 'string') { throw new Error('key must be a string') }
-    this._size = undefined
-    const node = createPath(this._tree, key)
-    node.set(LEAF, value)
-    return this
+  set(key: string, value: T): SearchableMap<T> {
+    if (typeof key !== "string") {
+      throw new Error("key must be a string");
+    }
+    this._size = undefined;
+    const node = createPath(this._tree, key);
+    node.set(LEAF, value);
+    return this;
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
    */
-  get size (): number {
-    if (this._size) { return this._size }
+  get size(): number {
+    if (this._size) {
+      return this._size;
+    }
     /** @ignore */
-    this._size = 0
+    this._size = 0;
 
-    const iter = this.entries()
-    while (!iter.next().done) this._size! += 1
+    const iter = this.entries();
+    while (!iter.next().done) this._size! += 1;
 
-    return this._size
+    return this._size;
   }
 
   /**
@@ -235,12 +244,14 @@ export default class SearchableMap<T = any> {
    * @param fn  The function used to compute the new value from the current one
    * @return The [[SearchableMap]] itself, to allow chaining
    */
-  update (key: string, fn: (value: T | undefined) => T): SearchableMap<T> {
-    if (typeof key !== 'string') { throw new Error('key must be a string') }
-    this._size = undefined
-    const node = createPath(this._tree, key)
-    node.set(LEAF, fn(node.get(LEAF)))
-    return this
+  update(key: string, fn: (value: T | undefined) => T): SearchableMap<T> {
+    if (typeof key !== "string") {
+      throw new Error("key must be a string");
+    }
+    this._size = undefined;
+    const node = createPath(this._tree, key);
+    node.set(LEAF, fn(node.get(LEAF)));
+    return this;
   }
 
   /**
@@ -259,32 +270,34 @@ export default class SearchableMap<T = any> {
    * @param defaultValue  A function that creates a new value if the key does not exist
    * @return The existing or new value at the given key
    */
-  fetch (key: string, initial: () => T): T {
-    if (typeof key !== 'string') { throw new Error('key must be a string') }
-    this._size = undefined
-    const node = createPath(this._tree, key)
+  fetch(key: string, initial: () => T): T {
+    if (typeof key !== "string") {
+      throw new Error("key must be a string");
+    }
+    this._size = undefined;
+    const node = createPath(this._tree, key);
 
-    let value = node.get(LEAF)
+    let value = node.get(LEAF);
     if (value === undefined) {
-      node.set(LEAF, value = initial())
+      node.set(LEAF, (value = initial()));
     }
 
-    return value
+    return value;
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
    * @return An `Iterable` iterating through values.
    */
-  values () {
-    return new TreeIterator(this, VALUES)
+  values() {
+    return new TreeIterator(this, VALUES);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@iterator
    */
-  [Symbol.iterator] () {
-    return this.entries()
+  [Symbol.iterator]() {
+    return this.entries();
   }
 
   /**
@@ -293,12 +306,12 @@ export default class SearchableMap<T = any> {
    * @param entries  Entries to be inserted in the [[SearchableMap]]
    * @return A new [[SearchableMap]] with the given entries
    */
-  static from<T = any> (entries: Iterable<Entry<T>> | Entry<T>[]) {
-    const tree = new SearchableMap()
+  static from<T = any>(entries: Iterable<Entry<T>> | Entry<T>[]) {
+    const tree = new SearchableMap();
     for (const [key, value] of entries) {
-      tree.set(key, value)
+      tree.set(key, value);
     }
-    return tree
+    return tree;
   }
 
   /**
@@ -307,116 +320,137 @@ export default class SearchableMap<T = any> {
    * @param object  Object of entries for the [[SearchableMap]]
    * @return A new [[SearchableMap]] with the given entries
    */
-  static fromObject<T = any> (object: { [key: string]: T }) {
-    return SearchableMap.from<T>(Object.entries(object))
+  static fromObject<T = any>(object: { [key: string]: T }) {
+    return SearchableMap.from<T>(Object.entries(object));
   }
 }
 
-const trackDown = <T = any>(tree: RadixTree<T> | undefined, key: string, path: Path<T> = []): [RadixTree<T> | undefined, Path<T>] => {
-  if (key.length === 0 || tree == null) { return [tree, path] }
+const trackDown = <T = any>(
+  tree: RadixTree<T> | undefined,
+  key: string,
+  path: Path<T> = []
+): [RadixTree<T> | undefined, Path<T>] => {
+  if (key.length === 0 || tree == null) {
+    return [tree, path];
+  }
 
   for (const k of tree.keys()) {
     if (k !== LEAF && key.startsWith(k)) {
-      path.push([tree, k]) // performance: update in place
-      return trackDown(tree.get(k)!, key.slice(k.length), path)
+      path.push([tree, k]); // performance: update in place
+      return trackDown(tree.get(k)!, key.slice(k.length), path);
     }
   }
 
-  path.push([tree, key]) // performance: update in place
-  return trackDown(undefined, '', path)
-}
+  path.push([tree, key]); // performance: update in place
+  return trackDown(undefined, "", path);
+};
 
-const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefined => {
-  if (key.length === 0 || tree == null) { return tree }
+const lookup = <T = any>(
+  tree: RadixTree<T>,
+  key: string
+): RadixTree<T> | undefined => {
+  if (key.length === 0 || tree == null) {
+    return tree;
+  }
 
   for (const k of tree.keys()) {
     if (k !== LEAF && key.startsWith(k)) {
-      return lookup(tree.get(k)!, key.slice(k.length))
+      return lookup(tree.get(k)!, key.slice(k.length));
     }
   }
-}
+};
 
 // Create a path in the radix tree for the given key, and returns the deepest
 // node. This function is in the hot path for indexing. It avoids unnecessary
 // string operations and recursion for performance.
 const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
-  const keyLength = key.length
+  const keyLength = key.length;
 
-  outer: for (let pos = 0; node && pos < keyLength;) {
+  outer: for (let pos = 0; node && pos < keyLength; ) {
     for (const k of node.keys()) {
       // Check whether this key is a candidate: the first characters must match.
       if (k !== LEAF && key[pos] === k[0]) {
-        const len = Math.min(keyLength - pos, k.length)
+        const len = Math.min(keyLength - pos, k.length);
 
         // Advance offset to the point where key and k no longer match.
-        let offset = 1
-        while (offset < len && key[pos + offset] === k[offset]) ++offset
+        let offset = 1;
+        while (offset < len && key[pos + offset] === k[offset]) ++offset;
 
-        const child = node.get(k)!
+        const child = node.get(k)!;
         if (offset === k.length) {
           // The existing key is shorter than the key we need to create.
-          node = child
+          node = child;
         } else {
           // Partial match: we need to insert an intermediate node to contain
           // both the existing subtree and the new node.
-          const intermediate = new Map()
-          intermediate.set(k.slice(offset), child)
-          node.set(key.slice(pos, pos + offset), intermediate)
-          node.delete(k)
-          node = intermediate
+          const intermediate = new Map();
+          intermediate.set(k.slice(offset), child);
+          node.set(key.slice(pos, pos + offset), intermediate);
+          node.delete(k);
+          node = intermediate;
         }
 
-        pos += offset
-        continue outer
+        pos += offset;
+        continue outer;
       }
     }
 
     // Create a final child node to contain the final suffix of the key.
-    const child = new Map()
-    node.set(key.slice(pos), child)
-    return child
+    const child = new Map();
+    node.set(key.slice(pos), child);
+    return child;
   }
 
-  return node
-}
+  return node;
+};
 
 const remove = <T = any>(tree: RadixTree<T>, key: string): void => {
-  const [node, path] = trackDown(tree, key)
-  if (node === undefined) { return }
-  node.delete(LEAF)
+  const [node, path] = trackDown(tree, key);
+  if (node === undefined) {
+    return;
+  }
+  node.delete(LEAF);
 
   if (node.size === 0) {
-    cleanup(path)
+    cleanup(path);
   } else if (node.size === 1) {
-    const [key, value] = node.entries().next().value
-    merge(path, key, value)
+    const [key, value] = node.entries().next().value;
+    merge(path, key, value);
   }
-}
+};
 
 const cleanup = <T = any>(path: Path<T>): void => {
-  if (path.length === 0) { return }
+  if (path.length === 0) {
+    return;
+  }
 
-  const [node, key] = last(path)
-  node!.delete(key)
+  const [node, key] = last(path);
+  node!.delete(key);
 
   if (node!.size === 0) {
-    cleanup(path.slice(0, -1))
+    cleanup(path.slice(0, -1));
   } else if (node!.size === 1) {
-    const [key, value] = node!.entries().next().value
+    const [key, value] = node!.entries().next().value;
     if (key !== LEAF) {
-      merge(path.slice(0, -1), key, value)
+      merge(path.slice(0, -1), key, value);
     }
   }
-}
+};
 
-const merge = <T = any>(path: Path<T>, key: string, value: RadixTree<T>): void => {
-  if (path.length === 0) { return }
+const merge = <T = any>(
+  path: Path<T>,
+  key: string,
+  value: RadixTree<T>
+): void => {
+  if (path.length === 0) {
+    return;
+  }
 
-  const [node, nodeKey] = last(path)
-  node!.set(nodeKey + key, value)
-  node!.delete(nodeKey)
-}
+  const [node, nodeKey] = last(path);
+  node!.set(nodeKey + key, value);
+  node!.delete(nodeKey);
+};
 
 const last = <T = any>(array: T[]): T => {
-  return array[array.length - 1]
-}
+  return array[array.length - 1];
+};
