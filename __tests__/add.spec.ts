@@ -2,16 +2,23 @@ import { describe, expect, it, vi } from "vitest";
 
 import { add, createIndex, getDefaultValue, search } from "../src/index.js";
 
+interface Index {
+  id: number;
+  text: string;
+}
+
 describe("add()", () => {
   it("adds the document to the index", () => {
-    const index = createIndex({ fields: ["text"] });
+    const index = createIndex<Index>({
+      fields: ["text"],
+    });
 
     add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
     expect(index.documentCount).toEqual(1);
   });
 
   it("does not throw error if a field is missing", () => {
-    const index = createIndex({ fields: ["title", "text"] });
+    const index = createIndex<Index>({ fields: ["title", "text"] });
 
     add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
     expect(index.documentCount).toEqual(1);
