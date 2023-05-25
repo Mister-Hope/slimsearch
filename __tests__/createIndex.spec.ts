@@ -6,7 +6,7 @@ describe("createIndex()", () => {
   it("throws error if fields option is missing", () => {
     // @ts-expect-error
     expect(() => createIndex()).toThrow(
-      'MiniSearch: option "fields" must be provided'
+      'SlimSearch: option "fields" must be provided'
     );
   });
 

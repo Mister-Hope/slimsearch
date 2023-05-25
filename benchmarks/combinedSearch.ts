@@ -6,7 +6,7 @@ const suite = new Benchmark.Suite("Combined search");
 
 suite
   .add(
-    'MiniSearch#search("virtute conoscienza", { fuzzy: 0.2, prefix: true })',
+    'SlimSearch#search("virtute conoscienza", { fuzzy: 0.2, prefix: true })',
     () => {
       search(index, "virtute conoscienza", {
         fuzzy: 0.2,
@@ -14,7 +14,7 @@ suite
       });
     }
   )
-  .add('MiniSearch#search("virtu", { fuzzy: 0.2, prefix: true })', () => {
+  .add('SlimSearch#search("virtu", { fuzzy: 0.2, prefix: true })', () => {
     search(index, "virtu", {
       fuzzy: 0.2,
       prefix: true,

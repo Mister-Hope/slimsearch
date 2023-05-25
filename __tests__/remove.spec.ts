@@ -117,7 +117,7 @@ describe("remove()", () => {
 
     expect(() => {
       remove(index, { text: "I do not have an ID" });
-    }).toThrowError('MiniSearch: document does not have ID field "foo"');
+    }).toThrowError('SlimSearch: document does not have ID field "foo"');
   });
 
   it("extracts the ID field using extractField", () => {
@@ -245,7 +245,7 @@ describe("remove()", () => {
   describe("when the document was not in the index", () => {
     it("throws an error", () => {
       expect(() => remove(index, { id: 99 })).toThrow(
-        "MiniSearch: cannot remove document with ID 99: it is not in the index"
+        "SlimSearch: cannot remove document with ID 99: it is not in the index"
       );
     });
   });
@@ -268,7 +268,7 @@ describe("remove()", () => {
       ].forEach(([term, field], i) => {
         expect(console.warn).toHaveBeenNthCalledWith(
           i + 1,
-          `MiniSearch: document with ID 1 has changed before removal: term "${term}" was not present in field "${field}". Removing a document after it has changed can corrupt the index!`
+          `SlimSearch: document with ID 1 has changed before removal: term "${term}" was not present in field "${field}". Removing a document after it has changed can corrupt the index!`
         );
       });
     });
@@ -294,7 +294,7 @@ describe("remove()", () => {
 
       expect(logger).toHaveBeenCalledWith(
         "warn",
-        'MiniSearch: document with ID 1 has changed before removal: term "something" was not present in field "text". Removing a document after it has changed can corrupt the index!',
+        'SlimSearch: document with ID 1 has changed before removal: term "something" was not present in field "text". Removing a document after it has changed can corrupt the index!',
         "version_conflict"
       );
       expect(console.warn).not.toHaveBeenCalled();

@@ -6,7 +6,7 @@ const json = JSON.stringify(index);
 
 const suite = new Benchmark.Suite("Load index");
 
-suite.add("MiniSearch.loadJSON(json, options)", () => {
+suite.add("SlimSearch.loadJSON(json, options)", () => {
   loadJSONIndex(json, { fields: ["txt"] });
 });
 

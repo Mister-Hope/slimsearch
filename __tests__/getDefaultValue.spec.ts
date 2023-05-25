@@ -15,6 +15,6 @@ describe("getDefaultValue()", () => {
   it("throws an error if there is no option with the given name", () => {
     expect(() => {
       getDefaultValue("foo");
-    }).toThrowError('MiniSearch: unknown option "foo"');
+    }).toThrowError('SlimSearch: unknown option "foo"');
   });
 });

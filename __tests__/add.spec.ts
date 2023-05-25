@@ -29,7 +29,7 @@ describe("add()", () => {
 
     expect(() => {
       add(index, { text: "I do not have an ID" });
-    }).toThrowError('MiniSearch: document does not have ID field "foo"');
+    }).toThrowError('SlimSearch: document does not have ID field "foo"');
   });
 
   it("throws error on duplicate ID", () => {
@@ -39,7 +39,7 @@ describe("add()", () => {
 
     expect(() => {
       add(index, { foo: "abc", text: "I have a duplicate ID" });
-    }).toThrowError("MiniSearch: duplicate ID abc");
+    }).toThrowError("SlimSearch: duplicate ID abc");
   });
 
   it("extracts the ID field using extractField", () => {
