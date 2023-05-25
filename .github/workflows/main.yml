@@ -13,34 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          run_install: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: pnpm
 
-      - name: Install dependencies
-        run: yarn install
+      - name: Run Tests
+        run: pnpm coverage
 
-      - name: Run tests
-        run: yarn test
-
-  coverage:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: "14"
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Report coverage
-        env:
-          COVERALLS_REPO_TOKEN: "${{ secrets.COVERALLS_REPO_TOKEN }}"
-          COVERALLS_GIT_BRANCH: "${{ github.ref }}"
-          COVERALLS_SERVICE_NAME: GitHub Actions
-        run: yarn run jest --coverage && yarn run coveralls --verbose < coverage/lcov.info
+      - name: Upload coverage
+        if: github.ref == 'refs/heads/main'
+        uses: codecov/codecov-action@v3
