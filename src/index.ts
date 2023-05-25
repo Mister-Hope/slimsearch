@@ -1,6 +1,11 @@
 export * from "./SearchableMap/SearchableMap.js";
+export * from "./add.js";
 export * from "./autoSuggest.js";
+export { getDefaultValue } from "./defaults.js";
+export * from "./has.js";
 export * from "./MiniSearch.js";
 export * from "./search.js";
 export * from "./typings.js";
-export { vacuum } from "./vaccum.js";
+export * from "./remove.js";
+export * from "./replace.js";
+export { vacuum } from "./vacuum.js";

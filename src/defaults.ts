@@ -1,5 +1,6 @@
 import { AND, OR, SPACE_OR_PUNCTUATION } from "./constant.js";
 import { type BM25Params, type LogLevel } from "./typings.js";
+import { getOwnProperty } from "./utils.js";
 
 export const defaultBM25params: BM25Params = { k: 1.2, b: 0.7, d: 0.5 };
 
@@ -39,4 +40,31 @@ export const defaultVacuumConditions = { minDirtFactor: 0.1, minDirtCount: 20 };
 export const defaultAutoVacuumOptions = {
   ...defaultVacuumOptions,
   ...defaultVacuumConditions,
+};
+
+/**
+ * Returns the default value of an option. It will throw an error if no option
+ * with the given name exists.
+ *
+ * @param optionName  Name of the option
+ * @return The default value of the given option
+ *
+ * ### Usage:
+ *
+ * ```javascript
+ * // Get default tokenizer
+ * MiniSearch.getDefault('tokenize')
+ *
+ * // Get default term processor
+ * MiniSearch.getDefault('processTerm')
+ *
+ * // Unknown options will throw an error
+ * MiniSearch.getDefault('notExisting')
+ * // => throws 'MiniSearch: unknown option "notExisting"'
+ * ```
+ */
+export const getDefaultValue = (optionName: string): any => {
+  if (defaultOptions.hasOwnProperty(optionName))
+    return getOwnProperty(defaultOptions, optionName);
+  else throw new Error(`MiniSearch: unknown option "${optionName}"`);
 };

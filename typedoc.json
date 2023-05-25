@@ -1,11 +1,13 @@
 {
+  "$schema": "https://typedoc.org/schema.json",
   "name": "MiniSearch",
-  "inputFiles": ["index.ts", "src/MiniSearch.ts", "src/SearchableMap/SearchableMap.ts"],
-  "out": "docs",
-  "mode": "modules",
-  "excludeNotExported": true,
-  "excludePrivate": true,
-  "excludeProtected": true,
-  "stripInternal": true,
-  "excludeExternals": true
+  "entryPoints": [
+    "src/SearchableMap/SearchableMap.ts",
+    "src/index.ts",
+    "src/autoSuggest.ts",
+    "src/search.ts",
+    "src/search.ts",
+    "src/vaccum.ts"
+  ],
+  "out": "docs"
 }

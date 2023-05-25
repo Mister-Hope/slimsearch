@@ -21,7 +21,7 @@ import { byScore } from "./utils.js";
  *
  * ```javascript
  * // Get suggestions for 'neuro':
- * miniSearch.autoSuggest('neuro')
+ * autoSuggest(index, 'neuro')
  * // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 0.46240 } ]
  * ```
  *
@@ -29,7 +29,7 @@ import { byScore } from "./utils.js";
  *
  * ```javascript
  * // Get suggestions for 'zen ar':
- * miniSearch.autoSuggest('zen ar')
+ * autoSuggest(index, 'zen ar')
  * // => [
  * //  { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
  * //  { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 }
@@ -40,7 +40,7 @@ import { byScore } from "./utils.js";
  *
  * ```javascript
  * // Correct spelling mistakes using fuzzy search:
- * miniSearch.autoSuggest('neromancer', { fuzzy: 0.2 })
+ * autoSuggest(index, 'neromancer', { fuzzy: 0.2 })
  * // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 1.03998 } ]
  * ```
  *
@@ -49,7 +49,7 @@ import { byScore } from "./utils.js";
  * ```javascript
  * // Get suggestions for 'zen ar', but only within the 'fiction' category
  * // (assuming that 'category' is a stored field):
- * miniSearch.autoSuggest('zen ar', {
+ * autoSuggest(index, 'zen ar', {
  *   filter: (result) => result.category === 'fiction'
  * })
  * // => [
@@ -58,6 +58,7 @@ import { byScore } from "./utils.js";
  * // ]
  * ```
  *
+ * @param index Search Index
  * @param queryString  Query string to be expanded into suggestions
  * @param options  Search options. The supported options and default values
  * are the same as for the `search` method, except that by default prefix
@@ -65,8 +66,8 @@ import { byScore } from "./utils.js";
  * with `'AND'`.
  * @return  A sorted array of suggestions sorted by relevance score.
  */
-export const autoSuggest = (
-  index: MiniSearch,
+export const autoSuggest = <T>(
+  index: MiniSearch<T>,
   queryString: string,
   options: SearchOptions = {}
 ): Suggestion[] => {

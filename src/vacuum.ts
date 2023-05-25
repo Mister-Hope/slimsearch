@@ -137,6 +137,7 @@ export const maybeAutoVacuum = (index: MiniSearch): void => {
  * enqueued on top of the ongoing one, even if this method is called more
  * times (enqueuing multiple ones would be useless).
  *
+ * @param index Search Index
  * @param options  Configuration options for the batch size and delay. See
  * [[VacuumOptions]].
  */

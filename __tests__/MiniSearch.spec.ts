@@ -3,9 +3,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   MiniSearch,
+  add,
+  addAll,
+  addAllAsync,
   autoSuggest,
+  discard,
+  discardAll,
+  getDefaultValue,
+  has,
   loadJSONIndex,
   search,
+  remove,
+  removeAll,
+  replace,
   vacuum,
 } from "../src/index.js";
 
@@ -34,14 +44,14 @@ describe("MiniSearch", () => {
     it("adds the document to the index", () => {
       const ms = new MiniSearch({ fields: ["text"] });
 
-      ms.add({ id: 1, text: "Nel mezzo del cammin di nostra vita" });
+      add(ms, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
       expect(ms.documentCount).toEqual(1);
     });
 
     it("does not throw error if a field is missing", () => {
       const ms = new MiniSearch({ fields: ["title", "text"] });
 
-      ms.add({ id: 1, text: "Nel mezzo del cammin di nostra vita" });
+      add(ms, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
       expect(ms.documentCount).toEqual(1);
     });
 
@@ -49,17 +59,17 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ idField: "foo", fields: ["title", "text"] });
 
       expect(() => {
-        ms.add({ text: "I do not have an ID" });
+        add(ms, { text: "I do not have an ID" });
       }).toThrowError('MiniSearch: document does not have ID field "foo"');
     });
 
     it("throws error on duplicate ID", () => {
       const ms = new MiniSearch({ idField: "foo", fields: ["title", "text"] });
 
-      ms.add({ foo: "abc", text: "Something" });
+      add(ms, { foo: "abc", text: "Something" });
 
       expect(() => {
-        ms.add({ foo: "abc", text: "I have a duplicate ID" });
+        add(ms, { foo: "abc", text: "I have a duplicate ID" });
       }).toThrowError("MiniSearch: duplicate ID abc");
     });
 
@@ -67,11 +77,11 @@ describe("MiniSearch", () => {
       const extractField = (document, fieldName) => {
         if (fieldName === "id") return document.id.value;
 
-        return MiniSearch.getDefault("extractField")(document, fieldName);
+        return getDefaultValue("extractField")(document, fieldName);
       };
       const ms = new MiniSearch({ fields: ["text"], extractField });
 
-      ms.add({
+      add(ms, {
         id: { value: 123 },
         text: "Nel mezzo del cammin di nostra vita",
       });
@@ -86,7 +96,7 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["title", "text"], processTerm });
 
       expect(() => {
-        ms.add({ id: 123, text: "foo bar" });
+        add(ms, { id: 123, text: "foo bar" });
       }).not.toThrowError();
     });
 
@@ -98,8 +108,8 @@ describe("MiniSearch", () => {
       });
 
       expect(() => {
-        ms.add({ id: 123, tags: ["foo", "bar"], isBlinky: false });
-        ms.add({ id: 321, isBlinky: true });
+        add(ms, { id: 123, tags: ["foo", "bar"], isBlinky: false });
+        add(ms, { id: 321, isBlinky: true });
       }).not.toThrowError();
 
       expect(tokenize).toHaveBeenCalledWith("123", "id");
@@ -137,7 +147,7 @@ describe("MiniSearch", () => {
         category: "poetry",
       };
 
-      ms.add(document);
+      add(ms, document);
       expect(extractField).toHaveBeenCalledWith(document, "title");
       expect(extractField).toHaveBeenCalledWith(document, "pubDate");
       expect(extractField).toHaveBeenCalledWith(document, "author.name");
@@ -160,7 +170,7 @@ describe("MiniSearch", () => {
         text: "Nel mezzo del cammin di nostra vita",
       };
 
-      ms.add(document);
+      add(ms, document);
       expect(tokenize).toHaveBeenCalledWith(document.text, "text");
       expect(tokenize).toHaveBeenCalledWith(document.title, "title");
     });
@@ -174,7 +184,7 @@ describe("MiniSearch", () => {
         text: "Nel mezzo del cammin di nostra vita",
       };
 
-      ms.add(document);
+      add(ms, document);
       document.text.split(/\W+/).forEach((term) => {
         expect(processTerm).toHaveBeenCalledWith(term, "text");
       });
@@ -189,7 +199,7 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["title", "text"], processTerm });
 
       expect(() => {
-        ms.add({ id: 123, text: "foobar" });
+        add(ms, { id: 123, text: "foobar" });
       }).not.toThrowError();
 
       expect(search(ms, "bar")).toHaveLength(1);
@@ -215,7 +225,7 @@ describe("MiniSearch", () => {
 
     beforeEach(() => {
       ms = new MiniSearch({ fields: ["title", "text"] });
-      ms.addAll(documents);
+      addAll(ms, documents);
       _warn = console.warn;
       console.warn = vi.fn();
     });
@@ -226,7 +236,7 @@ describe("MiniSearch", () => {
 
     it("removes the document from the index", () => {
       expect(ms.documentCount).toEqual(3);
-      ms.remove(documents[0]);
+      remove(ms, documents[0]);
       expect(ms.documentCount).toEqual(2);
       expect(search(ms, "commedia").length).toEqual(0);
       expect(search(ms, "vita").map(({ id }) => id)).toEqual([3]);
@@ -242,8 +252,8 @@ describe("MiniSearch", () => {
       const originalFieldLength = new Map(ms._fieldLength);
       const originalAverageFieldLength = ms._avgFieldLength.slice();
 
-      ms.add(otherDocument);
-      ms.remove(otherDocument);
+      add(ms, otherDocument);
+      remove(ms, otherDocument);
 
       expect(ms.documentCount).toEqual(3);
       expect(ms._fieldLength).toEqual(originalFieldLength);
@@ -251,14 +261,14 @@ describe("MiniSearch", () => {
     });
 
     it("does not remove terms from other documents", () => {
-      ms.remove(documents[0]);
+      remove(ms, documents[0]);
       expect(search(ms, "cammin").length).toEqual(1);
     });
 
     it("removes re-added document", () => {
-      ms.remove(documents[0]);
-      ms.add(documents[0]);
-      ms.remove(documents[0]);
+      remove(ms, documents[0]);
+      add(ms, documents[0]);
+      remove(ms, documents[0]);
       expect(console.warn).not.toHaveBeenCalled();
     });
 
@@ -278,10 +288,10 @@ describe("MiniSearch", () => {
         text: { value: "Nel mezzo del cammin di nostra vita" },
       };
 
-      ms.add(document);
+      add(ms, document);
 
       expect(() => {
-        ms.remove(document);
+        remove(ms, document);
       }).not.toThrowError();
 
       expect(search(ms, "vita")).toEqual([]);
@@ -290,7 +300,7 @@ describe("MiniSearch", () => {
     it("cleans up the index", () => {
       const originalIdsSize = ms._documentIds.size;
 
-      ms.remove(documents[0]);
+      remove(ms, documents[0]);
       expect(ms._index.has("commedia")).toEqual(false);
       expect(ms._documentIds.size).toEqual(originalIdsSize - 1);
       expect(Array.from(ms._index.get("vita").keys())).toEqual([
@@ -302,7 +312,7 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ idField: "foo", fields: ["title", "text"] });
 
       expect(() => {
-        ms.remove({ text: "I do not have an ID" });
+        remove(ms, { text: "I do not have an ID" });
       }).toThrowError('MiniSearch: document does not have ID field "foo"');
     });
 
@@ -310,7 +320,7 @@ describe("MiniSearch", () => {
       const extractField = (document, fieldName) => {
         if (fieldName === "id") return document.id.value;
 
-        return MiniSearch.getDefault("extractField")(document, fieldName);
+        return getDefaultValue("extractField")(document, fieldName);
       };
       const ms = new MiniSearch({ fields: ["text"], extractField });
       const document = {
@@ -318,10 +328,10 @@ describe("MiniSearch", () => {
         text: "Nel mezzo del cammin di nostra vita",
       };
 
-      ms.add(document);
+      add(ms, document);
 
       expect(() => {
-        ms.remove(document);
+        remove(ms, document);
       }).not.toThrowError();
 
       expect(search(ms, "vita")).toEqual([]);
@@ -331,16 +341,16 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["constructor"] });
       const document = { id: 1 };
 
-      ms.add(document);
+      add(ms, document);
 
       expect(() => {
-        ms.remove(document);
+        remove(ms, document);
       }).not.toThrowError();
     });
 
     it("does not reassign IDs", () => {
-      ms.remove(documents[0]);
-      ms.add(documents[0]);
+      remove(ms, documents[0]);
+      add(ms, documents[0]);
       expect(search(ms, "commedia").map((result) => result.id)).toEqual([
         documents[0].id,
       ]);
@@ -354,9 +364,9 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["title", "text"], processTerm });
       const document = { id: 123, title: "foo bar" };
 
-      ms.add(document);
+      add(ms, document);
       expect(() => {
-        ms.remove(document);
+        remove(ms, document);
       }).not.toThrowError();
     });
 
@@ -366,9 +376,9 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["title", "text"], processTerm });
       const document = { id: 123, title: "foobar" };
 
-      ms.add(document);
+      add(ms, document);
       expect(() => {
-        ms.remove(document);
+        remove(ms, document);
       }).not.toThrowError();
 
       expect(search(ms, "bar")).toHaveLength(0);
@@ -409,7 +419,7 @@ describe("MiniSearch", () => {
             else return term.toLowerCase();
           },
         });
-        ms.addAll(documents);
+        addAll(ms, documents);
         _warn = console.warn;
         console.warn = vi.fn();
       });
@@ -420,7 +430,7 @@ describe("MiniSearch", () => {
 
       it("removes the document from the index", () => {
         expect(ms.documentCount).toEqual(3);
-        ms.remove(documents[0]);
+        remove(ms, documents[0]);
         expect(ms.documentCount).toEqual(2);
         expect(search(ms, "commedia").length).toEqual(0);
         expect(search(ms, "vita").map(({ id }) => id)).toEqual([3]);
@@ -430,7 +440,7 @@ describe("MiniSearch", () => {
 
     describe("when the document was not in the index", () => {
       it("throws an error", () => {
-        expect(() => ms.remove({ id: 99 })).toThrow(
+        expect(() => remove(ms, { id: 99 })).toThrow(
           "MiniSearch: cannot remove document with ID 99: it is not in the index"
         );
       });
@@ -439,7 +449,7 @@ describe("MiniSearch", () => {
     describe("when the document has changed", () => {
       it("warns of possible index corruption", () => {
         expect(() =>
-          ms.remove({
+          remove(ms, {
             id: 1,
             title: "Divina Commedia cammin",
             text: "something has changed",
@@ -462,7 +472,7 @@ describe("MiniSearch", () => {
       it("does not throw error if console.warn is undefined", () => {
         console.warn = undefined;
         expect(() =>
-          ms.remove({
+          remove(ms, {
             id: 1,
             title: "Divina Commedia cammin",
             text: "something has changed",
@@ -474,8 +484,8 @@ describe("MiniSearch", () => {
         const logger = vi.fn();
 
         ms = new MiniSearch({ fields: ["title", "text"], logger });
-        ms.addAll(documents);
-        ms.remove({ id: 1, title: "Divina Commedia", text: "something" });
+        addAll(ms, documents);
+        remove(ms, { id: 1, title: "Divina Commedia", text: "something" });
 
         expect(logger).toHaveBeenCalledWith(
           "warn",
@@ -519,19 +529,19 @@ describe("MiniSearch", () => {
         fields: ["title", "text"],
       });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       expect(ms.documentCount).toEqual(3);
 
-      ms.removeAll();
+      removeAll(ms);
 
       expect(ms).toEqual(empty);
     });
 
     it("removes the given documents from the index", () => {
-      ms.addAll(documents);
+      addAll(ms, documents);
       expect(ms.documentCount).toEqual(3);
 
-      ms.removeAll([documents[0], documents[2]]);
+      removeAll(ms, [documents[0], documents[2]]);
 
       expect(ms.documentCount).toEqual(1);
       expect(search(ms, "commedia").length).toEqual(0);
@@ -541,16 +551,16 @@ describe("MiniSearch", () => {
 
     it("raises an error if called with a falsey argument", () => {
       expect(() => {
-        ms.removeAll(null);
+        removeAll(ms, null);
       }).toThrowError();
       expect(() => {
-        ms.removeAll(undefined);
+        removeAll(ms, undefined);
       }).toThrowError();
       expect(() => {
-        ms.removeAll(false);
+        removeAll(ms, false);
       }).toThrowError();
       expect(() => {
-        ms.removeAll([]);
+        removeAll(ms, []);
       }).not.toThrowError();
     });
   });
@@ -563,22 +573,22 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some more interesting stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
-      expect([1, 2].map((id) => ms.has(id))).toEqual([true, true]);
+      expect([1, 2].map((id) => has(ms, id))).toEqual([true, true]);
 
-      ms.discard(1);
+      discard(ms, 1);
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2]);
-      expect([1, 2].map((id) => ms.has(id))).toEqual([false, true]);
+      expect([1, 2].map((id) => has(ms, id))).toEqual([false, true]);
     });
 
     it("raises error if a document with the given ID does not exist", () => {
       const ms = new MiniSearch({ fields: ["text"] });
 
       expect(() => {
-        ms.discard(99);
+        discard(ms, 99);
       }).toThrow(
         "MiniSearch: cannot discard document with ID 99: it is not in the index"
       );
@@ -591,13 +601,13 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some more interesting stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       const clone = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
       });
 
-      ms.discard(1);
-      clone.remove({ id: 1, text: "Some interesting stuff" });
+      discard(ms, 1);
+      remove(clone, { id: 1, text: "Some interesting stuff" });
 
       expect(ms._idToShortId).toEqual(clone._idToShortId);
       expect(ms._documentIds).toEqual(clone._documentIds);
@@ -615,18 +625,18 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some more interesting stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
-      ms.discard(1);
-      ms.add({ id: 1, text: "Some new stuff" });
+      discard(ms, 1);
+      add(ms, { id: 1, text: "Some new stuff" });
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
       expect(search(ms, "new").map((doc) => doc.id)).toEqual([1]);
 
-      ms.discard(1);
+      discard(ms, 1);
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2]);
 
-      ms.add({ id: 1, text: "Some newer stuff" });
+      add(ms, { id: 1, text: "Some newer stuff" });
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
       expect(search(ms, "new").map((doc) => doc.id)).toEqual([]);
       expect(search(ms, "newer").map((doc) => doc.id)).toEqual([1]);
@@ -636,14 +646,14 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["text"], storeFields: ["text"] });
       const document = { id: 1, text: "Some stuff" };
 
-      ms.add(document);
+      add(ms, document);
       const clone = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
         storeFields: ["text"],
       });
 
-      ms.discard(1);
-      clone.remove({ id: 1, text: "Some stuff" });
+      discard(ms, 1);
+      remove(clone, { id: 1, text: "Some stuff" });
 
       expect(ms).not.toEqual(clone);
 
@@ -658,10 +668,10 @@ describe("MiniSearch", () => {
     it("triggers auto vacuum by default", () => {
       const ms = new MiniSearch({ fields: ["text"] });
 
-      ms.add({ id: 1, text: "Some stuff" });
+      add(ms, { id: 1, text: "Some stuff" });
       ms._dirtCount = 1000;
 
-      ms.discard(1);
+      discard(ms, 1);
       expect(ms.isVacuuming).toEqual(true);
     });
 
@@ -681,14 +691,14 @@ describe("MiniSearch", () => {
         { id: 3, text: "Even more stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(ms.isVacuuming).toEqual(false);
 
-      ms.discard(1);
+      discard(ms, 1);
       expect(ms.isVacuuming).toEqual(false);
 
-      ms.discard(2);
+      discard(ms, 2);
       expect(ms.isVacuuming).toEqual(true);
     });
 
@@ -699,10 +709,10 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       ms._dirtCount = 1000;
 
-      ms.discard(1);
+      discard(ms, 1);
       expect(ms.isVacuuming).toEqual(false);
     });
 
@@ -713,10 +723,10 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       ms._dirtCount = 1000;
 
-      ms.discard(1);
+      discard(ms, 1);
       expect(ms.isVacuuming).toEqual(true);
     });
 
@@ -735,10 +745,10 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       ms._dirtCount = 1000;
 
-      const x = ms.discard(1);
+      const x = discard(ms, 1);
 
       expect(ms.isVacuuming).toEqual(true);
       await x;
@@ -760,14 +770,14 @@ describe("MiniSearch", () => {
       for (let i = 0; i < 5; i++)
         documents.push({ id: i + 1, text: `Document number ${i}` });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(ms._dirtCount).toEqual(0);
 
       // Calling discard multiple times should start an auto-vacuum and enqueue
       // another, so that the remaining dirt count afterwards is always below
       // minDirtCount
-      documents.forEach((doc) => ms.discard(doc.id));
+      documents.forEach((doc) => discard(ms, doc.id));
 
       while (ms.isVacuuming) await ms._currentVacuum;
 
@@ -791,13 +801,13 @@ describe("MiniSearch", () => {
         { id: 3, text: "Document three" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       // Calling discard multiple times will start an auto-vacuum and enqueue
       // another, subject to minDirtCount/minDirtFactor conditions. The last one
       // should be a no-op, as the remaining dirt count after the first auto
       // vacuum would be 1, which is below minDirtCount
-      documents.forEach((doc) => ms.discard(doc.id));
+      documents.forEach((doc) => discard(ms, doc.id));
 
       while (ms.isVacuuming) await ms._currentVacuum;
 
@@ -821,13 +831,13 @@ describe("MiniSearch", () => {
         { id: 3, text: "Document three" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       // Calling discard multiple times will start an auto-vacuum and enqueue
       // another, subject to minDirtCount/minDirtFactor conditions. The last one
       // would be a no-op, as the remaining dirt count after the first auto
       // vacuum would be 1, which is below minDirtCount
-      documents.forEach((doc) => ms.discard(doc.id));
+      documents.forEach((doc) => discard(ms, doc.id));
 
       // But before the enqueued vacuum is ran, we invoke a manual vacuum with
       // no conditions, so it should run even with a dirt count below
@@ -849,15 +859,15 @@ describe("MiniSearch", () => {
         { id: 3, text: "Some even more interesting stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2, 3]);
-      expect([1, 2, 3].map((id) => ms.has(id))).toEqual([true, true, true]);
+      expect([1, 2, 3].map((id) => has(ms, id))).toEqual([true, true, true]);
 
-      ms.discardAll([1, 3]);
+      discardAll(ms, [1, 3]);
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2]);
-      expect([1, 2, 3].map((id) => ms.has(id))).toEqual([false, true, false]);
+      expect([1, 2, 3].map((id) => has(ms, id))).toEqual([false, true, false]);
     });
 
     it("only triggers at most a single auto vacuum at the end", () => {
@@ -875,11 +885,11 @@ describe("MiniSearch", () => {
       for (let i = 1; i <= 10; i++)
         documents.push({ id: i, text: `Document ${i}` });
 
-      ms.addAll(documents);
-      ms.discardAll([1, 2]);
+      addAll(ms, documents);
+      discardAll(ms, [1, 2]);
       expect(ms.isVacuuming).toEqual(false);
 
-      ms.discardAll([3, 4, 5, 6, 7, 8, 9, 10]);
+      discardAll(ms, [3, 4, 5, 6, 7, 8, 9, 10]);
       expect(ms.isVacuuming).toEqual(true);
       expect(ms._enqueuedVacuum).toEqual(null);
     });
@@ -895,14 +905,14 @@ describe("MiniSearch", () => {
         },
       });
 
-      ms.add({ id: 1, text: "Some stuff" });
+      add(ms, { id: 1, text: "Some stuff" });
 
       expect(() => {
-        ms.discardAll([3]);
+        discardAll(ms, [3]);
       }).toThrow();
       expect(ms.isVacuuming).toEqual(false);
 
-      ms.discardAll([1]);
+      discardAll(ms, [1]);
       expect(ms.isVacuuming).toEqual(true);
     });
   });
@@ -915,13 +925,13 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some more interesting stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
       expect(search(ms, "quite").map((doc) => doc.id)).toEqual([1]);
       expect(search(ms, "even").map((doc) => doc.id)).toEqual([]);
 
-      ms.replace({ id: 1, text: "Some even more interesting stuff" });
+      replace(ms, { id: 1, text: "Some even more interesting stuff" });
 
       expect(search(ms, "stuff").map((doc) => doc.id)).toEqual([2, 1]);
       expect(search(ms, "quite").map((doc) => doc.id)).toEqual([]);
@@ -932,7 +942,7 @@ describe("MiniSearch", () => {
       const ms = new MiniSearch({ fields: ["text"] });
 
       expect(() => {
-        ms.replace({ id: 1, text: "Some stuff" });
+        replace(ms, { id: 1, text: "Some stuff" });
       }).toThrow(
         "MiniSearch: cannot discard document with ID 1: it is not in the index"
       );
@@ -947,16 +957,16 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       const clone = loadJSONIndex(JSON.stringify(ms), {
         fields: ["text"],
         storeFields: ["text"],
       });
 
-      ms.discard(1);
-      ms.discard(2);
-      clone.remove({ id: 1, text: "Some stuff" });
-      clone.remove({ id: 2, text: "Some additional stuff" });
+      discard(ms, 1);
+      discard(ms, 2);
+      remove(clone, { id: 1, text: "Some stuff" });
+      remove(clone, { id: 2, text: "Some additional stuff" });
 
       expect(ms).not.toEqual(clone);
 
@@ -976,14 +986,14 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
-      ms.discard(1);
-      ms.discard(2);
-      ms.add({ id: 3, text: "Even more stuff" });
+      discard(ms, 1);
+      discard(ms, 2);
+      add(ms, { id: 3, text: "Even more stuff" });
 
       vacuum(ms, { batchSize: 1, batchWait: 50 });
-      ms.discard(3);
+      discard(ms, 3);
 
       await vacuum(ms);
 
@@ -998,9 +1008,9 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
-      ms.discard(1);
-      ms.discard(2);
+      addAll(ms, documents);
+      discard(ms, 1);
+      discard(ms, 2);
 
       const a = vacuum(ms, { batchSize: 1, batchWait: 50 });
       const b = vacuum(ms);
@@ -1022,7 +1032,7 @@ describe("MiniSearch", () => {
         { id: 2, text: "Some additional stuff" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       await vacuum(ms, { batchSize: ms.termCount + 1 });
       expect(ms.isVacuuming).toEqual(false);
     });
@@ -1036,7 +1046,7 @@ describe("MiniSearch", () => {
         { id: 2, text: "Mi ritrovai per una selva oscura" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       expect(ms.documentCount).toEqual(documents.length);
     });
   });
@@ -1060,7 +1070,7 @@ describe("MiniSearch", () => {
         { id: 13, text: "è cosa dura" },
       ];
 
-      return ms.addAllAsync(documents).then(() => {
+      return addAllAsync(ms, documents).then(() => {
         expect(ms.documentCount).toEqual(documents.length);
       });
     });
@@ -1083,7 +1093,7 @@ describe("MiniSearch", () => {
         { id: 13, text: "è cosa dura" },
       ];
 
-      return ms.addAllAsync(documents, { chunkSize: 3 }).then(() => {
+      return addAllAsync(ms, documents, { chunkSize: 3 }).then(() => {
         expect(ms.documentCount).toEqual(documents.length);
       });
     });
@@ -1105,21 +1115,21 @@ describe("MiniSearch", () => {
       ];
       const ms = new MiniSearch({ fields: ["title", "text"] });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
-      expect(ms.has(1)).toEqual(true);
-      expect(ms.has(2)).toEqual(true);
-      expect(ms.has(3)).toEqual(false);
+      expect(has(ms, 1)).toEqual(true);
+      expect(has(ms, 2)).toEqual(true);
+      expect(has(ms, 3)).toEqual(false);
 
-      ms.remove({
+      remove(ms, {
         id: 1,
         title: "Divina Commedia",
         text: "Nel mezzo del cammin di nostra vita",
       });
-      ms.discard(2);
+      discard(ms, 2);
 
-      expect(ms.has(1)).toEqual(false);
-      expect(ms.has(2)).toEqual(false);
+      expect(has(ms, 1)).toEqual(false);
+      expect(has(ms, 2)).toEqual(false);
     });
 
     it("works well with custom ID fields", () => {
@@ -1137,21 +1147,21 @@ describe("MiniSearch", () => {
       ];
       const ms = new MiniSearch({ fields: ["title", "text"], idField: "uid" });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
-      expect(ms.has(1)).toEqual(true);
-      expect(ms.has(2)).toEqual(true);
-      expect(ms.has(3)).toEqual(false);
+      expect(has(ms, 1)).toEqual(true);
+      expect(has(ms, 2)).toEqual(true);
+      expect(has(ms, 3)).toEqual(false);
 
-      ms.remove({
+      remove(ms, {
         uid: 1,
         title: "Divina Commedia",
         text: "Nel mezzo del cammin di nostra vita",
       });
-      ms.discard(2);
+      discard(ms, 2);
 
-      expect(ms.has(1)).toEqual(false);
-      expect(ms.has(2)).toEqual(false);
+      expect(has(ms, 1)).toEqual(false);
+      expect(has(ms, 2)).toEqual(false);
     });
   });
 
@@ -1174,7 +1184,7 @@ describe("MiniSearch", () => {
         storeFields: ["title", "text"],
       });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(ms.getStoredFields(1)).toEqual({
         title: "Divina Commedia",
@@ -1186,7 +1196,7 @@ describe("MiniSearch", () => {
       });
       expect(ms.getStoredFields(3)).toBe(undefined);
 
-      ms.discard(1);
+      discard(ms, 1);
       expect(ms.getStoredFields(1)).toBe(undefined);
     });
   });
@@ -1217,7 +1227,7 @@ describe("MiniSearch", () => {
       storeFields: ["lang", "category"],
     });
 
-    ms.addAll(documents);
+    addAll(ms, documents);
 
     it("returns scored results", () => {
       const results = search(ms, "vita");
@@ -1274,8 +1284,8 @@ describe("MiniSearch", () => {
     it("computes a meaningful score when fields are named liked default properties of object", () => {
       const ms = new MiniSearch({ fields: ["constructor"] });
 
-      ms.add({ id: 1, constructor: "something" });
-      ms.add({ id: 2, constructor: "something else" });
+      add(ms, { id: 1, constructor: "something" });
+      add(ms, { id: 2, constructor: "something else" });
 
       const results = search(ms, "something");
 
@@ -1400,7 +1410,7 @@ describe("MiniSearch", () => {
         { id: 2, text: "Deus, venerunt gentes" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       expect(ms.documentCount).toEqual(documents.length);
 
       const exact = search(ms, "gente");
@@ -1510,7 +1520,7 @@ describe("MiniSearch", () => {
         { id: 2, text: "something cool" },
       ];
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(search(ms, "very")[0].score).toBeGreaterThan(
         search(ms, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score
@@ -1528,7 +1538,7 @@ describe("MiniSearch", () => {
         searchOptions: { bm25: { k: 1, b: 0.7, d: 0.5 } },
       });
 
-      other.addAll(documents);
+      addAll(other, documents);
 
       expect(search(other, "very")).toEqual(
         search(ms, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })
@@ -1657,7 +1667,7 @@ describe("MiniSearch", () => {
       ];
       const ms = new MiniSearch({ fields: ["title", "text"] });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       it("reports information about matched terms and fields", () => {
         const results = search(ms, "vita nova");
@@ -1749,9 +1759,9 @@ describe("MiniSearch", () => {
       it("does not break when special properties of object are used as a term", () => {
         const specialWords = ["constructor", "hasOwnProperty", "isPrototypeOf"];
         const ms = new MiniSearch({ fields: ["text"] });
-        const processTerm = MiniSearch.getDefault("processTerm");
+        const processTerm = getDefaultValue("processTerm");
 
-        ms.add({ id: 1, text: specialWords.join(" ") });
+        add(ms, { id: 1, text: specialWords.join(" ") });
 
         specialWords.forEach((word) => {
           expect(() => {
@@ -1772,62 +1782,62 @@ describe("MiniSearch", () => {
         storeFields: ["title"],
       });
 
-      ms.add({
+      add(ms, {
         id: "tt1487931",
         title: "Khumba",
         description:
           "When half-striped zebra Khumba is blamed for the lack of rain by the rest of his insular, superstitious herd, he embarks on a daring quest to earn his stripes. In his search for the legendary waterhole in which the first zebras got their stripes, Khumba meets a quirky range of characters and teams up with an unlikely duo: overprotective wildebeest Mama V and Bradley, a self-obsessed, flamboyant ostrich. But before he can reunite with his herd, Khumba must confront Phango, a sadistic leopard who controls the waterholes and terrorizes all the animals in the Great Karoo. It's not all black-and-white in this colorful adventure with a difference.",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt8737608",
         title: "Rams",
         description: "A feud between two sheep farmers.",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt0983983",
         title: "Shaun the Sheep",
         description:
           "Shaun is a cheeky and mischievous sheep at Mossy Bottom farm who's the leader of the flock and always plays slapstick jokes, pranks and causes trouble especially on Farmer X and his grumpy guide dog, Bitzer.",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt5174284",
         title: "Shaun the Sheep: The Farmer's Llamas",
         description:
           "At the annual County Fair, three peculiar llamas catch the eye of Shaun, who tricks the unsuspecting Farmer into buying them. At first, it's all fun and games at Mossy Bottom Farm until the trio of unruly animals shows their true colours, wreaking havoc before everyone's eyes. Now, it's up to Bitzer and Shaun to come up with a winning strategy, if they want to reclaim the farm. Can they rid the once-peaceful ranch of the troublemakers?",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt0102926",
         title: "The Silence of the Lambs",
         description:
           "F.B.I. trainee Clarice Starling (Jodie Foster) works hard to advance her career, while trying to hide or put behind her West Virginia roots, of which if some knew, would automatically classify her as being backward or white trash. After graduation, she aspires to work in the agency's Behavioral Science Unit under the leadership of Jack Crawford (Scott Glenn). While she is still a trainee, Crawford asks her to question Dr. Hannibal Lecter (Sir Anthony Hopkins), a psychiatrist imprisoned, thus far, for eight years in maximum security isolation for being a serial killer who cannibalized his victims. Clarice is able to figure out the assignment is to pick Lecter's brains to help them solve another serial murder case, that of someone coined by the media as \"Buffalo Bill\" (Ted Levine), who has so far killed five victims, all located in the eastern U.S., all young women, who are slightly overweight (especially around the hips), all who were drowned in natural bodies of water, and all who were stripped of large swaths of skin. She also figures that Crawford chose her, as a woman, to be able to trigger some emotional response from Lecter. After speaking to Lecter for the first time, she realizes that everything with him will be a psychological game, with her often having to read between the very cryptic lines he provides. She has to decide how much she will play along, as his request in return for talking to him is to expose herself emotionally to him. The case takes a more dire turn when a sixth victim is discovered, this one from who they are able to retrieve a key piece of evidence, if Lecter is being forthright as to its meaning. A potential seventh victim is high profile Catherine Martin (Brooke Smith), the daughter of Senator Ruth Martin (Diane Baker), which places greater scrutiny on the case as they search for a hopefully still alive Catherine. Who may factor into what happens is Dr. Frederick Chilton (Anthony Heald), the warden at the prison, an opportunist who sees the higher profile with Catherine, meaning a higher profile for himself if he can insert himself successfully into the proceedings.",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt0395479",
         title: "Boundin'",
         description:
           "In the not too distant past, a lamb lives in the desert plateau just below the snow line. He is proud of how bright and shiny his coat of wool is, so much so that it makes him want to dance, which in turn makes all the other creatures around him also want to dance. His life changes when one spring day he is captured, his wool shorn, and thrown back out onto the plateau all naked and pink. But a bounding jackalope who wanders by makes the lamb look at life a little differently in seeing that there is always something exciting in life to bound about.",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt9812474",
         title: "Lamb",
         description:
           "Haunted by the indelible mark of loss and silent grief, sad-eyed María and her taciturn husband, Ingvar, seek solace in back-breaking work and the demanding schedule at their sheep farm in the remote, harsh, wind-swept landscapes of mountainous Iceland. Then, with their relationship hanging on by a thread, something unexplainable happens, and just like that, happiness blesses the couple's grim household once more. Now, as a painful ending gives birth to a new beginning, Ingvar's troubled brother, Pétur, arrives at the farmhouse, threatening María and Ingvar's delicate, newfound bliss. But, nature's gifts demand sacrifice. How far are ecstatic María and Ingvar willing to go in the name of love?",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt0306646",
         title: "Ringing Bell",
         description:
           "A baby lamb named Chirin is living an idyllic life on a farm with many other sheep. Chirin is very adventurous and tends to get lost, so he wears a bell around his neck so that his mother can always find him. His mother warns Chirin that he must never venture beyond the fence surrounding the farm, because a huge black wolf lives in the mountains and loves to eat sheep. Chirin is too young and naive to take the advice to heart, until one night the wolf enters the barn and is prepared to kill Chirin, but at the last moment the lamb's mother throws herself in the way and is killed instead. The wolf leaves, and Chirin is horrified to see his mother's body. Unable to understand why his mother was killed, he becomes very angry and swears that he will go into the mountains and kill the wolf.",
       });
 
-      ms.add({
+      add(ms, {
         id: "tt1212022",
         title: "The Lion of Judah",
         description:
@@ -1933,49 +1943,49 @@ describe("MiniSearch", () => {
         storeFields: ["song"],
       });
 
-      ms.add({
+      add(ms, {
         id: "1",
         song: "Killer Queen",
         artist: "Queen",
       });
 
-      ms.add({
+      add(ms, {
         id: "2",
         song: "The Witch Queen Of New Orleans",
         artist: "Redbone",
       });
 
-      ms.add({
+      add(ms, {
         id: "3",
         song: "Waterloo",
         artist: "Abba",
       });
 
-      ms.add({
+      add(ms, {
         id: "4",
         song: "Take A Chance On Me",
         artist: "Abba",
       });
 
-      ms.add({
+      add(ms, {
         id: "5",
         song: "Help",
         artist: "The Beatles",
       });
 
-      ms.add({
+      add(ms, {
         id: "6",
         song: "Yellow Submarine",
         artist: "The Beatles",
       });
 
-      ms.add({
+      add(ms, {
         id: "7",
         song: "Dancing Queen",
         artist: "Abba",
       });
 
-      ms.add({
+      add(ms, {
         id: "8",
         song: "Bohemian Rhapsody",
         artist: "Queen",
@@ -2028,7 +2038,7 @@ e forse del mio dir poco ti cale`,
       ];
       const ms = new MiniSearch({ fields: ["text"] });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       expect(search(ms, "perché").length).toBeGreaterThan(0);
       expect(search(ms, "perch").length).toEqual(0);
       expect(search(ms, "luna").length).toBeGreaterThan(0);
@@ -2047,7 +2057,7 @@ e forse del mio dir poco ti cale`,
       ];
       const ms = new MiniSearch({ fields: ["title"] });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       expect(search(ms, "софия").map(({ id }) => id)).toEqual([1]);
       expect(search(ms, "アネモネ").map(({ id }) => id)).toEqual([2]);
@@ -2083,7 +2093,7 @@ e forse del mio dir poco ti cale`,
       storeFields: ["category"],
     });
 
-    ms.addAll(documents);
+    addAll(ms, documents);
 
     it("returns scored suggestions", () => {
       const results = autoSuggest(ms, "com");
@@ -2164,7 +2174,7 @@ e forse del mio dir poco ti cale`,
         autoSuggestOptions: { combineWith: "OR", fuzzy: true },
       });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       const results = autoSuggest(ms, "nosta vi");
 
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
@@ -2179,7 +2189,7 @@ e forse del mio dir poco ti cale`,
         searchOptions: { combineWith: "OR", fuzzy: true },
       });
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       const results = autoSuggest(ms, "nosta vi");
 
       expect(results.map(({ suggestion }) => suggestion)).toEqual([
@@ -2214,7 +2224,7 @@ e forse del mio dir poco ti cale`,
       const options = { fields: ["title", "text"], storeFields: ["category"] };
       const ms = new MiniSearch(options);
 
-      ms.addAll(documents);
+      addAll(ms, documents);
 
       const json = JSON.stringify(ms);
       const deserialized = loadJSONIndex(json, options);
@@ -2235,7 +2245,7 @@ e forse del mio dir poco ti cale`,
       const options = { fields: ["title", "text"] };
       const ms = new MiniSearch(options);
 
-      ms.addAll(documents);
+      addAll(ms, documents);
       const json = JSON.stringify(ms);
 
       expect(() => {
@@ -2264,7 +2274,7 @@ e forse del mio dir poco ti cale`,
       const ms1 = loadJSONIndex(jsonV1, options);
       const ms2 = new MiniSearch(options);
 
-      ms2.addAll(documents);
+      addAll(ms2, documents);
 
       const original = ms1.toJSON();
       const expected = ms2.toJSON();
@@ -2279,17 +2289,17 @@ e forse del mio dir poco ti cale`,
 
   describe("getDefault", () => {
     it("returns the default value of the given option", () => {
-      expect(MiniSearch.getDefault("idField")).toEqual("id");
-      expect(MiniSearch.getDefault("extractField")).toBeInstanceOf(Function);
-      expect(MiniSearch.getDefault("tokenize")).toBeInstanceOf(Function);
-      expect(MiniSearch.getDefault("processTerm")).toBeInstanceOf(Function);
-      expect(MiniSearch.getDefault("searchOptions")).toBe(undefined);
-      expect(MiniSearch.getDefault("fields")).toBe(undefined);
+      expect(getDefaultValue("idField")).toEqual("id");
+      expect(getDefaultValue("extractField")).toBeInstanceOf(Function);
+      expect(getDefaultValue("tokenize")).toBeInstanceOf(Function);
+      expect(getDefaultValue("processTerm")).toBeInstanceOf(Function);
+      expect(getDefaultValue("searchOptions")).toBe(undefined);
+      expect(getDefaultValue("fields")).toBe(undefined);
     });
 
     it("throws an error if there is no option with the given name", () => {
       expect(() => {
-        MiniSearch.getDefault("foo");
+        getDefaultValue("foo");
       }).toThrowError('MiniSearch: unknown option "foo"');
     });
   });

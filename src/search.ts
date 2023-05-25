@@ -1,4 +1,5 @@
 import { MiniSearch } from "./MiniSearch.js";
+import { executeQuery } from "./results.js";
 import {
   type Query,
   type SearchOptions,
@@ -18,7 +19,7 @@ import { byScore } from "./utils.js";
  * ```javascript
  * // Search for "zen art motorcycle" with default options: terms have to match
  * // exactly, and individual terms are joined with OR
- * miniSearch.search('zen art motorcycle')
+ * search(index, 'zen art motorcycle')
  * // => [ { id: 2, score: 2.77258, match: { ... } }, { id: 4, score: 1.38629, match: { ... } } ]
  * ```
  *
@@ -26,14 +27,14 @@ import { byScore } from "./utils.js";
  *
  * ```javascript
  * // Search only in the 'title' field
- * miniSearch.search('zen', { fields: ['title'] })
+ * search(index, 'zen', { fields: ['title'] })
  * ```
  *
  * ### Field boosting:
  *
  * ```javascript
  * // Boost a field
- * miniSearch.search('zen', { boost: { title: 2 } })
+ * search(index, 'zen', { boost: { title: 2 } })
  * ```
  *
  * ### Prefix search:
@@ -41,7 +42,7 @@ import { byScore } from "./utils.js";
  * ```javascript
  * // Search for "moto" with prefix search (it will match documents
  * // containing terms that start with "moto" or "neuro")
- * miniSearch.search('moto neuro', { prefix: true })
+ * search(index, 'moto neuro', { prefix: true })
  * ```
  *
  * ### Fuzzy search:
@@ -50,14 +51,14 @@ import { byScore } from "./utils.js";
  * // Search for "ismael" with fuzzy search (it will match documents containing
  * // terms similar to "ismael", with a maximum edit distance of 0.2 term.length
  * // (rounded to nearest integer)
- * miniSearch.search('ismael', { fuzzy: 0.2 })
+ * search(index, 'ismael', { fuzzy: 0.2 })
  * ```
  *
  * ### Combining strategies:
  *
  * ```javascript
  * // Mix of exact match, prefix search, and fuzzy search
- * miniSearch.search('ismael mob', {
+ * search(index, 'ismael mob', {
  *  prefix: true,
  *  fuzzy: 0.2
  * })
@@ -68,7 +69,7 @@ import { byScore } from "./utils.js";
  * ```javascript
  * // Perform fuzzy and prefix search depending on the search term. Here
  * // performing prefix and fuzzy search only on terms longer than 3 characters
- * miniSearch.search('ismael mob', {
+ * search(index, 'ismael mob', {
  *  prefix: term => term.length > 3
  *  fuzzy: term => term.length > 3 ? 0.2 : null
  * })
@@ -79,7 +80,7 @@ import { byScore } from "./utils.js";
  * ```javascript
  * // Combine search terms with AND (to match only documents that contain both
  * // "motorcycle" and "art")
- * miniSearch.search('motorcycle art', { combineWith: 'AND' })
+ * search(index, 'motorcycle art', { combineWith: 'AND' })
  * ```
  *
  * ### Combine with AND_NOT:
@@ -94,7 +95,7 @@ import { byScore } from "./utils.js";
  * ```javascript
  * // Filter only results in the 'fiction' category (assuming that 'category'
  * // is a stored field)
- * miniSearch.search('motorcycle art', {
+ * search(index, 'motorcycle art', {
  *   filter: (result) => result.category === 'fiction'
  * })
  * ```
@@ -107,7 +108,7 @@ import { byScore } from "./utils.js";
  *
  * ```javascript
  * // Search for documents that contain "zen" and ("motorcycle" or "archery")
- * miniSearch.search({
+ * search(index, {
  *   combineWith: 'AND',
  *   queries: [
  *     'zen',
@@ -120,7 +121,7 @@ import { byScore } from "./utils.js";
  *
  * // Search for documents that contain ("apple" or "pear") but not "juice" and
  * // not "tree"
- * miniSearch.search({
+ * search(index, {
  *   combineWith: 'AND_NOT',
  *   queries: [
  *     {
@@ -141,15 +142,16 @@ import { byScore } from "./utils.js";
  * deeply nested queries, it provides a formalized expression tree API for
  * external libraries that implement a parser for custom query languages.
  *
+ * @param index Search Index
  * @param query  Search query
  * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
  */
-export const search = (
-  index: MiniSearch,
+export const search = <T>(
+  index: MiniSearch<T>,
   query: Query,
   searchOptions: SearchOptions = {}
 ): SearchResult[] => {
-  const combinedResults = index.executeQuery(query, searchOptions);
+  const combinedResults = executeQuery(index, query, searchOptions);
 
   const results = [];
 
