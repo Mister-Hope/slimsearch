@@ -1,6 +1,6 @@
 import { type SearchIndex } from "./SearchIndex.js";
-import { warnDocumentChanged } from "./warning.js";
 import { createMap } from "./utils.js";
+import { warnDocumentChanged } from "./warning.js";
 
 /**
  * @ignore

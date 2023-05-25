@@ -1,5 +1,5 @@
-import { SearchableMap } from "./SearchableMap/SearchableMap.js";
 import { type FieldTermData, SearchIndex } from "./SearchIndex.js";
+import { SearchableMap } from "./SearchableMap/SearchableMap.js";
 import { type DocumentTermFreqs } from "./results.js";
 import {
   type AsPlainObject,

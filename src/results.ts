@@ -1,6 +1,6 @@
+import { type SearchIndex } from "./SearchIndex.js";
 import { OR } from "./constant.js";
 import { defaultSearchOptions } from "./defaults.js";
-import { type SearchIndex } from "./SearchIndex.js";
 import { removeTerm } from "./term.js";
 import { type BM25Params, type Query, type SearchOptions } from "./typings.js";
 import {

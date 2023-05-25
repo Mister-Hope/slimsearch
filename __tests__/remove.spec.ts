@@ -6,8 +6,8 @@ import {
   addAll,
   createIndex,
   getDefaultValue,
-  search,
   remove,
+  search,
 } from "../src/index.js";
 
 describe("remove()", () => {
@@ -274,7 +274,7 @@ describe("remove()", () => {
     });
 
     it("does not throw error if console.warn is undefined", () => {
-      // @ts-ignore
+      // @ts-expect-error
       console.warn = undefined;
       expect(() =>
         remove(index, {

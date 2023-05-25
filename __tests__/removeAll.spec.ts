@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   type SearchIndex,
+  addAll,
   createIndex,
   loadJSONIndex,
-  addAll,
-  search,
   removeAll,
+  search,
 } from "../src/index.js";
 
 describe("removeAll()", () => {
