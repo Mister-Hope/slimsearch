@@ -1,6 +1,5 @@
-/* eslint-env jest */
-
-import { MiniSearch } from "./MiniSearch";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { MiniSearch } from "../src/MiniSearch.js";
 
 describe("MiniSearch", () => {
   describe("constructor", () => {
@@ -78,7 +77,7 @@ describe("MiniSearch", () => {
     });
 
     it("turns the field to string before tokenization", () => {
-      const tokenize = jest.fn((x) => x.split(/\W+/));
+      const tokenize = vi.fn((x) => x.split(/\W+/));
       const ms = new MiniSearch({
         fields: ["id", "tags", "isBlinky"],
         tokenize,
@@ -97,7 +96,7 @@ describe("MiniSearch", () => {
     });
 
     it("passes document and field name to the field extractor", () => {
-      const extractField = jest.fn((document, fieldName) => {
+      const extractField = vi.fn((document, fieldName) => {
         if (fieldName === "pubDate") {
           return (
             document[fieldName] &&
@@ -108,7 +107,7 @@ describe("MiniSearch", () => {
           .split(".")
           .reduce((doc, key) => doc && doc[key], document);
       });
-      const tokenize = jest.fn((string) => string.split(/\W+/));
+      const tokenize = vi.fn((string) => string.split(/\W+/));
       const ms = new MiniSearch({
         fields: ["title", "pubDate", "author.name"],
         storeFields: ["category"],
@@ -137,7 +136,7 @@ describe("MiniSearch", () => {
     });
 
     it("passes field value and name to tokenizer", () => {
-      const tokenize = jest.fn((string) => string.split(/\W+/));
+      const tokenize = vi.fn((string) => string.split(/\W+/));
       const ms = new MiniSearch({ fields: ["text", "title"], tokenize });
       const document = {
         id: 1,
@@ -150,7 +149,7 @@ describe("MiniSearch", () => {
     });
 
     it("passes field value and name to term processor", () => {
-      const processTerm = jest.fn((term) => term.toLowerCase());
+      const processTerm = vi.fn((term) => term.toLowerCase());
       const ms = new MiniSearch({ fields: ["text", "title"], processTerm });
       const document = {
         id: 1,
@@ -198,7 +197,7 @@ describe("MiniSearch", () => {
       ms = new MiniSearch({ fields: ["title", "text"] });
       ms.addAll(documents);
       _warn = console.warn;
-      console.warn = jest.fn();
+      console.warn = vi.fn();
     });
 
     afterEach(() => {
@@ -393,7 +392,7 @@ describe("MiniSearch", () => {
         });
         ms.addAll(documents);
         _warn = console.warn;
-        console.warn = jest.fn();
+        console.warn = vi.fn();
       });
 
       afterEach(() => {
@@ -453,7 +452,7 @@ describe("MiniSearch", () => {
       });
 
       it("calls the custom logger if given", () => {
-        const logger = jest.fn();
+        const logger = vi.fn();
         ms = new MiniSearch({ fields: ["title", "text"], logger });
         ms.addAll(documents);
         ms.remove({ id: 1, title: "Divina Commedia", text: "something" });
@@ -487,7 +486,7 @@ describe("MiniSearch", () => {
     beforeEach(() => {
       ms = new MiniSearch({ fields: ["title", "text"] });
       _warn = console.warn;
-      console.warn = jest.fn();
+      console.warn = vi.fn();
     });
 
     afterEach(() => {
@@ -1351,8 +1350,8 @@ describe("MiniSearch", () => {
     });
 
     it("accepts a function to compute fuzzy and prefix options from term", () => {
-      const fuzzy = jest.fn((term) => (term.length > 4 ? 2 : false));
-      const prefix = jest.fn((term) => term.length > 4);
+      const fuzzy = vi.fn((term) => (term.length > 4 ? 2 : false));
+      const prefix = vi.fn((term) => term.length > 4);
       const results = ms.search("quel comedia", { fuzzy, prefix });
       expect(fuzzy).toHaveBeenNthCalledWith(1, "quel", 0, ["quel", "comedia"]);
       expect(fuzzy).toHaveBeenNthCalledWith(2, "comedia", 1, [
@@ -1371,7 +1370,7 @@ describe("MiniSearch", () => {
     it("boosts documents by calling boostDocument with document ID, term, and stored fields", () => {
       const query = "divina commedia nova";
       const boostFactor = 1.234;
-      const boostDocument = jest.fn((id, term) => boostFactor);
+      const boostDocument = vi.fn((id, term) => boostFactor);
       const resultsWithoutBoost = ms.search(query);
       const results = ms.search(query, { boostDocument });
       expect(boostDocument).toHaveBeenCalledWith(1, "divina", {});
@@ -1386,7 +1385,7 @@ describe("MiniSearch", () => {
 
     it("skips document if boostDocument returns a falsy value", () => {
       const query = "vita";
-      const boostDocument = jest.fn((id, term) => (id === 3 ? null : 1));
+      const boostDocument = vi.fn((id, term) => (id === 3 ? null : 1));
       const resultsWithoutBoost = ms.search(query);
       const results = ms.search(query, { boostDocument });
       expect(resultsWithoutBoost.map(({ id }) => id)).toContain(3);
@@ -1641,7 +1640,7 @@ describe("MiniSearch", () => {
       });
 
       it("passes only the query to tokenize", () => {
-        const tokenize = jest.fn((string) => string.split(/\W+/));
+        const tokenize = vi.fn((string) => string.split(/\W+/));
         const ms = new MiniSearch({
           fields: ["text", "title"],
           searchOptions: { tokenize },
@@ -1652,7 +1651,7 @@ describe("MiniSearch", () => {
       });
 
       it("passes only the term to processTerm", () => {
-        const processTerm = jest.fn((term) => term.toLowerCase());
+        const processTerm = vi.fn((term) => term.toLowerCase());
         const ms = new MiniSearch({
           fields: ["text", "title"],
           searchOptions: { processTerm },

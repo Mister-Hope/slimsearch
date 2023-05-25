@@ -1,7 +1,6 @@
-/* eslint-env jest */
-
-import { SearchableMap } from "./SearchableMap";
 import * as fc from "fast-check";
+import { describe, it, expect, vi } from "vitest";
+import { SearchableMap } from "../src/SearchableMap/SearchableMap.js";
 
 describe("SearchableMap", () => {
   const strings = [
@@ -211,7 +210,7 @@ describe("SearchableMap", () => {
     it("sets a value at key applying a function to the previous value", () => {
       const map = new SearchableMap();
       const key = "foo";
-      const fn = jest.fn((x) => (x || 0) + 1);
+      const fn = vi.fn((x) => (x || 0) + 1);
       map.update(key, fn);
       expect(fn).toHaveBeenCalledWith(undefined);
       expect(map.get(key)).toBe(1);

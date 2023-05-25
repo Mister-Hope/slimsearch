@@ -1,6 +1,6 @@
 /* eslint-disable no-labels */
-import { LEAF } from "./TreeIterator";
-import { RadixTree } from "./types";
+import { LEAF } from "./TreeIterator.js";
+import { type RadixTree } from "./types.js";
 
 export type FuzzyResult<T> = [T, number];
 

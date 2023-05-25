@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/minisearch)](https://www.npmjs.com/package/minisearch)
 [![types](https://img.shields.io/npm/types/minisearch)](https://lucaong.github.io/minisearch/classes/_minisearch_.minisearch.html)
 
-`MiniSearch` is a tiny but powerful in-memory fulltext search engine written in
+`MiniSearch` is a tiny but powerful in-memory full-text search engine written in
 JavaScript. It is respectful of resources, and it can comfortably run both in
 Node and in the browser.
 
@@ -23,7 +23,6 @@ post](https://lucaongaro.eu/blog/2019/01/30/minisearch-client-side-fulltext-sear
 and documents releases and changes in the
 [changelog](https://github.com/lucaong/minisearch/blob/master/CHANGELOG.md).
 
-
 ## Use case
 
 `MiniSearch` addresses use cases where full-text search features are needed
@@ -37,48 +36,46 @@ A prominent use-case is real time search "as you type" in web and mobile
 applications, where keeping the index on the client enables fast and reactive
 UIs, removing the need to make requests to a search server.
 
-
 ## Features
 
-  * Memory-efficient index, designed to support memory-constrained use cases
-    like mobile browsers.
+- Memory-efficient index, designed to support memory-constrained use cases
+  like mobile browsers.
 
-  * Exact match, prefix search, fuzzy match, field boosting.
+- Exact match, prefix search, fuzzy match, field boosting.
 
-  * Auto-suggestion engine, for auto-completion of search queries.
+- Auto-suggestion engine, for auto-completion of search queries.
 
-  * Modern search result ranking algorithm.
+- Modern search result ranking algorithm.
 
-  * Documents can be added and removed from the index at any time.
+- Documents can be added and removed from the index at any time.
 
-  * Zero external dependencies.
+- Zero external dependencies.
 
 `MiniSearch` strives to expose a simple API that provides the building blocks to
 build custom solutions, while keeping a small and well tested codebase.
-
 
 ## Installation
 
 With `npm`:
 
-```
+```shell
 npm install minisearch
 ```
 
 With `yarn`:
 
-```
+```shell
 yarn add minisearch
 ```
 
 Then `require` or `import` it in your project:
 
-```javascript
+```js
 // If you are using import:
-import MiniSearch from 'minisearch'
+import MiniSearch from "minisearch";
 
 // If you are using require:
-const MiniSearch = require('minisearch')
+const MiniSearch = require("minisearch");
 ```
 
 Alternatively, if you prefer to use a `<script>` tag, you can require MiniSearch
@@ -95,51 +92,50 @@ Finally, if you want to manually build the library, clone the repository and run
 The compiled source will be created in the `dist` folder (UMD, ES6 and ES2015
 module versions are provided).
 
-
 ## Usage
 
 ### Basic usage
 
-```javascript
+```js
 // A collection of documents for our examples
 const documents = [
   {
     id: 1,
-    title: 'Moby Dick',
-    text: 'Call me Ishmael. Some years ago...',
-    category: 'fiction'
+    title: "Moby Dick",
+    text: "Call me Ishmael. Some years ago...",
+    category: "fiction",
   },
   {
     id: 2,
-    title: 'Zen and the Art of Motorcycle Maintenance',
-    text: 'I can see by my watch...',
-    category: 'fiction'
+    title: "Zen and the Art of Motorcycle Maintenance",
+    text: "I can see by my watch...",
+    category: "fiction",
   },
   {
     id: 3,
-    title: 'Neuromancer',
-    text: 'The sky above the port was...',
-    category: 'fiction'
+    title: "Neuromancer",
+    text: "The sky above the port was...",
+    category: "fiction",
   },
   {
     id: 4,
-    title: 'Zen and the Art of Archery',
-    text: 'At first sight it must seem...',
-    category: 'non-fiction'
+    title: "Zen and the Art of Archery",
+    text: "At first sight it must seem...",
+    category: "non-fiction",
   },
   // ...and more
-]
+];
 
 let miniSearch = new MiniSearch({
-  fields: ['title', 'text'], // fields to index for full-text search
-  storeFields: ['title', 'category'] // fields to return with search results
-})
+  fields: ["title", "text"], // fields to index for full-text search
+  storeFields: ["title", "category"], // fields to return with search results
+});
 
 // Index all documents
-miniSearch.addAll(documents)
+miniSearch.addAll(documents);
 
 // Search with default options
-let results = miniSearch.search('zen art motorcycle')
+let results = miniSearch.search("zen art motorcycle");
 // => [
 //   { id: 2, title: 'Zen and the Art of Motorcycle Maintenance', category: 'fiction', score: 2.77258, match: { ... } },
 //   { id: 4, title: 'Zen and the Art of Archery', category: 'non-fiction', score: 1.38629, match: { ... } }
@@ -150,45 +146,45 @@ let results = miniSearch.search('zen art motorcycle')
 
 `MiniSearch` supports several options for more advanced search behavior:
 
-```javascript
+```js
 // Search only specific fields
-miniSearch.search('zen', { fields: ['title'] })
+miniSearch.search("zen", { fields: ["title"] });
 
 // Boost some fields (here "title")
-miniSearch.search('zen', { boost: { title: 2 } })
+miniSearch.search("zen", { boost: { title: 2 } });
 
 // Prefix search (so that 'moto' will match 'motorcycle')
-miniSearch.search('moto', { prefix: true })
+miniSearch.search("moto", { prefix: true });
 
 // Search within a specific category
-miniSearch.search('zen', {
-  filter: (result) => result.category === 'fiction'
-})
+miniSearch.search("zen", {
+  filter: (result) => result.category === "fiction",
+});
 
 // Fuzzy search, in this example, with a max edit distance of 0.2 * term length,
 // rounded to nearest integer. The mispelled 'ismael' will match 'ishmael'.
-miniSearch.search('ismael', { fuzzy: 0.2 })
+miniSearch.search("ismael", { fuzzy: 0.2 });
 
 // You can set the default search options upon initialization
 miniSearch = new MiniSearch({
-  fields: ['title', 'text'],
+  fields: ["title", "text"],
   searchOptions: {
     boost: { title: 2 },
-    fuzzy: 0.2
-  }
-})
-miniSearch.addAll(documents)
+    fuzzy: 0.2,
+  },
+});
+miniSearch.addAll(documents);
 
 // It will now by default perform fuzzy search and boost "title":
-miniSearch.search('zen and motorcycles')
+miniSearch.search("zen and motorcycles");
 ```
 
 ### Auto suggestions
 
 `MiniSearch` can suggest search queries given an incomplete query:
 
-```javascript
-miniSearch.autoSuggest('zen ar')
+```js
+miniSearch.autoSuggest("zen ar");
 // => [ { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
 //      { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 } ]
 ```
@@ -196,8 +192,8 @@ miniSearch.autoSuggest('zen ar')
 The `autoSuggest` method takes the same options as the `search` method, so you
 can get suggestions for misspelled words using fuzzy search:
 
-```javascript
-miniSearch.autoSuggest('neromancer', { fuzzy: 0.2 })
+```js
+miniSearch.autoSuggest("neromancer", { fuzzy: 0.2 });
 // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 1.03998 } ]
 ```
 
@@ -207,10 +203,10 @@ by that search.
 Sometimes, you might need to filter auto suggestions to, say, only a specific
 category. You can do so by providing a `filter` option:
 
-```javascript
-miniSearch.autoSuggest('zen ar', {
-  filter: (result) => result.category === 'fiction'
-})
+```js
+miniSearch.autoSuggest("zen ar", {
+  filter: (result) => result.category === "fiction",
+});
 // => [ { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 } ]
 ```
 
@@ -222,32 +218,52 @@ extraction logic (for example for nested fields, or non-string field values that
 need processing before tokenization), a custom field extractor function can be
 passed as the `extractField` option:
 
-```javascript
+```js
 // Assuming that our documents look like:
 const documents = [
-  { id: 1, title: 'Moby Dick', author: { name: 'Herman Melville' }, pubDate: new Date(1851, 9, 18) },
-  { id: 2, title: 'Zen and the Art of Motorcycle Maintenance', author: { name: 'Robert Pirsig' }, pubDate: new Date(1974, 3, 1) },
-  { id: 3, title: 'Neuromancer', author: { name: 'William Gibson' }, pubDate: new Date(1984, 6, 1) },
-  { id: 4, title: 'Zen in the Art of Archery', author: { name: 'Eugen Herrigel' }, pubDate: new Date(1948, 0, 1) },
+  {
+    id: 1,
+    title: "Moby Dick",
+    author: { name: "Herman Melville" },
+    pubDate: new Date(1851, 9, 18),
+  },
+  {
+    id: 2,
+    title: "Zen and the Art of Motorcycle Maintenance",
+    author: { name: "Robert Pirsig" },
+    pubDate: new Date(1974, 3, 1),
+  },
+  {
+    id: 3,
+    title: "Neuromancer",
+    author: { name: "William Gibson" },
+    pubDate: new Date(1984, 6, 1),
+  },
+  {
+    id: 4,
+    title: "Zen in the Art of Archery",
+    author: { name: "Eugen Herrigel" },
+    pubDate: new Date(1948, 0, 1),
+  },
   // ...and more
-]
+];
 
 // We can support nested fields (author.name) and date fields (pubDate) with a
 // custom `extractField` function:
 
 let miniSearch = new MiniSearch({
-  fields: ['title', 'author.name', 'pubYear'],
+  fields: ["title", "author.name", "pubYear"],
   extractField: (document, fieldName) => {
     // If field name is 'pubYear', extract just the year from 'pubDate'
-    if (fieldName === 'pubYear') {
-      const pubDate = document['pubDate']
-      return pubDate && pubDate.getFullYear().toString()
+    if (fieldName === "pubYear") {
+      const pubDate = document["pubDate"];
+      return pubDate && pubDate.getFullYear().toString();
     }
 
     // Access nested fields
-    return fieldName.split('.').reduce((doc, key) => doc && doc[key], document)
-  }
-})
+    return fieldName.split(".").reduce((doc, key) => doc && doc[key], document);
+  },
+});
 ```
 
 The default field extractor can be obtained by calling
@@ -259,27 +275,27 @@ By default, documents are tokenized by splitting on Unicode space or punctuation
 characters. The tokenization logic can be easily changed by passing a custom
 tokenizer function as the `tokenize` option:
 
-```javascript
+```js
 // Tokenize splitting by hyphen
 let miniSearch = new MiniSearch({
-  fields: ['title', 'text'],
-  tokenize: (string, _fieldName) => string.split('-')
-})
+  fields: ["title", "text"],
+  tokenize: (string, _fieldName) => string.split("-"),
+});
 ```
 
 Upon search, the same tokenization is used by default, but it is possible to
 pass a `tokenize` search option in case a different search-time tokenization is
 necessary:
 
-```javascript
+```js
 // Tokenize splitting by hyphen
 let miniSearch = new MiniSearch({
-  fields: ['title', 'text'],
-  tokenize: (string) => string.split('-'), // indexing tokenizer
+  fields: ["title", "text"],
+  tokenize: (string) => string.split("-"), // indexing tokenizer
   searchOptions: {
-    tokenize: (string) => string.split(/[\s-]+/) // search query tokenizer
-  }
-})
+    tokenize: (string) => string.split(/[\s-]+/), // search query tokenizer
+  },
+});
 ```
 
 The default tokenizer can be obtained by calling
@@ -293,29 +309,35 @@ to normalize them, filter them, or to apply stemming, the `processTerm` option
 can be used. The `processTerm` function should return the processed term as a
 string, or a falsy value if the term should be discarded:
 
-```javascript
-let stopWords = new Set(['and', 'or', 'to', 'in', 'a', 'the', /* ...and more */ ])
+```js
+let stopWords = new Set([
+  "and",
+  "or",
+  "to",
+  "in",
+  "a",
+  "the" /* ...and more */,
+]);
 
 // Perform custom term processing (here discarding stop words and downcasing)
 let miniSearch = new MiniSearch({
-  fields: ['title', 'text'],
+  fields: ["title", "text"],
   processTerm: (term, _fieldName) =>
-    stopWords.has(term) ? null : term.toLowerCase()
-})
+    stopWords.has(term) ? null : term.toLowerCase(),
+});
 ```
 
 By default, the same processing is applied to search queries. In order to apply
 a different processing to search queries, supply a `processTerm` search option:
 
-```javascript
+```js
 let miniSearch = new MiniSearch({
-  fields: ['title', 'text'],
-  processTerm: (term) =>
-    stopWords.has(term) ? null : term.toLowerCase(), // index term processing
+  fields: ["title", "text"],
+  processTerm: (term) => (stopWords.has(term) ? null : term.toLowerCase()), // index term processing
   searchOptions: {
-    processTerm: (term) => term.toLowerCase() // search query processing
-  }
-})
+    processTerm: (term) => term.toLowerCase(), // search query processing
+  },
+});
 ```
 
 The default term processor can be obtained by calling
@@ -326,7 +348,6 @@ The default term processor can be obtained by calling
 Refer to the [API
 documentation](https://lucaong.github.io/minisearch/classes/_minisearch_.minisearch.html)
 for details about configuration options and methods.
-
 
 ## Browser compatibility
 

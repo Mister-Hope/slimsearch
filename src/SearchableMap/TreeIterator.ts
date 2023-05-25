@@ -1,4 +1,4 @@
-import { type RadixTree, Entry, LeafType } from "./types";
+import { type RadixTree, type Entry, type LeafType } from "./types.js";
 
 const ENTRIES = "ENTRIES";
 

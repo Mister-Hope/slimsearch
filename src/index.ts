@@ -1,1 +1,1 @@
-export * from "./MiniSearch";
+export * from "./MiniSearch.js";
