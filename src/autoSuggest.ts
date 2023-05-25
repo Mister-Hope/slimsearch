@@ -12,9 +12,8 @@ import { byScore } from "./utils.js";
  * By default, it uses the same options used for search, except that by
  * default it performs prefix search on the last term of the query, and
  * combine terms with `'AND'` (requiring all query terms to match). Custom
- * options can be passed as a second argument. Defaults can be changed upon
- * calling the `MiniSearch` constructor, by passing a `autoSuggestOptions`
- * option.
+ * options can be passed as a second argument. Defaults can be changed by
+ * passing an `autoSuggestOptions` option when initializing the index.
  *
  * ### Basic usage:
  *
@@ -57,7 +56,7 @@ import { byScore } from "./utils.js";
  * // ]
  * ```
  *
- * @param index Search Index
+ * @param index The search Index
  * @param queryString  Query string to be expanded into suggestions
  * @param options  Search options. The supported options and default values
  * are the same as for the `search` method, except that by default prefix

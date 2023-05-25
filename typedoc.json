@@ -1,13 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "name": "MiniSearch",
-  "entryPoints": [
-    "src/SearchableMap/SearchableMap.ts",
-    "src/index.ts",
-    "src/autoSuggest.ts",
-    "src/search.ts",
-    "src/search.ts",
-    "src/vaccum.ts"
-  ],
+  "entryPoints": ["src/index.ts"],
   "out": "docs"
 }

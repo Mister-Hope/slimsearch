@@ -109,7 +109,7 @@ export const maybeAutoVacuum = <T>(index: SearchIndex<T>): void => {
  * from the inverted index
  *
  * Vacuuming is only useful for applications that use the
- * [[MiniSearch.discard]] or [[MiniSearch.replace]] methods.
+ * [[discard]] or [[replace]] methods.
  *
  * By default, vacuuming is performed automatically when needed (controlled by
  * the `autoVacuum` field in [[Options]]), so there is usually no need to call

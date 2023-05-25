@@ -1,16 +1,18 @@
 {
   "tags": {
     "allowUnknownTags": false,
-    "dictionaries": ["jsdoc","closure"]
+    "dictionaries": ["jsdoc", "closure"]
   },
   "recurseDepth": 10,
   "source": {
-    "include": ["src/MiniSearch.js", "src/SearchableMap/SearchableMap.js", "MiniSearch.svg"]
+    "include": [
+      "src/MiniSearch.js",
+      "src/SearchableMap/SearchableMap.js",
+      "MiniSearch.svg"
+    ]
   },
   "sourceType": "module",
-  "plugins": [
-    "plugins/markdown"
-  ],
+  "plugins": ["plugins/markdown"],
   "opts": {
     "template": "node_modules/docdash/",
     "readme": "README.md",
@@ -27,10 +29,10 @@
     "search": true,
     "menu": {
       "GitHub Repository": {
-        "href":"https://github.com/lucaong/minisearch",
-        "target":"_blank",
-        "class":"menu-item",
-        "id":"github_repo_link"
+        "href": "https://github.com/Mister-Hope/slimsearch",
+        "target": "_blank",
+        "class": "menu-item",
+        "id": "github_repo_link"
       }
     }
   }

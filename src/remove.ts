@@ -23,14 +23,14 @@ const removeFieldLength = <T>(
 /**
  * Discards the document with the given ID, so it won't appear in search results
  *
- * It has the same visible effect of [[MiniSearch.remove]] (both cause the
+ * It has the same visible effect of [[remove]] (both cause the
  * document to stop appearing in searches), but a different effect on the
  * internal data structures:
  *
- *   - [[MiniSearch.remove]] requires passing the full document to be removed
+ *   - [[remove]] requires passing the full document to be removed
  *   as argument, and removes it from the inverted index immediately.
  *
- *   - [[MiniSearch.discard]] instead only needs the document ID, and works by
+ *   - [[discard]] instead only needs the document ID, and works by
  *   marking the current version of the document as discarded, so it is
  *   immediately ignored by searches. This is faster and more convenient than
  *   `remove`, but the index is not immediately modified. To take care of
@@ -40,7 +40,7 @@ const removeFieldLength = <T>(
  * After discarding a document, it is possible to re-add a new version, and
  * only the new version will appear in searches. In other words, discarding
  * and re-adding a document works exactly like removing and re-adding it. The
- * [[MiniSearch.replace]] method can also be used to replace a document with a
+ * [[replace]] method can also be used to replace a document with a
  * new version.
  *
  * #### Details about vacuuming
@@ -59,8 +59,9 @@ const removeFieldLength = <T>(
  *   `autoVacuum` field in [[Options]]) after a certain number of documents
  *   are discarded. Vacuuming traverses all terms in the index, cleaning up
  *   all references to discarded documents. Vacuuming can also be triggered
- *   manually by calling [[MiniSearch.vacuum]].
+ *   manually by calling [[vacuum]].
  *
+ * @param index The search Index
  * @param id  The ID of the document to be discarded
  */
 export const discard = <T>(index: SearchIndex<T>, id: any): void => {
@@ -90,12 +91,12 @@ export const discard = <T>(index: SearchIndex<T>, id: any): void => {
  * Discards the documents with the given IDs, so they won't appear in search
  * results
  *
- * It is equivalent to calling [[MiniSearch.discard]] for all the given IDs,
+ * It is equivalent to calling [[discard]] for all the given IDs,
  * but with the optimization of triggering at most one automatic vacuuming at
  * the end.
  *
  * Note: to remove all documents from the index, it is faster and more
- * convenient to call [[MiniSearch.removeAll]] with no argument, instead of
+ * convenient to call [[removeAll]] with no argument, instead of
  * passing all IDs to this method.
  */
 export const discardAll = <T>(
@@ -123,10 +124,11 @@ export const discardAll = <T>(
  *
  * This method requires passing the full document to be removed (not just the
  * ID), and immediately removes the document from the inverted index, allowing
- * memory to be released. A convenient alternative is [[MiniSearch.discard]],
+ * memory to be released. A convenient alternative is [[discard]],
  * which needs only the document ID, and has the same visible effect, but
  * delays cleaning up the index until the next vacuuming.
  *
+ * @param index The search Index
  * @param document  The document to be removed
  */
 export const remove = <T>(index: SearchIndex<T>, document: T): void => {
@@ -177,6 +179,7 @@ export const remove = <T>(index: SearchIndex<T>, document: T): void => {
  * Removes all the given documents from the index. If called with no arguments,
  * it removes _all_ documents from the index.
  *
+ * @param index The search Index
  * @param documents  The documents to be removed. If this argument is omitted,
  * all documents are removed. Note that, for removing all documents, it is
  * more efficient to call this method with no arguments than to pass all

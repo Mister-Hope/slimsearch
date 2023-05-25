@@ -1,7 +1,7 @@
 # MiniSearch
 
-[![CI Build](https://github.com/lucaong/minisearch/workflows/CI%20Build/badge.svg)](https://github.com/lucaong/minisearch/actions)
-[![Coverage Status](https://coveralls.io/repos/github/lucaong/minisearch/badge.svg?branch=master)](https://coveralls.io/github/lucaong/minisearch?branch=master)
+[![CI Build](https://github.com/Mister-Hope/slimsearch/workflows/CI%20Build/badge.svg)](https://github.com/Mister-Hope/slimsearch/actions)
+[![Coverage Status](https://coveralls.io/repos/github/Mister-Hope/slimsearch/badge.svg?branch=master)](https://coveralls.io/github/Mister-Hope/slimsearch?branch=master)
 [![Minzipped Size](https://badgen.net/bundlephobia/minzip/minisearch)](https://bundlephobia.com/result?p=minisearch)
 [![npm](https://img.shields.io/npm/v/minisearch?color=%23ff00dd)](https://www.npmjs.com/package/minisearch)
 [![npm downloads](https://img.shields.io/npm/dw/minisearch)](https://www.npmjs.com/package/minisearch)
@@ -21,7 +21,7 @@ post](https://lucaongaro.eu/blog/2019/01/30/minisearch-client-side-fulltext-sear
 
 `MiniSearch` follows [semantic versioning](https://semver.org/spec/v2.0.0.html),
 and documents releases and changes in the
-[changelog](https://github.com/lucaong/minisearch/blob/master/CHANGELOG.md).
+[changelog](https://github.com/Mister-Hope/slimsearch/blob/master/CHANGELOG.md).
 
 ## Use case
 
@@ -361,7 +361,7 @@ be used to provide those functions.
 ## Contributing
 
 Contributions to `MiniSearch` are welcome! Please read the [contributions
-guidelines](https://github.com/lucaong/minisearch/blob/master/CONTRIBUTING.md).
+guidelines](https://github.com/Mister-Hope/slimsearch/blob/master/CONTRIBUTING.md).
 Reading the [design
-document](https://github.com/lucaong/minisearch/blob/master/DESIGN_DOCUMENT.md) is
+document](https://github.com/Mister-Hope/slimsearch/blob/master/DESIGN_DOCUMENT.md) is
 also useful to understand the project goals and the technical implementation.

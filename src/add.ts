@@ -56,6 +56,7 @@ const saveStoredFields = <T>(
 /**
  * Adds a document to the index
  *
+ * @param index  The search index
  * @param document  The document to be indexed
  */
 export const add = <T>(index: SearchIndex<T>, document: T): void => {
@@ -105,6 +106,7 @@ export const add = <T>(index: SearchIndex<T>, document: T): void => {
 /**
  * Adds all the given documents to the index
  *
+ * @param index  The search index
  * @param documents  An array of documents to be indexed
  */
 export const addAll = <T>(
@@ -121,6 +123,7 @@ export const addAll = <T>(
  * This method is useful when index many documents, to avoid blocking the main
  * thread. The indexing is performed asynchronously and in chunks.
  *
+ * @param index  The search index
  * @param documents  An array of documents to be indexed
  * @param options  Configuration options
  * @return A promise resolving to `undefined` when the indexing is done

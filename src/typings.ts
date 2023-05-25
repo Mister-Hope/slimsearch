@@ -208,7 +208,7 @@ export type SearchOptions = {
 };
 
 /**
- * Configuration options passed to the [[MiniSearch]] constructor
+ * Configuration options passed to the [[SearchIndex]] constructor
  *
  * @typeParam T  The type of documents being indexed.
  */
@@ -280,7 +280,7 @@ export type Options<T = any> = {
 
   /**
    * If `true` (the default), vacuuming is performed automatically as soon as
-   * [[MiniSearch.discard]] is called a certain number of times, cleaning up
+   * [[discard]] is called a certain number of times, cleaning up
    * obsolete references from the index. If `false`, no automatic vacuuming is
    * performed. Custom settings controlling auto vacuuming thresholds, as well
    * as batching behavior, can be passed as an object (see the
@@ -290,13 +290,13 @@ export type Options<T = any> = {
 
   /**
    * Default search options (see the [[SearchOptions]] type and the
-   * [[MiniSearch.search]] method for details)
+   * [[search]] method for details)
    */
   searchOptions?: SearchOptions;
 
   /**
    * Default auto suggest options (see the [[SearchOptions]] type and the
-   * [[MiniSearch.autoSuggest]] method for details)
+   * [[autoSuggest]] method for details)
    */
   autoSuggestOptions?: SearchOptions;
 };
@@ -351,7 +351,7 @@ export type Query = QueryCombination | string;
  * Options to control vacuuming behavior.
  *
  * Vacuuming cleans up document references made obsolete by
- * [[MiniSearch.discard]] from the index. On large indexes, vacuuming is
+ * [[discard]] from the index. On large indexes, vacuuming is
  * potentially costly, because it has to traverse the whole inverted index.
  * Therefore, in order to dilute this cost so it does not negatively affects the
  * application, vacuuming is performed in batches, with a delay between each
@@ -391,7 +391,7 @@ export type VacuumConditions = {
 
 /**
  * Options to control auto vacuum behavior. When discarding a document with
- * [[MiniSearch.discard]], a vacuuming operation is automatically started if the
+ * [[discard]], a vacuuming operation is automatically started if the
  * `dirtCount` and `dirtFactor` are above the `minDirtCount` and `minDirtFactor`
  * thresholds defined by this configuration. See [[VacuumConditions]] for
  * details on these.

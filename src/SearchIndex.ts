@@ -46,8 +46,6 @@ type OptionsWithDefaults<T = any> = Options<T> & {
 export type FieldTermData = Map<number, DocumentTermFreqs>;
 
 /**
- * [[MiniSearch]] is the main entrypoint class, implementing a full-text search
- * engine in memory.
  *
  * @typeParam T  The type of the documents being indexed.
  *
@@ -85,7 +83,7 @@ export type FieldTermData = Map<number, DocumentTermFreqs>;
  * // Create a search engine that indexes the 'title' and 'text' fields for
  * // full-text search. Search results will include 'title' and 'category' (plus the
  * // id field, that is always stored and returned)
- * const index = createIndex(({
+ * const index = createIndex({
  *   fields: ['title', 'text'],
  *   storeFields: ['title', 'category']
  * })

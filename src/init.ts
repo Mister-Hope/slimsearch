@@ -16,7 +16,7 @@ import { objectToNumericMap } from "./utils.js";
  * ```javascript
  * // Create a search engine that indexes the 'title' and 'text' fields of your
  * // documents:
- * const index = createIndex(({ fields: ['title', 'text'] })
+ * const index = createIndex({ fields: ['title', 'text'] })
  * ```
  *
  * ### ID Field:
@@ -25,14 +25,14 @@ import { objectToNumericMap } from "./utils.js";
  * // Your documents are assumed to include a unique 'id' field, but if you want
  * // to use a different field for document identification, you can set the
  * // 'idField' option:
- * const index = createIndex(({ idField: 'key', fields: ['title', 'text'] })
+ * const index = createIndex({ idField: 'key', fields: ['title', 'text'] })
  * ```
  *
  * ### Options and defaults:
  *
  * ```javascript
  * // The full set of options (here with their default value) is:
- * const index = createIndex(({
+ * const index = createIndex({
  *   // idField: field that uniquely identifies a document
  *   idField: 'id',
  *
@@ -92,21 +92,21 @@ export const loadIndex = <T = any>(
       "MiniSearch: cannot deserialize an index created with an incompatible version"
     );
 
-  const miniSearch = new SearchIndex(options);
+  const searchIndex = new SearchIndex(options);
 
-  miniSearch._documentCount = documentCount;
-  miniSearch._nextId = nextId;
-  miniSearch._documentIds = objectToNumericMap(documentIds);
-  miniSearch._idToShortId = new Map<any, number>();
-  miniSearch._fieldIds = fieldIds;
-  miniSearch._fieldLength = objectToNumericMap(fieldLength);
-  miniSearch._avgFieldLength = averageFieldLength;
-  miniSearch._storedFields = objectToNumericMap(storedFields);
-  miniSearch._dirtCount = dirtCount || 0;
-  miniSearch._index = new SearchableMap();
+  searchIndex._documentCount = documentCount;
+  searchIndex._nextId = nextId;
+  searchIndex._documentIds = objectToNumericMap(documentIds);
+  searchIndex._idToShortId = new Map<any, number>();
+  searchIndex._fieldIds = fieldIds;
+  searchIndex._fieldLength = objectToNumericMap(fieldLength);
+  searchIndex._avgFieldLength = averageFieldLength;
+  searchIndex._storedFields = objectToNumericMap(storedFields);
+  searchIndex._dirtCount = dirtCount || 0;
+  searchIndex._index = new SearchableMap();
 
-  for (const [shortId, id] of miniSearch._documentIds)
-    miniSearch._idToShortId.set(id, shortId);
+  for (const [shortId, id] of searchIndex._documentIds)
+    searchIndex._idToShortId.set(id, shortId);
 
   for (const [term, data] of index) {
     const dataMap = new Map() as FieldTermData;
@@ -124,14 +124,14 @@ export const loadIndex = <T = any>(
       );
     }
 
-    miniSearch._index.set(term, dataMap);
+    searchIndex._index.set(term, dataMap);
   }
 
-  return miniSearch;
+  return searchIndex;
 };
 
 /**
- * Deserializes a JSON index (serialized with `JSON.stringify(miniSearch)`)
+ * Deserializes a JSON index (serialized with `JSON.stringify(index)`)
  * and instantiates a MiniSearch instance. It should be given the same options
  * originally used when serializing the index.
  *

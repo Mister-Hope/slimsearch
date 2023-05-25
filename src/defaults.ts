@@ -30,8 +30,8 @@ export const defaultSearchOptions = {
 
 export const defaultAutoSuggestOptions = {
   combineWith: AND,
-  prefix: (term: string, i: number, terms: string[]): boolean =>
-    i === terms.length - 1,
+  prefix: (_term: string, index: number, terms: string[]): boolean =>
+    index === terms.length - 1,
 };
 
 export const defaultVacuumOptions = { batchSize: 1000, batchWait: 10 };

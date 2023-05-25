@@ -1,13 +1,14 @@
 {
-  "name": "minisearch",
-  "version": "6.1.0",
+  "name": "slimsearch",
+  "version": "0.0.1",
   "description": "Tiny but powerful full-text search engine for browser and Node",
-  "author": "Luca Ongaro",
+  "type": "module",
+  "author": "Luca Ongaro, Mister Hope",
   "homepage": "https://lucaong.github.io/minisearch/",
-  "bugs": "https://github.com/lucaong/minisearch/issues",
+  "bugs": "https://github.com/Mister-Hope/slimsearch/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lucaong/minisearch.git"
+    "url": "https://github.com/Mister-Hope/slimsearch.git"
   },
   "keywords": [
     "search",
@@ -19,40 +20,33 @@
     "index"
   ],
   "license": "MIT",
-  "main": "dist/umd/index.js",
-  "module": "dist/es5m/index.js",
-  "es2015": "dist/es/index.js",
-  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "require": "./dist/cjs/index.cjs",
-      "default": "./dist/es/index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./SearchableMap": {
-      "types": "./dist/types/SearchableMap.d.ts",
-      "require": "./dist/cjs/SearchableMap.cjs",
-      "default": "./dist/es/SearchableMap.js"
+      "types": "./dist/SearchableMap.d.ts",
+      "require": "./dist/SearchableMap.cjs",
+      "default": "./dist/SearchableMap.mjs"
     }
   },
-  "unpkg": "./dist/umd/index.js",
-  "jsdelivr": "./dist/umd/index.js",
-  "types": "./dist/types/index.d.ts",
   "files": [
-    "/dist/**/*",
-    "/src/**/*"
+    "dist"
   ],
   "scripts": {
     "benchmark": "pnpm build-benchmark && NODE_ENV=production node --expose-gc benchmarks/dist/index.cjs",
-    "build": "pnpm clean && NODE_ENV=production rollup -c",
+    "build": "rollup -c rollup.config.ts --config-plugin esbuild",
     "build-benchmark": "BENCHMARKS=true pnpm build",
     "build-minified": "MINIFY=true pnpm build",
-    "build-docs": "typedoc --options typedoc.json && touch docs/.nojekyll && pnpm build-examples",
-    "build-examples": "pnpm build && cd examples && pnpm install && pnpm build && cd ../",
+    "docs:build": "typedoc --options typedoc.json",
     "coverage": "vitest --coverage",
     "clean": "rm -rf dist",
     "lint": "eslint . --ext .js,.ts",
-    "prepublishOnly": "pnpm test && pnpm build",
+    "prepublishOnly": "pnpm test && pnpm clean && pnpm build",
     "test": "vitest"
   },
   "sideEffects": false,
@@ -61,25 +55,20 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.3",
-    "@rollup/plugin-typescript": "^11.1.1",
     "@types/benchmark": "^2.1.2",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
     "@typescript-eslint/parser": "^5.59.7",
     "benchmark": "^2.1.4",
-    "core-js": "^3.30.2",
+    "esbuild": "^0.17.19",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.8.0",
-    "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-promise": "^6.1.1",
     "fast-check": "^3.9.0",
     "prettier": "^2.8.8",
-    "regenerator-runtime": "^0.13.11",
     "rollup": "^3.23.0",
     "rollup-plugin-dts": "^5.3.0",
-    "snazzy": "^9.0.0",
+    "rollup-plugin-esbuild": "^5.0.0",
     "tslib": "^2.5.2",
     "typedoc": "^0.24.7",
     "typescript": "^5.0.4"
