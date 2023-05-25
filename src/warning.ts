@@ -1,7 +1,7 @@
-import { type MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 
 export const warnDocumentChanged = (
-  index: MiniSearch,
+  index: SearchIndex,
   shortDocumentId: number,
   fieldId: number,
   term: string

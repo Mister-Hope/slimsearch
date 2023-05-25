@@ -7,35 +7,18 @@ import {
   defaultVacuumConditions,
 } from "./defaults.js";
 import {
+  type DocumentTermFreqs,
+  type SearchOptionsWithDefaults,
+} from "./results.js";
+import {
   type AsPlainObject,
   type AutoVacuumOptions,
-  type BM25Params,
   type LogLevel,
   type Options,
   type SearchOptions,
   type SerializedIndexEntry,
   type VacuumConditions,
 } from "./typings.js";
-import { objectToNumericMap } from "./utils.js";
-
-type SearchOptionsWithDefaults = SearchOptions & {
-  boost: { [fieldName: string]: number };
-
-  weights: { fuzzy: number; prefix: number };
-
-  prefix: boolean | ((term: string, index: number, terms: string[]) => boolean);
-
-  fuzzy:
-    | boolean
-    | number
-    | ((term: string, index: number, terms: string[]) => boolean | number);
-
-  maxFuzzy: number;
-
-  combineWith: string;
-
-  bm25: BM25Params;
-};
 
 type OptionsWithDefaults<T = any> = Options<T> & {
   storeFields: string[];
@@ -60,9 +43,7 @@ type OptionsWithDefaults<T = any> = Options<T> & {
   autoSuggestOptions: SearchOptions;
 };
 
-type DocumentTermFreqs = Map<number, number>;
-
-type FieldTermData = Map<number, DocumentTermFreqs>;
+export type FieldTermData = Map<number, DocumentTermFreqs>;
 
 /**
  * [[MiniSearch]] is the main entrypoint class, implementing a full-text search
@@ -104,23 +85,23 @@ type FieldTermData = Map<number, DocumentTermFreqs>;
  * // Create a search engine that indexes the 'title' and 'text' fields for
  * // full-text search. Search results will include 'title' and 'category' (plus the
  * // id field, that is always stored and returned)
- * const miniSearch = new MiniSearch({
+ * const index = createIndex(({
  *   fields: ['title', 'text'],
  *   storeFields: ['title', 'category']
  * })
  *
  * // Add documents to the index
- * miniSearch.addAll(documents)
+ * addAll(index, documents)
  *
  * // Search for documents:
- * let results = miniSearch.search('zen art motorcycle')
+ * let results = search(index, 'zen art motorcycle')
  * // => [
  * //   { id: 2, title: 'Zen and the Art of Motorcycle Maintenance', category: 'fiction', score: 2.77258 },
  * //   { id: 4, title: 'Zen and the Art of Archery', category: 'non-fiction', score: 1.38629 }
  * // ]
  * ```
  */
-export class MiniSearch<T = any> {
+export class SearchIndex<T = any> {
   // protected _options: OptionsWithDefaults<T>;
   _options: OptionsWithDefaults<T>;
   // protected _index: SearchableMap<FieldTermData>;
@@ -150,67 +131,6 @@ export class MiniSearch<T = any> {
   // private _enqueuedVacuumConditions: VacuumConditions | undefined;
   _enqueuedVacuumConditions: VacuumConditions | undefined;
 
-  /**
-   * @param options  Configuration options
-   *
-   * ### Examples:
-   *
-   * ```javascript
-   * // Create a search engine that indexes the 'title' and 'text' fields of your
-   * // documents:
-   * const miniSearch = new MiniSearch({ fields: ['title', 'text'] })
-   * ```
-   *
-   * ### ID Field:
-   *
-   * ```javascript
-   * // Your documents are assumed to include a unique 'id' field, but if you want
-   * // to use a different field for document identification, you can set the
-   * // 'idField' option:
-   * const miniSearch = new MiniSearch({ idField: 'key', fields: ['title', 'text'] })
-   * ```
-   *
-   * ### Options and defaults:
-   *
-   * ```javascript
-   * // The full set of options (here with their default value) is:
-   * const miniSearch = new MiniSearch({
-   *   // idField: field that uniquely identifies a document
-   *   idField: 'id',
-   *
-   *   // extractField: function used to get the value of a field in a document.
-   *   // By default, it assumes the document is a flat object with field names as
-   *   // property keys and field values as string property values, but custom logic
-   *   // can be implemented by setting this option to a custom extractor function.
-   *   extractField: (document, fieldName) => document[fieldName],
-   *
-   *   // tokenize: function used to split fields into individual terms. By
-   *   // default, it is also used to tokenize search queries, unless a specific
-   *   // `tokenize` search option is supplied. When tokenizing an indexed field,
-   *   // the field name is passed as the second argument.
-   *   tokenize: (string, _fieldName) => string.split(SPACE_OR_PUNCTUATION),
-   *
-   *   // processTerm: function used to process each tokenized term before
-   *   // indexing. It can be used for stemming and normalization. Return a falsy
-   *   // value in order to discard a term. By default, it is also used to process
-   *   // search queries, unless a specific `processTerm` option is supplied as a
-   *   // search option. When processing a term from a indexed field, the field
-   *   // name is passed as the second argument.
-   *   processTerm: (term, _fieldName) => term.toLowerCase(),
-   *
-   *   // searchOptions: default search options, see the `search` method for
-   *   // details
-   *   searchOptions: undefined,
-   *
-   *   // fields: document fields to be indexed. Mandatory, but not set by default
-   *   fields: undefined
-   *
-   *   // storeFields: document fields to be stored and returned as part of the
-   *   // search results.
-   *   storeFields: []
-   * })
-   * ```
-   */
   constructor(options: Options<T>) {
     if (options?.fields == null)
       throw new Error('MiniSearch: option "fields" must be provided');
@@ -292,21 +212,6 @@ export class MiniSearch<T = any> {
   }
 
   /**
-   * Returns the stored fields (as configured in the `storeFields` constructor
-   * option) for the given document ID. Returns `undefined` if the document is
-   * not present in the index.
-   *
-   * @param id  The document ID
-   */
-  getStoredFields(id: any): Record<string, unknown> | undefined {
-    const shortId = this._idToShortId.get(id);
-
-    if (shortId == null) return undefined;
-
-    return this._storedFields.get(shortId);
-  }
-
-  /**
    * Total number of documents available to search
    */
   get documentCount(): number {
@@ -377,94 +282,3 @@ export class MiniSearch<T = any> {
     for (let i = 0; i < fields.length; i++) this._fieldIds[fields[i]] = i;
   }
 }
-
-export const loadIndex = <T = any>(
-  {
-    index,
-    documentCount,
-    nextId,
-    documentIds,
-    fieldIds,
-    fieldLength,
-    averageFieldLength,
-    storedFields,
-    dirtCount,
-    serializationVersion,
-  }: AsPlainObject,
-  options: Options<T>
-): MiniSearch<T> => {
-  if (serializationVersion !== 1 && serializationVersion !== 2)
-    throw new Error(
-      "MiniSearch: cannot deserialize an index created with an incompatible version"
-    );
-
-  const miniSearch = new MiniSearch(options);
-
-  miniSearch._documentCount = documentCount;
-  miniSearch._nextId = nextId;
-  miniSearch._documentIds = objectToNumericMap(documentIds);
-  miniSearch._idToShortId = new Map<any, number>();
-  miniSearch._fieldIds = fieldIds;
-  miniSearch._fieldLength = objectToNumericMap(fieldLength);
-  miniSearch._avgFieldLength = averageFieldLength;
-  miniSearch._storedFields = objectToNumericMap(storedFields);
-  miniSearch._dirtCount = dirtCount || 0;
-  miniSearch._index = new SearchableMap();
-
-  for (const [shortId, id] of miniSearch._documentIds)
-    miniSearch._idToShortId.set(id, shortId);
-
-  for (const [term, data] of index) {
-    const dataMap = new Map() as FieldTermData;
-
-    for (const fieldId of Object.keys(data)) {
-      let indexEntry = data[fieldId];
-
-      // Version 1 used to nest the index entry inside a field called ds
-      if (serializationVersion === 1)
-        indexEntry = indexEntry.ds as unknown as SerializedIndexEntry;
-
-      dataMap.set(
-        parseInt(fieldId, 10),
-        objectToNumericMap(indexEntry) as DocumentTermFreqs
-      );
-    }
-
-    miniSearch._index.set(term, dataMap);
-  }
-
-  return miniSearch;
-};
-
-/**
- * Deserializes a JSON index (serialized with `JSON.stringify(miniSearch)`)
- * and instantiates a MiniSearch instance. It should be given the same options
- * originally used when serializing the index.
- *
- * ### Usage:
- *
- * ```javascript
- * // If the index was serialized with:
- * let miniSearch = new MiniSearch({ fields: ['title', 'text'] })
- * miniSearch.addAll(documents)
- *
- * const json = JSON.stringify(miniSearch)
- * // It can later be deserialized like this:
- * miniSearch = MiniSearch.loadJSON(json, { fields: ['title', 'text'] })
- * ```
- *
- * @param json  JSON-serialized index
- * @param options  configuration options, same as the constructor
- * @return An instance of MiniSearch deserialized from the given JSON.
- */
-export const loadJSONIndex = <T = any>(
-  json: string,
-  options: Options<T>
-): MiniSearch<T> => {
-  if (options == null)
-    throw new Error(
-      "MiniSearch: loadJSON should be given the same options used when serializing the index"
-    );
-
-  return loadIndex(JSON.parse(json), options);
-};

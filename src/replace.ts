@@ -1,4 +1,4 @@
-import { MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import { add } from "./add.js";
 import { discard } from "./remove.js";
 
@@ -17,7 +17,7 @@ import { discard } from "./remove.js";
  * @param updatedDocument  The updated document to replace the old version
  * with
  */
-export const replace = <T>(index: MiniSearch<T>, updatedDocument: T): void => {
+export const replace = <T>(index: SearchIndex<T>, updatedDocument: T): void => {
   const { idField, extractField } = index._options;
   const id = extractField(updatedDocument, idField);
 

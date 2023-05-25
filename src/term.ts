@@ -1,12 +1,12 @@
-import { type MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import { warnDocumentChanged } from "./warning.js";
 import { createMap } from "./utils.js";
 
 /**
  * @ignore
  */
-export const addTerm = (
-  index: MiniSearch,
+export const addTerm = <T>(
+  index: SearchIndex<T>,
   fieldId: number,
   documentId: number,
   term: string
@@ -26,8 +26,8 @@ export const addTerm = (
   }
 };
 
-export const removeTerm = (
-  index: MiniSearch,
+export const removeTerm = <T>(
+  index: SearchIndex<T>,
   fieldId: number,
   documentId: number,
   term: string

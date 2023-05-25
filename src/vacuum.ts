@@ -1,4 +1,4 @@
-import { MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import {
   defaultAutoVacuumOptions,
   defaultVacuumConditions,
@@ -6,7 +6,10 @@ import {
 } from "./defaults.js";
 import { type VacuumConditions, type VacuumOptions } from "./typings.js";
 
-const shouldVacuum = (index: MiniSearch, conditions?: VacuumConditions) => {
+const shouldVacuum = <T>(
+  index: SearchIndex<T>,
+  conditions?: VacuumConditions
+) => {
   if (conditions == null) return true;
 
   const {
@@ -17,8 +20,8 @@ const shouldVacuum = (index: MiniSearch, conditions?: VacuumConditions) => {
   return index.dirtCount >= minDirtCount && index.dirtFactor >= minDirtFactor;
 };
 
-const doVacuum = async (
-  index: MiniSearch,
+const doVacuum = async <T>(
+  index: SearchIndex<T>,
   options: VacuumOptions,
   conditions?: VacuumConditions
 ): Promise<void> => {
@@ -56,8 +59,8 @@ const doVacuum = async (
   index._enqueuedVacuum = null;
 };
 
-const conditionalVacuum = (
-  index: MiniSearch,
+const conditionalVacuum = <T>(
+  index: SearchIndex<T>,
   options: VacuumOptions,
   conditions?: VacuumConditions
 ): Promise<void> => {
@@ -88,7 +91,7 @@ const conditionalVacuum = (
   return index._currentVacuum;
 };
 
-export const maybeAutoVacuum = (index: MiniSearch): void => {
+export const maybeAutoVacuum = <T>(index: SearchIndex<T>): void => {
   if (index._options.autoVacuum === false) return;
 
   const { minDirtFactor, minDirtCount, batchSize, batchWait } =
@@ -141,7 +144,7 @@ export const maybeAutoVacuum = (index: MiniSearch): void => {
  * @param options  Configuration options for the batch size and delay. See
  * [[VacuumOptions]].
  */
-export const vacuum = (
-  index: MiniSearch,
+export const vacuum = <T>(
+  index: SearchIndex<T>,
   options: VacuumOptions = {}
 ): Promise<void> => conditionalVacuum(index, options);

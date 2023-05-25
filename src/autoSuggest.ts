@@ -1,4 +1,4 @@
-import { MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import { search } from "./search.js";
 
 import { type SearchOptions, type Suggestion } from "./typings.js";
@@ -67,7 +67,7 @@ import { byScore } from "./utils.js";
  * @return  A sorted array of suggestions sorted by relevance score.
  */
 export const autoSuggest = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   queryString: string,
   options: SearchOptions = {}
 ): Suggestion[] => {

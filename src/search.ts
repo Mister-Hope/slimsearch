@@ -1,4 +1,4 @@
-import { MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import { executeQuery } from "./results.js";
 import {
   type Query,
@@ -147,7 +147,7 @@ import { byScore } from "./utils.js";
  * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
  */
 export const search = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   query: Query,
   searchOptions: SearchOptions = {}
 ): SearchResult[] => {

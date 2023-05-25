@@ -1,10 +1,10 @@
-import { type MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/SearchableMap.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
 
 const removeFieldLength = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   fieldId: number,
   count: number,
   length: number
@@ -63,7 +63,7 @@ const removeFieldLength = <T>(
  *
  * @param id  The ID of the document to be discarded
  */
-export const discard = <T>(index: MiniSearch<T>, id: any): void => {
+export const discard = <T>(index: SearchIndex<T>, id: any): void => {
   const shortId = index._idToShortId.get(id);
 
   if (shortId == null)
@@ -99,7 +99,7 @@ export const discard = <T>(index: MiniSearch<T>, id: any): void => {
  * passing all IDs to this method.
  */
 export const discardAll = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   ids: readonly any[]
 ): void => {
   const autoVacuum = index._options.autoVacuum;
@@ -129,7 +129,7 @@ export const discardAll = <T>(
  *
  * @param document  The document to be removed
  */
-export const remove = <T>(index: MiniSearch<T>, document: T): void => {
+export const remove = <T>(index: SearchIndex<T>, document: T): void => {
   const { tokenize, processTerm, extractField, fields, idField } =
     index._options;
   const id = extractField(document, idField);
@@ -183,7 +183,7 @@ export const remove = <T>(index: MiniSearch<T>, document: T): void => {
  * documents.
  */
 export const removeAll = function removeAll<T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   documents?: readonly T[]
 ): void {
   if (documents) {

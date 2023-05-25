@@ -1,9 +1,9 @@
-import { type MiniSearch } from "./MiniSearch.js";
-import { has } from "./has.js";
+import { type SearchIndex } from "./SearchIndex.js";
+import { has } from "./info.js";
 import { addTerm } from "./term.js";
 
 const addFieldLength = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   documentId: number,
   fieldId: number,
   count: number,
@@ -21,7 +21,7 @@ const addFieldLength = <T>(
   index._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
 };
 
-const addDocumentId = <T>(index: MiniSearch<T>, documentId: any): number => {
+const addDocumentId = <T>(index: SearchIndex<T>, documentId: any): number => {
   const shortDocumentId = index._nextId;
 
   index._idToShortId.set(documentId, shortDocumentId);
@@ -33,7 +33,7 @@ const addDocumentId = <T>(index: MiniSearch<T>, documentId: any): number => {
 };
 
 const saveStoredFields = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   documentId: number,
   doc: T
 ): void => {
@@ -58,7 +58,7 @@ const saveStoredFields = <T>(
  *
  * @param document  The document to be indexed
  */
-export const add = <T>(index: MiniSearch<T>, document: T): void => {
+export const add = <T>(index: SearchIndex<T>, document: T): void => {
   const { extractField, tokenize, processTerm, fields, idField } =
     index._options;
   const id = extractField(document, idField);
@@ -108,7 +108,7 @@ export const add = <T>(index: MiniSearch<T>, document: T): void => {
  * @param documents  An array of documents to be indexed
  */
 export const addAll = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   documents: readonly T[]
 ): void => {
   for (const document of documents) add(index, document);
@@ -126,7 +126,7 @@ export const addAll = <T>(
  * @return A promise resolving to `undefined` when the indexing is done
  */
 export const addAllAsync = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   documents: readonly T[],
   options: { chunkSize?: number } = {}
 ): Promise<void> => {

@@ -1,6 +1,6 @@
 import { OR } from "./constant.js";
 import { defaultSearchOptions } from "./defaults.js";
-import { type MiniSearch } from "./MiniSearch.js";
+import { type SearchIndex } from "./SearchIndex.js";
 import { removeTerm } from "./term.js";
 import { type BM25Params, type Query, type SearchOptions } from "./typings.js";
 import {
@@ -13,8 +13,7 @@ import {
   termToQuerySpec,
 } from "./utils.js";
 
-// FIXME:
-type SearchOptionsWithDefaults = SearchOptions & {
+export type SearchOptionsWithDefaults = SearchOptions & {
   boost: { [fieldName: string]: number };
 
   weights: { fuzzy: number; prefix: number };
@@ -33,7 +32,7 @@ type SearchOptionsWithDefaults = SearchOptions & {
   bm25: BM25Params;
 };
 
-type DocumentTermFreqs = Map<number, number>;
+export type DocumentTermFreqs = Map<number, number>;
 
 type FieldTermData = Map<number, DocumentTermFreqs>;
 
@@ -46,7 +45,7 @@ const combineResults = (results: RawResult[], combineWith = OR): RawResult => {
 };
 
 const termResults = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   sourceTerm: string,
   derivedTerm: string,
   termWeight: number,
@@ -134,7 +133,7 @@ const termResults = <T>(
 };
 
 const executeQuerySpec = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   query: QuerySpec,
   searchOptions: SearchOptions
 ): RawResult => {
@@ -246,7 +245,7 @@ const executeQuerySpec = <T>(
 };
 
 export const executeQuery = <T>(
-  index: MiniSearch<T>,
+  index: SearchIndex<T>,
   query: Query,
   searchOptions: SearchOptions = {}
 ): RawResult => {
