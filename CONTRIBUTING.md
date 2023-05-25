@@ -22,7 +22,7 @@ issue on GitHub](https://github.com/Mister-Hope/slimsearch/issues).
   maintainer has the right and responsibility to remove or close discussions
   where the tone or language is derogatory, harassing, or offensive toward
   others. Keep the [Code of
-  Conduct](https://lucaong.github.io/minisearch/manual/CODE_OF_CONDUCT.html)
+  Conduct](https://lucaong.github.io/slimsearch/manual/CODE_OF_CONDUCT.html)
   in mind.
 
 ## Pull requests
@@ -43,7 +43,7 @@ setup your development environment:
 build-docs`
 
 In order to understand implementation details and design goals, read the [design
-document](https://lucaong.github.io/minisearch/manual/DESIGN_DOCUMENT.html).
+document](https://lucaong.github.io/slimsearch/manual/DESIGN_DOCUMENT.html).
 
 Also, please follow these guidelines:
 

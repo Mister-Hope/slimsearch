@@ -1,6 +1,6 @@
 # MiniSearch
 
-[![CI Build](https://github.com/Mister-Hope/slimsearch/workflows/CI%20Build/badge.svg)](https://github.com/Mister-Hope/slimsearch/actions)
+[![CI Build](https://github.com/Mister-Hope/slimsearch/workflows/test/badge.svg)](https://github.com/Mister-Hope/slimsearch/actions)
 [![Coverage Status](https://coveralls.io/repos/github/Mister-Hope/slimsearch/badge.svg?branch=master)](https://coveralls.io/github/Mister-Hope/slimsearch?branch=master)
 [![Minzipped Size](https://badgen.net/bundlephobia/minzip/minisearch)](https://bundlephobia.com/result?p=minisearch)
 [![npm](https://img.shields.io/npm/v/minisearch?color=%23ff00dd)](https://www.npmjs.com/package/minisearch)

@@ -4,7 +4,7 @@
   "description": "Tiny but powerful full-text search engine for browser and Node",
   "type": "module",
   "author": "Luca Ongaro, Mister Hope",
-  "homepage": "https://lucaong.github.io/minisearch/",
+  "homepage": "https://mister-hope.github.io/slimsearch/",
   "bugs": "https://github.com/Mister-Hope/slimsearch/issues",
   "repository": {
     "type": "git",
