@@ -69,7 +69,7 @@ export const discard = <T>(index: SearchIndex<T>, id: any): void => {
 
   if (shortId == null)
     throw new Error(
-      `MiniSearch: cannot discard document with ID ${id}: it is not in the index`
+      `SlimSearch: cannot discard document with ID ${id}: it is not in the index`
     );
 
   index._idToShortId.delete(id);
@@ -137,13 +137,13 @@ export const remove = <T>(index: SearchIndex<T>, document: T): void => {
   const id = extractField(document, idField);
 
   if (id == null)
-    throw new Error(`MiniSearch: document does not have ID field "${idField}"`);
+    throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
   const shortId = index._idToShortId.get(id);
 
   if (shortId == null)
     throw new Error(
-      `MiniSearch: cannot remove document with ID ${id}: it is not in the index`
+      `SlimSearch: cannot remove document with ID ${id}: it is not in the index`
     );
 
   for (const field of fields) {

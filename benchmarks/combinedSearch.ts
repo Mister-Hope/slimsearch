@@ -1,19 +1,21 @@
 import Benchmark from "benchmark";
-import { miniSearch as ms } from "./divinaCommedia.js";
+
+import { index, search } from "./divinaCommedia.js";
 
 const suite = new Benchmark.Suite("Combined search");
+
 suite
   .add(
     'MiniSearch#search("virtute conoscienza", { fuzzy: 0.2, prefix: true })',
     () => {
-      ms.search("virtute conoscienza", {
+      search(index, "virtute conoscienza", {
         fuzzy: 0.2,
         prefix: true,
       });
     }
   )
   .add('MiniSearch#search("virtu", { fuzzy: 0.2, prefix: true })', () => {
-    ms.search("virtu", {
+    search(index, "virtu", {
       fuzzy: 0.2,
       prefix: true,
     });

@@ -131,7 +131,7 @@ export class SearchIndex<T = any> {
 
   constructor(options: Options<T>) {
     if (options?.fields == null)
-      throw new Error('MiniSearch: option "fields" must be provided');
+      throw new Error('SlimSearch: option "fields" must be provided');
 
     const autoVacuum =
       options.autoVacuum == null || options.autoVacuum === true
@@ -225,24 +225,24 @@ export class SearchIndex<T = any> {
 
   /**
    * Allows serialization of the index to JSON, to possibly store it and later
-   * deserialize it with `MiniSearch.loadJSON`.
+   * deserialize it with `loadJSONIndex`.
    *
    * Normally one does not directly call this method, but rather call the
-   * standard JavaScript `JSON.stringify()` passing the `MiniSearch` instance,
+   * standard JavaScript `JSON.stringify()` passing the `SearchIndex` instance,
    * and JavaScript will internally call this method. Upon deserialization, one
-   * must pass to `loadJSON` the same options used to create the original
+   * must pass to `loadJSONIndex` the same options used to create the original
    * instance that was serialized.
    *
    * ### Usage:
    *
    * ```javascript
    * // Serialize the index:
-   * let miniSearch = new MiniSearch({ fields: ['title', 'text'] })
-   * miniSearch.addAll(documents)
-   * const json = JSON.stringify(miniSearch)
+   * let index = createIndex({ fields: ['title', 'text'] })
+   * addAll(index, documents)
+   * const json = JSON.stringify(index)
    *
    * // Later, to deserialize it:
-   * miniSearch = MiniSearch.loadJSON(json, { fields: ['title', 'text'] })
+   * index = loadJSONIndex(json, { fields: ['title', 'text'] })
    * ```
    *
    * @return A plain-object serializable representation of the search index.

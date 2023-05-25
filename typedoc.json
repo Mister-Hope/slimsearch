@@ -1,6 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "name": "MiniSearch",
+  "name": "SlimSearch",
   "entryPoints": ["src/index.ts"],
   "out": "docs"
 }

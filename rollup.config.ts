@@ -1,8 +1,6 @@
-import esbuild from "rollup-plugin-esbuild";
-import dts from "rollup-plugin-dts";
 import { type RollupOptions } from "rollup";
-
-const isProduction = process.env["NODE_ENV"] === "production";
+import dts from "rollup-plugin-dts";
+import esbuild from "rollup-plugin-esbuild";
 
 interface BundleOptions {
   input: string;
@@ -33,10 +31,9 @@ const bundle = ({
     ],
 
     plugins: [
-      // FIXME: This is an issue of ts NodeNext
-      (esbuild as unknown as typeof esbuild.default)({
+      esbuild({
         charset: "utf8",
-        minify: isProduction,
+        minify: true,
         target,
       }),
     ],
@@ -69,7 +66,15 @@ const bundle = ({
   } as RollupOptions,
 ];
 
-export default [
-  ...bundle({ input: "index" }),
-  ...bundle({ input: "SearchableMap/SearchableMap", output: "SearchableMap" }),
-];
+export default process.env["BENCHMARK"]
+  ? bundle({
+      input: "../benchmarks/index",
+      output: "../benchmarks/dist/index",
+    })
+  : [
+      ...bundle({ input: "index" }),
+      ...bundle({
+        input: "SearchableMap/SearchableMap",
+        output: "SearchableMap",
+      }),
+    ];

@@ -10,7 +10,8 @@ export const warnDocumentChanged = (
     if (index._fieldIds[fieldName] === fieldId) {
       index._options.logger(
         "warn",
-        `MiniSearch: document with ID ${index._documentIds.get(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        `SlimSearch: document with ID ${index._documentIds.get(
           shortDocumentId
         )} has changed before removal: term "${term}" was not present in field "${fieldName}". Removing a document after it has changed can corrupt the index!`,
         "version_conflict"

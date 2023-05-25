@@ -53,18 +53,19 @@ export const defaultAutoVacuumOptions = {
  *
  * ```javascript
  * // Get default tokenizer
- * MiniSearch.getDefault('tokenize')
+ * getDefaultValue('tokenize')
  *
  * // Get default term processor
- * MiniSearch.getDefault('processTerm')
+ * getDefaultValue('processTerm')
  *
  * // Unknown options will throw an error
- * MiniSearch.getDefault('notExisting')
- * // => throws 'MiniSearch: unknown option "notExisting"'
+ * getDefaultValue('notExisting')
+ * // => throws 'SlimSearch: unknown option "notExisting"'
  * ```
  */
 export const getDefaultValue = (optionName: string): any => {
+  // eslint-disable-next-line no-prototype-builtins
   if (defaultOptions.hasOwnProperty(optionName))
     return getOwnProperty(defaultOptions, optionName);
-  else throw new Error(`MiniSearch: unknown option "${optionName}"`);
+  else throw new Error(`SlimSearch: unknown option "${optionName}"`);
 };

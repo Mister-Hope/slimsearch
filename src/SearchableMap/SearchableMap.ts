@@ -7,13 +7,13 @@ import { type Entry, type Path, type RadixTree } from "./types.js";
  * A class implementing the same interface as a standard JavaScript
  * [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
  * with string keys, but adding support for efficiently searching entries with
- * prefix or fuzzy search. This class is used internally by [[MiniSearch]] as
+ * prefix or fuzzy search. This class is used internally by [[SlimSearch]] as
  * the inverted index data structure. The implementation is a radix tree
  * (compressed prefix tree).
  *
- * Since this class can be of general utility beyond _MiniSearch_, it is
- * exported by the `minisearch` package and can be imported (or required) as
- * `minisearch/SearchableMap`.
+ * Since this class can be of general utility beyond _SlimSearch_, it is
+ * exported by the `slimsearch` package and can be imported (or required) as
+ * `slimsearch/SearchableMap`.
  *
  * @typeParam T  The type of the values stored in the map.
  */
@@ -88,7 +88,7 @@ export class SearchableMap<T = any> {
 
           node.set(k.slice(key.length), parentNode!.get(k)!);
 
-          return new SearchableMap(node, prefix);
+          return new SearchableMap<T>(node, prefix);
         }
     }
 

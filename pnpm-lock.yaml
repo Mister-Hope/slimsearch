@@ -1,65 +1,62 @@
 lockfileVersion: '6.0'
 
 devDependencies:
-  '@rollup/plugin-terser':
-    specifier: ^0.4.3
-    version: 0.4.3(rollup@3.23.0)
   '@types/benchmark':
-    specifier: ^2.1.2
+    specifier: 2.1.2
     version: 2.1.2
   '@typescript-eslint/eslint-plugin':
-    specifier: ^5.59.7
+    specifier: 5.59.7
     version: 5.59.7(@typescript-eslint/parser@5.59.7)(eslint@8.41.0)(typescript@5.0.4)
   '@typescript-eslint/parser':
-    specifier: ^5.59.7
+    specifier: 5.59.7
     version: 5.59.7(eslint@8.41.0)(typescript@5.0.4)
   '@vitest/coverage-c8':
-    specifier: ^0.31.1
+    specifier: 0.31.1
     version: 0.31.1(vitest@0.31.1)
   benchmark:
-    specifier: ^2.1.4
+    specifier: 2.1.4
     version: 2.1.4
   esbuild:
-    specifier: ^0.17.19
+    specifier: 0.17.19
     version: 0.17.19
   eslint:
-    specifier: ^8.41.0
+    specifier: 8.41.0
     version: 8.41.0
   eslint-config-prettier:
-    specifier: ^8.8.0
+    specifier: 8.8.0
     version: 8.8.0(eslint@8.41.0)
   eslint-plugin-import:
-    specifier: ^2.27.5
+    specifier: 2.27.5
     version: 2.27.5(@typescript-eslint/parser@5.59.7)(eslint@8.41.0)
   eslint-plugin-prettier:
-    specifier: ^4.2.1
+    specifier: 4.2.1
     version: 4.2.1(eslint-config-prettier@8.8.0)(eslint@8.41.0)(prettier@2.8.8)
   fast-check:
-    specifier: ^3.9.0
+    specifier: 3.9.0
     version: 3.9.0
   prettier:
-    specifier: ^2.8.8
+    specifier: 2.8.8
     version: 2.8.8
   rollup:
-    specifier: ^3.23.0
+    specifier: 3.23.0
     version: 3.23.0
   rollup-plugin-dts:
-    specifier: ^5.3.0
+    specifier: 5.3.0
     version: 5.3.0(rollup@3.23.0)(typescript@5.0.4)
   rollup-plugin-esbuild:
-    specifier: ^5.0.0
+    specifier: 5.0.0
     version: 5.0.0(esbuild@0.17.19)(rollup@3.23.0)
   tslib:
-    specifier: ^2.5.2
+    specifier: 2.5.2
     version: 2.5.2
   typedoc:
-    specifier: ^0.24.7
+    specifier: 0.24.7
     version: 0.24.7(typescript@5.0.4)
   typescript:
-    specifier: ^5.0.4
+    specifier: 5.0.4
     version: 5.0.4
   vitest:
-    specifier: ^0.31.1
+    specifier: 0.31.1
     version: 0.31.1
 
 packages:
@@ -380,13 +377,6 @@ packages:
     engines: {node: '>=6.0.0'}
     dev: true
 
-  /@jridgewell/source-map@0.3.3:
-    resolution: {integrity: sha512-b+fsZXeLYi9fEULmfBrhxn4IrPlINf8fiNarzTof004v3lFdntdwa9PF7vFJqm3mg7s+ScJMxXaE3Acp1irZcg==}
-    dependencies:
-      '@jridgewell/gen-mapping': 0.3.3
-      '@jridgewell/trace-mapping': 0.3.18
-    dev: true
-
   /@jridgewell/sourcemap-codec@1.4.14:
     resolution: {integrity: sha512-XPSJHWmi394fuUuzDnGz1wiKqWfo1yXecHQMRf2l6hztTO+nPru658AyDngaBe7isIxEkRsPR3FZh+s7iVa4Uw==}
     dev: true
@@ -421,21 +411,6 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
-    dev: true
-
-  /@rollup/plugin-terser@0.4.3(rollup@3.23.0):
-    resolution: {integrity: sha512-EF0oejTMtkyhrkwCdg0HJ0IpkcaVg1MMSf2olHb2Jp+1mnLM04OhjpJWGma4HobiDTF0WCyViWuvadyE9ch2XA==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^2.x || ^3.x
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-    dependencies:
-      rollup: 3.23.0
-      serialize-javascript: 6.0.1
-      smob: 1.1.1
-      terser: 5.17.6
     dev: true
 
   /@rollup/pluginutils@5.0.2(rollup@3.23.0):
@@ -821,10 +796,6 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /buffer-from@1.1.2:
-    resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
-    dev: true
-
   /c8@7.13.0:
     resolution: {integrity: sha512-/NL4hQTv1gBL6J6ei80zu3IiTrmePDKXKXOTLpHvcIWZTVYQlDhVWjjWvkhICylE8EwwnMVzDZugCvdx0/DIIA==}
     engines: {node: '>=10.12.0'}
@@ -925,10 +896,6 @@ packages:
 
   /color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
-    dev: true
-
-  /commander@2.20.3:
-    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
     dev: true
 
   /concat-map@0.0.1:
@@ -2155,12 +2122,6 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
 
-  /randombytes@2.1.0:
-    resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
-    dependencies:
-      safe-buffer: 5.2.1
-    dev: true
-
   /react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
     dev: true
@@ -2251,10 +2212,6 @@ packages:
       queue-microtask: 1.2.3
     dev: true
 
-  /safe-buffer@5.2.1:
-    resolution: {integrity: sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==}
-    dev: true
-
   /safe-regex-test@1.0.0:
     resolution: {integrity: sha512-JBUUzyOgEwXQY1NuPtvcj/qcBDbDmEvWufhlnXZIm75DEHp+afM1r1ujJpJsV/gSM4t59tpDyPi1sd6ZaPFfsA==}
     dependencies:
@@ -2274,12 +2231,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
-
-  /serialize-javascript@6.0.1:
-    resolution: {integrity: sha512-owoXEFjWRllis8/M1Q+Cw5k8ZH40e3zhp/ovX+Xr/vi1qj6QesbyXXViFbpNvWvPNAD62SutwEXavefrLJWj7w==}
-    dependencies:
-      randombytes: 2.1.0
     dev: true
 
   /shebang-command@2.0.0:
@@ -2324,24 +2275,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /smob@1.1.1:
-    resolution: {integrity: sha512-i5aqEBPnDv9d77+NDxfjROtywxzNdAVNyaOr+RsLhM28Ts+Ar7luIp/Q+SBYa6wv/7BBcOpEkrhtDxsl2WA9Jg==}
-    dev: true
-
   /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
-  /source-map-support@0.5.21:
-    resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
-    dependencies:
-      buffer-from: 1.1.2
-      source-map: 0.6.1
-    dev: true
-
-  /source-map@0.6.1:
-    resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
     dev: true
 
@@ -2428,17 +2363,6 @@ packages:
   /supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
-    dev: true
-
-  /terser@5.17.6:
-    resolution: {integrity: sha512-V8QHcs8YuyLkLHsJO5ucyff1ykrLVsR4dNnS//L5Y3NiSXpbK1J+WMVUs67eI0KTxs9JtHhgEQpXQVHlHI92DQ==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dependencies:
-      '@jridgewell/source-map': 0.3.3
-      acorn: 8.8.2
-      commander: 2.20.3
-      source-map-support: 0.5.21
     dev: true
 
   /test-exclude@6.0.0:

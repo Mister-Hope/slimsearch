@@ -89,7 +89,7 @@ export const loadIndex = <T = any>(
 ): SearchIndex<T> => {
   if (serializationVersion !== 1 && serializationVersion !== 2)
     throw new Error(
-      "MiniSearch: cannot deserialize an index created with an incompatible version"
+      "SlimSearch: cannot deserialize an index created with an incompatible version"
     );
 
   const searchIndex = new SearchIndex(options);
@@ -132,7 +132,7 @@ export const loadIndex = <T = any>(
 
 /**
  * Deserializes a JSON index (serialized with `JSON.stringify(index)`)
- * and instantiates a MiniSearch instance. It should be given the same options
+ * and instantiates a SearchIndex instance. It should be given the same options
  * originally used when serializing the index.
  *
  * ### Usage:
@@ -150,7 +150,7 @@ export const loadIndex = <T = any>(
  *
  * @param json  JSON-serialized index
  * @param options  configuration options, same as the constructor
- * @return An instance of MiniSearch deserialized from the given JSON.
+ * @return An instance of SearchIndex deserialized from the given JSON.
  */
 export const loadJSONIndex = <T = any>(
   json: string,
@@ -158,7 +158,7 @@ export const loadJSONIndex = <T = any>(
 ): SearchIndex<T> => {
   if (options == null)
     throw new Error(
-      "MiniSearch: loadJSON should be given the same options used when serializing the index"
+      "SlimSearch: loadJSON should be given the same options used when serializing the index"
     );
 
   return loadIndex(JSON.parse(json), options);

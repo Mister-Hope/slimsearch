@@ -1,11 +1,13 @@
 import Benchmark from "benchmark";
-import { miniSearch } from "./divinaCommedia.js";
+
+import { index, search } from "./divinaCommedia.js";
 
 const suite = new Benchmark.Suite("Search filtering");
+
 suite.add('MiniSearch#search("virtu", { filter: ... })', () => {
-  miniSearch.search("virtu", {
+  search(index, "virtu", {
     prefix: true,
-    filter: ({ id }) => id.startsWith("Inf"),
+    filter: ({ id }: { id: string }) => id.startsWith("Inf"),
   });
 });
 

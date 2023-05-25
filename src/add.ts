@@ -65,9 +65,9 @@ export const add = <T>(index: SearchIndex<T>, document: T): void => {
   const id = extractField(document, idField);
 
   if (id == null)
-    throw new Error(`MiniSearch: document does not have ID field "${idField}"`);
+    throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
-  if (has(index, id)) throw new Error(`MiniSearch: duplicate ID ${id}`);
+  if (has(index, id)) throw new Error(`SlimSearch: duplicate ID ${id}`);
 
   const shortDocumentId = addDocumentId(index, id);
 
