@@ -5,22 +5,22 @@ import {
   defaultAutoVacuumOptions,
   defaultOptions,
   defaultSearchOptions,
-  defaultVacuumOptions,
   defaultVacuumConditions,
+  defaultVacuumOptions,
 } from "./defaults.js";
 import {
   type AsPlainObject,
   type AutoVacuumOptions,
   type BM25Params,
-  type Options,
   type LogLevel,
+  type Options,
+  type Query,
   type SearchOptions,
   type SearchResult,
   type SerializedIndexEntry,
   type Suggestion,
-  type Query,
-  type VacuumOptions,
   type VacuumConditions,
+  type VacuumOptions,
 } from "./typings.js";
 import {
   type QuerySpec,
@@ -215,9 +215,8 @@ export class MiniSearch<T = any> {
    * ```
    */
   constructor(options: Options<T>) {
-    if (options?.fields == null) {
+    if (options?.fields == null)
       throw new Error('MiniSearch: option "fields" must be provided');
-    }
 
     const autoVacuum =
       options.autoVacuum == null || options.autoVacuum === true
@@ -279,27 +278,29 @@ export class MiniSearch<T = any> {
     const { extractField, tokenize, processTerm, fields, idField } =
       this._options;
     const id = extractField(document, idField);
-    if (id == null) {
+
+    if (id == null)
       throw new Error(
         `MiniSearch: document does not have ID field "${idField}"`
       );
-    }
 
-    if (this._idToShortId.has(id)) {
+    if (this._idToShortId.has(id))
       throw new Error(`MiniSearch: duplicate ID ${id}`);
-    }
 
     const shortDocumentId = this.addDocumentId(id);
+
     this.saveStoredFields(shortDocumentId, document);
 
     for (const field of fields) {
       const fieldValue = extractField(document, field);
+
       if (fieldValue == null) continue;
 
       const tokens = tokenize(fieldValue.toString(), field);
       const fieldId = this._fieldIds[field];
 
       const uniqueTerms = new Set(tokens).size;
+
       this.addFieldLength(
         shortDocumentId,
         fieldId,
@@ -309,13 +310,12 @@ export class MiniSearch<T = any> {
 
       for (const term of tokens) {
         const processedTerm = processTerm(term, field);
-        if (Array.isArray(processedTerm)) {
-          for (const t of processedTerm) {
+
+        if (Array.isArray(processedTerm))
+          for (const t of processedTerm)
             this.addTerm(fieldId, shortDocumentId, t);
-          }
-        } else if (processedTerm) {
+        else if (processedTerm)
           this.addTerm(fieldId, shortDocumentId, processedTerm);
-        }
       }
     }
   }
@@ -353,16 +353,14 @@ export class MiniSearch<T = any> {
     const { chunk, promise } = documents.reduce(
       ({ chunk, promise }, document: T, i: number) => {
         chunk.push(document);
-        if ((i + 1) % chunkSize === 0) {
+        if ((i + 1) % chunkSize === 0)
           return {
             chunk: [],
             promise: promise
               .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
               .then(() => this.addAll(chunk)),
           };
-        } else {
-          return { chunk, promise };
-        }
+        else return { chunk, promise };
       },
       acc
     );
@@ -389,28 +387,28 @@ export class MiniSearch<T = any> {
       this._options;
     const id = extractField(document, idField);
 
-    if (id == null) {
+    if (id == null)
       throw new Error(
         `MiniSearch: document does not have ID field "${idField}"`
       );
-    }
 
     const shortId = this._idToShortId.get(id);
 
-    if (shortId == null) {
+    if (shortId == null)
       throw new Error(
         `MiniSearch: cannot remove document with ID ${id}: it is not in the index`
       );
-    }
 
     for (const field of fields) {
       const fieldValue = extractField(document, field);
+
       if (fieldValue == null) continue;
 
       const tokens = tokenize(fieldValue.toString(), field);
       const fieldId = this._fieldIds[field];
 
       const uniqueTerms = new Set(tokens).size;
+
       this.removeFieldLength(
         shortId,
         fieldId,
@@ -420,13 +418,11 @@ export class MiniSearch<T = any> {
 
       for (const term of tokens) {
         const processedTerm = processTerm(term, field);
-        if (Array.isArray(processedTerm)) {
-          for (const t of processedTerm) {
-            this.removeTerm(fieldId, shortId, t);
-          }
-        } else if (processedTerm) {
+
+        if (Array.isArray(processedTerm))
+          for (const t of processedTerm) this.removeTerm(fieldId, shortId, t);
+        else if (processedTerm)
           this.removeTerm(fieldId, shortId, processedTerm);
-        }
       }
     }
 
@@ -511,11 +507,10 @@ export class MiniSearch<T = any> {
   discard(id: any): void {
     const shortId = this._idToShortId.get(id);
 
-    if (shortId == null) {
+    if (shortId == null)
       throw new Error(
         `MiniSearch: cannot discard document with ID ${id}: it is not in the index`
       );
-    }
 
     this._idToShortId.delete(id);
     this._documentIds.delete(shortId);
@@ -538,12 +533,11 @@ export class MiniSearch<T = any> {
   }
 
   private maybeAutoVacuum(): void {
-    if (this._options.autoVacuum === false) {
-      return;
-    }
+    if (this._options.autoVacuum === false) return;
 
     const { minDirtFactor, minDirtCount, batchSize, batchWait } =
       this._options.autoVacuum;
+
     this.conditionalVacuum(
       { batchSize, batchWait },
       { minDirtCount, minDirtFactor }
@@ -568,9 +562,7 @@ export class MiniSearch<T = any> {
     try {
       this._options.autoVacuum = false;
 
-      for (const id of ids) {
-        this.discard(id);
-      }
+      for (const id of ids) this.discard(id);
     } finally {
       this._options.autoVacuum = autoVacuum;
     }
@@ -655,23 +647,24 @@ export class MiniSearch<T = any> {
     if (this._currentVacuum) {
       this._enqueuedVacuumConditions =
         this._enqueuedVacuumConditions && conditions;
-      if (this._enqueuedVacuum != null) {
-        return this._enqueuedVacuum;
-      }
+      if (this._enqueuedVacuum != null) return this._enqueuedVacuum;
 
       this._enqueuedVacuum = this._currentVacuum.then(() => {
         const conditions = this._enqueuedVacuumConditions;
+
         this._enqueuedVacuumConditions = defaultVacuumConditions;
+
         return this.performVacuuming(options, conditions);
       });
+
       return this._enqueuedVacuum;
     }
 
-    if (this.vacuumConditionsMet(conditions) === false) {
+    if (this.vacuumConditionsMet(conditions) === false)
       return Promise.resolve();
-    }
 
     this._currentVacuum = this.performVacuuming(options);
+
     return this._currentVacuum;
   }
 
@@ -687,27 +680,18 @@ export class MiniSearch<T = any> {
       let i = 1;
 
       for (const [term, fieldsData] of this._index) {
-        for (const [fieldId, fieldIndex] of fieldsData) {
+        for (const [fieldId, fieldIndex] of fieldsData)
           for (const [shortId] of fieldIndex) {
-            if (this._documentIds.has(shortId)) {
-              continue;
-            }
+            if (this._documentIds.has(shortId)) continue;
 
-            if (fieldIndex.size <= 1) {
-              fieldsData.delete(fieldId);
-            } else {
-              fieldIndex.delete(shortId);
-            }
+            if (fieldIndex.size <= 1) fieldsData.delete(fieldId);
+            else fieldIndex.delete(shortId);
           }
-        }
 
-        if (this._index.get(term)!.size === 0) {
-          this._index.delete(term);
-        }
+        if (this._index.get(term)!.size === 0) this._index.delete(term);
 
-        if (i % batchSize === 0) {
+        if (i % batchSize === 0)
           await new Promise((resolve) => setTimeout(resolve, batchWait));
-        }
 
         i += 1;
       }
@@ -723,11 +707,10 @@ export class MiniSearch<T = any> {
   }
 
   private vacuumConditionsMet(conditions?: VacuumConditions) {
-    if (conditions == null) {
-      return true;
-    }
+    if (conditions == null) return true;
 
     let { minDirtCount, minDirtFactor } = conditions;
+
     minDirtCount = minDirtCount || defaultAutoVacuumOptions.minDirtCount;
     minDirtFactor = minDirtFactor || defaultAutoVacuumOptions.minDirtFactor;
 
@@ -779,9 +762,7 @@ export class MiniSearch<T = any> {
   getStoredFields(id: any): Record<string, unknown> | undefined {
     const shortId = this._idToShortId.get(id);
 
-    if (shortId == null) {
-      return undefined;
-    }
+    if (shortId == null) return undefined;
 
     return this._storedFields.get(shortId);
   }
@@ -942,12 +923,12 @@ export class MiniSearch<T = any> {
       };
 
       Object.assign(result, this._storedFields.get(docId));
-      if (searchOptions.filter == null || searchOptions.filter(result)) {
+      if (searchOptions.filter == null || searchOptions.filter(result))
         results.push(result);
-      }
     }
 
     results.sort(byScore);
+
     return results;
   }
 
@@ -1023,6 +1004,7 @@ export class MiniSearch<T = any> {
     for (const { score, terms } of this.search(queryString, options)) {
       const phrase = terms.join(" ");
       const suggestion = suggestions.get(phrase);
+
       if (suggestion != null) {
         suggestion.score += score;
         suggestion.count += 1;
@@ -1032,11 +1014,12 @@ export class MiniSearch<T = any> {
     }
 
     const results = [];
-    for (const [suggestion, { score, terms, count }] of suggestions) {
+
+    for (const [suggestion, { score, terms, count }] of suggestions)
       results.push({ suggestion, terms, score: score / count });
-    }
 
     results.sort(byScore);
+
     return results;
   }
 
@@ -1076,11 +1059,11 @@ export class MiniSearch<T = any> {
    * @return An instance of MiniSearch deserialized from the given JSON.
    */
   static loadJSON<T = any>(json: string, options: Options<T>): MiniSearch<T> {
-    if (options == null) {
+    if (options == null)
       throw new Error(
         "MiniSearch: loadJSON should be given the same options used when serializing the index"
       );
-    }
+
     return this.loadJS(JSON.parse(json), options);
   }
 
@@ -1106,11 +1089,9 @@ export class MiniSearch<T = any> {
    * ```
    */
   static getDefault(optionName: string): any {
-    if (defaultOptions.hasOwnProperty(optionName)) {
+    if (defaultOptions.hasOwnProperty(optionName))
       return getOwnProperty(defaultOptions, optionName);
-    } else {
-      throw new Error(`MiniSearch: unknown option "${optionName}"`);
-    }
+    else throw new Error(`MiniSearch: unknown option "${optionName}"`);
   }
 
   /**
@@ -1132,11 +1113,11 @@ export class MiniSearch<T = any> {
       dirtCount,
       serializationVersion,
     } = js;
-    if (serializationVersion !== 1 && serializationVersion !== 2) {
+
+    if (serializationVersion !== 1 && serializationVersion !== 2)
       throw new Error(
         "MiniSearch: cannot deserialize an index created with an incompatible version"
       );
-    }
 
     const miniSearch = new MiniSearch(options);
 
@@ -1151,9 +1132,8 @@ export class MiniSearch<T = any> {
     miniSearch._dirtCount = dirtCount || 0;
     miniSearch._index = new SearchableMap();
 
-    for (const [shortId, id] of miniSearch._documentIds) {
+    for (const [shortId, id] of miniSearch._documentIds)
       miniSearch._idToShortId.set(id, shortId);
-    }
 
     for (const [term, data] of index) {
       const dataMap = new Map() as FieldTermData;
@@ -1162,9 +1142,8 @@ export class MiniSearch<T = any> {
         let indexEntry = data[fieldId];
 
         // Version 1 used to nest the index entry inside a field called ds
-        if (serializationVersion === 1) {
+        if (serializationVersion === 1)
           indexEntry = indexEntry.ds as unknown as SerializedIndexEntry;
-        }
 
         dataMap.set(
           parseInt(fieldId, 10),
@@ -1190,6 +1169,7 @@ export class MiniSearch<T = any> {
       const results = query.queries.map((subquery) =>
         this.executeQuery(subquery, options)
       );
+
       return this.combineResults(results, options.combineWith);
     }
 
@@ -1258,9 +1238,7 @@ export class MiniSearch<T = any> {
     let prefixMatches;
     let fuzzyMatches;
 
-    if (query.prefix) {
-      prefixMatches = this._index.atPrefix(query.term);
-    }
+    if (query.prefix) prefixMatches = this._index.atPrefix(query.term);
 
     if (query.fuzzy) {
       const fuzzy = query.fuzzy === true ? 0.2 : query.fuzzy;
@@ -1268,16 +1246,17 @@ export class MiniSearch<T = any> {
         fuzzy < 1
           ? Math.min(maxFuzzy, Math.round(query.term.length * fuzzy))
           : fuzzy;
+
       if (maxDistance)
         fuzzyMatches = this._index.fuzzyGet(query.term, maxDistance);
     }
 
-    if (prefixMatches) {
+    if (prefixMatches)
       for (const [term, data] of prefixMatches) {
         const distance = term.length - query.term.length;
-        if (!distance) {
-          continue;
-        } // Skip exact match.
+
+        if (!distance) continue;
+        // Skip exact match.
 
         // Delete the term from fuzzy results (if present) if it is also a
         // prefix result. This entry will always be scored as a prefix result.
@@ -1290,6 +1269,7 @@ export class MiniSearch<T = any> {
         // fuzzy matches for longer distances.
         const weight =
           (prefixWeight * term.length) / (term.length + 0.3 * distance);
+
         this.termResults(
           query.term,
           term,
@@ -1301,18 +1281,18 @@ export class MiniSearch<T = any> {
           results
         );
       }
-    }
 
-    if (fuzzyMatches) {
+    if (fuzzyMatches)
       for (const term of fuzzyMatches.keys()) {
         const [data, distance] = fuzzyMatches.get(term)!;
-        if (!distance) {
-          continue;
-        } // Skip exact match.
+
+        if (!distance) continue;
+        // Skip exact match.
 
         // Weight gradually approaches 0 as distance goes to infinity, with the
         // weight for the hypothetical distance 0 being equal to fuzzyWeight.
         const weight = (fuzzyWeight * term.length) / (term.length + distance);
+
         this.termResults(
           query.term,
           term,
@@ -1324,7 +1304,6 @@ export class MiniSearch<T = any> {
           results
         );
       }
-    }
 
     return results;
   }
@@ -1333,10 +1312,10 @@ export class MiniSearch<T = any> {
    * @ignore
    */
   private combineResults(results: RawResult[], combineWith = OR): RawResult {
-    if (results.length === 0) {
-      return new Map();
-    }
+    if (results.length === 0) return new Map();
+
     const operator = combineWith.toLowerCase();
+
     return results.reduce(combinators[operator]) || new Map();
   }
 
@@ -1370,9 +1349,8 @@ export class MiniSearch<T = any> {
     for (const [term, fieldIndex] of this._index) {
       const data: { [key: string]: SerializedIndexEntry } = {};
 
-      for (const [fieldId, freqs] of fieldIndex) {
+      for (const [fieldId, freqs] of fieldIndex)
         data[fieldId] = Object.fromEntries(freqs);
-      }
 
       index.push([term, data]);
     }
@@ -1417,6 +1395,7 @@ export class MiniSearch<T = any> {
       const fieldId = this._fieldIds[field];
 
       const fieldTermFreqs = fieldTermData.get(fieldId);
+
       if (fieldTermFreqs == null) continue;
 
       let matchingFields = fieldTermFreqs.size;
@@ -1436,6 +1415,7 @@ export class MiniSearch<T = any> {
               this._storedFields.get(docId)
             )
           : 1;
+
         if (!docBoost) continue;
 
         const termFreq = fieldTermFreqs.get(docId)!;
@@ -1458,15 +1438,14 @@ export class MiniSearch<T = any> {
         const weightedScore = termWeight * fieldBoost * docBoost * rawScore;
 
         const result = results.get(docId);
+
         if (result) {
           result.score += weightedScore;
           assignUniqueTerm(result.terms, sourceTerm);
           const match = getOwnProperty(result.match, derivedTerm);
-          if (match) {
-            match.push(field);
-          } else {
-            result.match[derivedTerm] = [field];
-          }
+
+          if (match) match.push(field);
+          else result.match[derivedTerm] = [field];
         } else {
           results.set(docId, {
             score: weightedScore,
@@ -1487,12 +1466,14 @@ export class MiniSearch<T = any> {
     const indexData = this._index.fetch(term, createMap);
 
     let fieldIndex = indexData.get(fieldId);
+
     if (fieldIndex == null) {
       fieldIndex = new Map();
       fieldIndex.set(documentId, 1);
       indexData.set(fieldId, fieldIndex);
     } else {
       const docs = fieldIndex.get(documentId);
+
       fieldIndex.set(documentId, (docs || 0) + 1);
     }
   }
@@ -1503,27 +1484,22 @@ export class MiniSearch<T = any> {
   private removeTerm(fieldId: number, documentId: number, term: string): void {
     if (!this._index.has(term)) {
       this.warnDocumentChanged(documentId, fieldId, term);
+
       return;
     }
 
     const indexData = this._index.fetch(term, createMap);
 
     const fieldIndex = indexData.get(fieldId);
-    if (fieldIndex == null || fieldIndex.get(documentId) == null) {
-      this.warnDocumentChanged(documentId, fieldId, term);
-    } else if (fieldIndex.get(documentId)! <= 1) {
-      if (fieldIndex.size <= 1) {
-        indexData.delete(fieldId);
-      } else {
-        fieldIndex.delete(documentId);
-      }
-    } else {
-      fieldIndex.set(documentId, fieldIndex.get(documentId)! - 1);
-    }
 
-    if (this._index.get(term)!.size === 0) {
-      this._index.delete(term);
-    }
+    if (fieldIndex == null || fieldIndex.get(documentId) == null)
+      this.warnDocumentChanged(documentId, fieldId, term);
+    else if (fieldIndex.get(documentId)! <= 1)
+      if (fieldIndex.size <= 1) indexData.delete(fieldId);
+      else fieldIndex.delete(documentId);
+    else fieldIndex.set(documentId, fieldIndex.get(documentId)! - 1);
+
+    if (this._index.get(term)!.size === 0) this._index.delete(term);
   }
 
   /**
@@ -1534,7 +1510,7 @@ export class MiniSearch<T = any> {
     fieldId: number,
     term: string
   ): void {
-    for (const fieldName of Object.keys(this._fieldIds)) {
+    for (const fieldName of Object.keys(this._fieldIds))
       if (this._fieldIds[fieldName] === fieldId) {
         this._options.logger(
           "warn",
@@ -1543,9 +1519,9 @@ export class MiniSearch<T = any> {
           )} has changed before removal: term "${term}" was not present in field "${fieldName}". Removing a document after it has changed can corrupt the index!`,
           "version_conflict"
         );
+
         return;
       }
-    }
   }
 
   /**
@@ -1553,10 +1529,12 @@ export class MiniSearch<T = any> {
    */
   private addDocumentId(documentId: any): number {
     const shortDocumentId = this._nextId;
+
     this._idToShortId.set(documentId, shortDocumentId);
     this._documentIds.set(shortDocumentId, documentId);
     this._documentCount += 1;
     this._nextId += 1;
+
     return shortDocumentId;
   }
 
@@ -1564,9 +1542,7 @@ export class MiniSearch<T = any> {
    * @ignore
    */
   private addFields(fields: string[]): void {
-    for (let i = 0; i < fields.length; i++) {
-      this._fieldIds[fields[i]] = i;
-    }
+    for (let i = 0; i < fields.length; i++) this._fieldIds[fields[i]] = i;
   }
 
   /**
@@ -1579,12 +1555,14 @@ export class MiniSearch<T = any> {
     length: number
   ): void {
     let fieldLengths = this._fieldLength.get(documentId);
+
     if (fieldLengths == null)
       this._fieldLength.set(documentId, (fieldLengths = []));
     fieldLengths[fieldId] = length;
 
     const averageFieldLength = this._avgFieldLength[fieldId] || 0;
     const totalFieldLength = averageFieldLength * count + length;
+
     this._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
   }
 
@@ -1599,9 +1577,11 @@ export class MiniSearch<T = any> {
   ): void {
     if (count === 1) {
       this._avgFieldLength[fieldId] = 0;
+
       return;
     }
     const totalFieldLength = this._avgFieldLength[fieldId] * count - length;
+
     this._avgFieldLength[fieldId] = totalFieldLength / (count - 1);
   }
 
@@ -1610,16 +1590,17 @@ export class MiniSearch<T = any> {
    */
   private saveStoredFields(documentId: number, doc: T): void {
     const { storeFields, extractField } = this._options;
-    if (storeFields == null || storeFields.length === 0) {
-      return;
-    }
+
+    if (storeFields == null || storeFields.length === 0) return;
 
     let documentFields = this._storedFields.get(documentId);
+
     if (documentFields == null)
       this._storedFields.set(documentId, (documentFields = {}));
 
     for (const fieldName of storeFields) {
       const fieldValue = extractField(doc, fieldName);
+
       if (fieldValue !== undefined) documentFields[fieldName] = fieldValue;
     }
   }

@@ -14,10 +14,8 @@ export const assignUniqueTerms = (
   target: string[],
   source: readonly string[]
 ): void => {
-  for (const term of source) {
-    // Avoid adding duplicate terms.
-    if (!target.includes(term)) target.push(term);
-  }
+  // Avoid adding duplicate terms.
+  for (const term of source) if (!target.includes(term)) target.push(term);
 };
 
 type Scored = { score: number };
@@ -31,9 +29,8 @@ export const objectToNumericMap = <T>(object: {
 }): Map<number, T> => {
   const map = new Map();
 
-  for (const key of Object.keys(object)) {
+  for (const key of Object.keys(object))
     map.set(parseInt(key, 10), object[key]);
-  }
 
   return map;
 };
@@ -68,10 +65,12 @@ export const combinators: { [kind: string]: CombinatorFunction } = {
   [OR]: (a: RawResult, b: RawResult) => {
     for (const docId of b.keys()) {
       const existing = a.get(docId);
+
       if (existing == null) {
         a.set(docId, b.get(docId)!);
       } else {
         const { score, terms, match } = b.get(docId)!;
+
         existing.score = existing.score + score;
         existing.match = Object.assign(existing.match, match);
         assignUniqueTerms(existing.terms, terms);
@@ -85,9 +84,11 @@ export const combinators: { [kind: string]: CombinatorFunction } = {
 
     for (const docId of b.keys()) {
       const existing = a.get(docId);
+
       if (existing == null) continue;
 
       const { score, terms, match } = b.get(docId)!;
+
       assignUniqueTerms(existing.terms, terms);
       combined.set(docId, {
         score: existing.score + score,
@@ -100,6 +101,7 @@ export const combinators: { [kind: string]: CombinatorFunction } = {
   },
   [AND_NOT]: (a: RawResult, b: RawResult) => {
     for (const docId of b.keys()) a.delete(docId);
+
     return a;
   },
 };
@@ -116,6 +118,7 @@ export const calcBM25Score = (
   const invDocFreq = Math.log(
     1 + (totalCount - matchingCount + 0.5) / (matchingCount + 0.5)
   );
+
   return (
     invDocFreq *
     (d +
@@ -141,5 +144,6 @@ export const termToQuerySpec =
       typeof options.prefix === "function"
         ? options.prefix(term, i, terms)
         : options.prefix === true;
+
     return { term, fuzzy, prefix };
   };

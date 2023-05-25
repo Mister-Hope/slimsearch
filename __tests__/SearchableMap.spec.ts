@@ -1,5 +1,7 @@
+// @ts-nocheck
 import * as fc from "fast-check";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import { SearchableMap } from "../src/SearchableMap/SearchableMap.js";
 
 describe("SearchableMap", () => {
@@ -28,9 +30,8 @@ describe("SearchableMap", () => {
 
   const editDistance = function (a, b, mem = [[0]]) {
     mem[a.length] = mem[a.length] || [a.length];
-    if (mem[a.length][b.length] !== undefined) {
-      return mem[a.length][b.length];
-    }
+    if (mem[a.length][b.length] !== undefined) return mem[a.length][b.length];
+
     const d = a[a.length - 1] === b[b.length - 1] ? 0 : 1;
     const distance =
       a.length === 1 && b.length === 1
@@ -42,13 +43,16 @@ describe("SearchableMap", () => {
               ? editDistance(a.slice(0, -1), b.slice(0, -1), mem) + d
               : Infinity
           );
+
     mem[a.length][b.length] = distance;
+
     return distance;
   };
 
   describe("clear", () => {
     it("empties the map", () => {
       const map = SearchableMap.from(keyValues);
+
       map.clear();
       expect(Array.from(map.entries())).toEqual([]);
     });
@@ -57,6 +61,7 @@ describe("SearchableMap", () => {
   describe("delete", () => {
     it("deletes the entry at the given key", () => {
       const map = SearchableMap.from(keyValues);
+
       map.delete("border");
       expect(map.has("border")).toBe(false);
       expect(map.has("summer")).toBe(true);
@@ -67,12 +72,14 @@ describe("SearchableMap", () => {
     it("changes the size of the map", () => {
       const map = SearchableMap.from(keyValues);
       const sizeBefore = map.size;
+
       map.delete("summertime");
       expect(map.size).toEqual(sizeBefore - 1);
     });
 
     it("does nothing if the entry did not exist", () => {
       const map = new SearchableMap();
+
       expect(() => map.delete("something")).not.toThrow();
     });
 
@@ -93,18 +100,21 @@ describe("SearchableMap", () => {
     it("returns an iterator of entries", () => {
       const map = SearchableMap.from(keyValues);
       const entries = Array.from({ [Symbol.iterator]: () => map.entries() });
+
       expect(entries.sort()).toEqual(keyValues.sort());
     });
 
     it("returns an iterable of entries", () => {
       const map = SearchableMap.from(keyValues);
       const entries = Array.from(map.entries());
+
       expect(entries.sort()).toEqual(keyValues.sort());
     });
 
     it("returns empty iterator, if the map is empty", () => {
       const map = new SearchableMap();
       const entries = Array.from(map.entries());
+
       expect(entries).toEqual([]);
     });
   });
@@ -114,6 +124,7 @@ describe("SearchableMap", () => {
       const entries = [];
       const fn = (key, value) => entries.push([key, value]);
       const map = SearchableMap.from(keyValues);
+
       map.forEach(fn);
       expect(entries).toEqual(Array.from(map.entries()));
     });
@@ -124,11 +135,13 @@ describe("SearchableMap", () => {
       const key = "foo";
       const value = 42;
       const map = SearchableMap.fromObject({ [key]: value });
+
       expect(map.get(key)).toBe(value);
     });
 
     it("returns undefined if the key is not present", () => {
       const map = new SearchableMap();
+
       expect(map.get("not-existent")).toBe(undefined);
     });
   });
@@ -136,6 +149,7 @@ describe("SearchableMap", () => {
   describe("has", () => {
     it("returns true if the given key exists in the map", () => {
       const map = new SearchableMap();
+
       map.set("something", 42);
       expect(map.has("something")).toBe(true);
 
@@ -145,6 +159,7 @@ describe("SearchableMap", () => {
 
     it("returns false if the given key does not exist in the map", () => {
       const map = SearchableMap.fromObject({ something: 42 });
+
       expect(map.has("not-existing")).toBe(false);
       expect(map.has("some")).toBe(false);
     });
@@ -154,18 +169,21 @@ describe("SearchableMap", () => {
     it("returns an iterator of keys", () => {
       const map = SearchableMap.from(keyValues);
       const keys = Array.from({ [Symbol.iterator]: () => map.keys() });
+
       expect(keys.sort()).toEqual(strings.sort());
     });
 
     it("returns an iterable of keys", () => {
       const map = SearchableMap.from(keyValues);
       const keys = Array.from(map.keys());
+
       expect(keys.sort()).toEqual(strings.sort());
     });
 
     it("returns empty iterator, if the map is empty", () => {
       const map = new SearchableMap();
       const keys = Array.from(map.keys());
+
       expect(keys).toEqual([]);
     });
   });
@@ -175,6 +193,7 @@ describe("SearchableMap", () => {
       const map = new SearchableMap();
       const key = "foo";
       const value = 42;
+
       map.set(key, value);
       expect(map.get(key)).toBe(value);
     });
@@ -183,12 +202,14 @@ describe("SearchableMap", () => {
       const map = SearchableMap.fromObject({ foo: 123 });
       const key = "foo";
       const value = 42;
+
       map.set(key, value);
       expect(map.get(key)).toBe(value);
     });
 
     it("throws error if the given key is not a string", () => {
       const map = new SearchableMap();
+
       expect(() => map.set(123, "foo")).toThrow("key must be a string");
     });
   });
@@ -196,6 +217,7 @@ describe("SearchableMap", () => {
   describe("size", () => {
     it("is a property containing the size of the map", () => {
       const map = SearchableMap.from(keyValues);
+
       expect(map.size).toEqual(keyValues.length);
       map.set("foo", 42);
       expect(map.size).toEqual(keyValues.length + 1);
@@ -211,6 +233,7 @@ describe("SearchableMap", () => {
       const map = new SearchableMap();
       const key = "foo";
       const fn = vi.fn((x) => (x || 0) + 1);
+
       map.update(key, fn);
       expect(fn).toHaveBeenCalledWith(undefined);
       expect(map.get(key)).toBe(1);
@@ -221,6 +244,7 @@ describe("SearchableMap", () => {
 
     it("throws error if the given key is not a string", () => {
       const map = new SearchableMap();
+
       expect(() => map.update(123, () => {})).toThrow("key must be a string");
     });
   });
@@ -229,18 +253,21 @@ describe("SearchableMap", () => {
     it("returns an iterator of values", () => {
       const map = SearchableMap.fromObject(object);
       const values = Array.from({ [Symbol.iterator]: () => map.values() });
+
       expect(values.sort()).toEqual(Object.values(object).sort());
     });
 
     it("returns an iterable of values", () => {
       const map = SearchableMap.fromObject(object);
       const values = Array.from(map.values());
+
       expect(values.sort()).toEqual(Object.values(object).sort());
     });
 
     it("returns empty iterator, if the map is empty", () => {
       const map = new SearchableMap();
       const values = Array.from(map.values());
+
       expect(values).toEqual([]);
     });
   });
@@ -250,16 +277,19 @@ describe("SearchableMap", () => {
       const map = SearchableMap.from(keyValues);
 
       const sum = map.atPrefix("sum");
+
       expect(Array.from(sum.keys()).sort()).toEqual(
         strings.filter((string) => string.startsWith("sum")).sort()
       );
 
       const summer = sum.atPrefix("summer");
+
       expect(Array.from(summer.keys()).sort()).toEqual(
         strings.filter((string) => string.startsWith("summer")).sort()
       );
 
       const xyz = map.atPrefix("xyz");
+
       expect(Array.from(xyz.keys())).toEqual([]);
 
       expect(() => sum.atPrefix("xyz")).toThrow();
@@ -268,6 +298,7 @@ describe("SearchableMap", () => {
     it("correctly computes the size", () => {
       const map = SearchableMap.from(keyValues);
       const sum = map.atPrefix("sum");
+
       expect(sum.size).toEqual(
         strings.filter((string) => string.startsWith("sum")).length
       );
@@ -283,6 +314,7 @@ describe("SearchableMap", () => {
       [0, 1, 2, 3].forEach((distance) => {
         const results = map.fuzzyGet("acqua", distance);
         const entries = Array.from(results);
+
         expect(
           entries.map(([key, [value, dist]]) => [key, dist]).sort()
         ).toEqual(
@@ -306,6 +338,7 @@ describe("SearchableMap", () => {
         ["x", 1],
         [" x", 2],
       ]);
+
       expect(Array.from(map.fuzzyGet("x", 2).values())).toEqual([
         [1, 0],
         [2, 1],
@@ -350,6 +383,7 @@ describe("SearchableMap", () => {
           );
 
           const fuzzy = map.fuzzyGet(terms[0], maxDist);
+
           expect(
             Array.from(fuzzy, ([key, [value, dist]]) => [key, dist]).sort()
           ).toEqual(

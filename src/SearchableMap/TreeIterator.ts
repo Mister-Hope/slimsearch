@@ -1,4 +1,4 @@
-import { type RadixTree, type Entry, type LeafType } from "./types.js";
+import { type Entry, type LeafType, type RadixTree } from "./types.js";
 
 const ENTRIES = "ENTRIES";
 
@@ -38,6 +38,7 @@ class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>> {
   constructor(set: IterableSet<T>, type: K) {
     const node = set._tree;
     const keys = Array.from(node.keys());
+
     this.set = set;
     this._type = type;
     this._path = keys.length > 0 ? [{ node, keys }] : [];
@@ -45,33 +46,34 @@ class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>> {
 
   next(): IteratorResult<Result<T, K>> {
     const value = this.dive();
+
     this.backtrack();
+
     return value;
   }
 
   dive(): IteratorResult<Result<T, K>> {
-    if (this._path.length === 0) {
-      return { done: true, value: undefined };
-    }
+    if (this._path.length === 0) return { done: true, value: undefined };
+
     const { node, keys } = last(this._path)!;
-    if (last(keys) === LEAF) {
-      return { done: false, value: this.result() };
-    }
+
+    if (last(keys) === LEAF) return { done: false, value: this.result() };
 
     const child = node.get(last(keys)!)!;
+
     this._path.push({ node: child, keys: Array.from(child.keys()) });
+
     return this.dive();
   }
 
   backtrack(): void {
-    if (this._path.length === 0) {
-      return;
-    }
+    if (this._path.length === 0) return;
+
     const keys = last(this._path)!.keys;
+
     keys.pop();
-    if (keys.length > 0) {
-      return;
-    }
+    if (keys.length > 0) return;
+
     this._path.pop();
     this.backtrack();
   }

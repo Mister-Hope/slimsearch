@@ -1,7 +1,7 @@
 /* eslint-disable no-labels */
-import { TreeIterator, ENTRIES, KEYS, VALUES, LEAF } from "./TreeIterator.js";
+import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
 import { type FuzzyResults, fuzzySearch } from "./fuzzySearch.js";
-import { type RadixTree, type Entry, type Path } from "./types.js";
+import { type Entry, type Path, type RadixTree } from "./types.js";
 
 /**
  * A class implementing the same interface as a standard JavaScript
@@ -72,9 +72,7 @@ export class SearchableMap<T = any> {
    * @return A [[SearchableMap]] representing a mutable view of the original Map at the given prefix
    */
   atPrefix(prefix: string): SearchableMap<T> {
-    if (!prefix.startsWith(this._prefix)) {
-      throw new Error("Mismatched prefix");
-    }
+    if (!prefix.startsWith(this._prefix)) throw new Error("Mismatched prefix");
 
     const [node, path] = trackDown(
       this._tree,
@@ -84,13 +82,14 @@ export class SearchableMap<T = any> {
     if (node === undefined) {
       const [parentNode, key] = last(path);
 
-      for (const k of parentNode!.keys()) {
+      for (const k of parentNode!.keys())
         if (k !== LEAF && k.startsWith(key)) {
           const node = new Map();
+
           node.set(k.slice(key.length), parentNode!.get(k)!);
+
           return new SearchableMap(node, prefix);
         }
-      }
     }
 
     return new SearchableMap<T>(node, prefix);
@@ -110,6 +109,7 @@ export class SearchableMap<T = any> {
    */
   delete(key: string): void {
     this._size = undefined;
+
     return remove(this._tree, key);
   }
 
@@ -126,9 +126,7 @@ export class SearchableMap<T = any> {
    * @param fn  Iteration function
    */
   forEach(fn: (key: string, value: T, map: SearchableMap) => void): void {
-    for (const [key, value] of this) {
-      fn(key, value, this);
-    }
+    for (const [key, value] of this) fn(key, value, this);
   }
 
   /**
@@ -171,6 +169,7 @@ export class SearchableMap<T = any> {
    */
   get(key: string): T | undefined {
     const node = lookup<T>(this._tree, key);
+
     return node !== undefined ? node.get(LEAF) : undefined;
   }
 
@@ -181,6 +180,7 @@ export class SearchableMap<T = any> {
    */
   has(key: string): boolean {
     const node = lookup(this._tree, key);
+
     return node !== undefined && node.has(LEAF);
   }
 
@@ -199,12 +199,13 @@ export class SearchableMap<T = any> {
    * @return The [[SearchableMap]] itself, to allow chaining
    */
   set(key: string, value: T): SearchableMap<T> {
-    if (typeof key !== "string") {
-      throw new Error("key must be a string");
-    }
+    if (typeof key !== "string") throw new Error("key must be a string");
+
     this._size = undefined;
     const node = createPath(this._tree, key);
+
     node.set(LEAF, value);
+
     return this;
   }
 
@@ -212,14 +213,14 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
    */
   get size(): number {
-    if (this._size) {
-      return this._size;
-    }
+    if (this._size) return this._size;
+
     /** @ignore */
     this._size = 0;
 
     const iter = this.entries();
-    while (!iter.next().done) this._size! += 1;
+
+    while (!iter.next().done) this._size += 1;
 
     return this._size;
   }
@@ -245,12 +246,13 @@ export class SearchableMap<T = any> {
    * @return The [[SearchableMap]] itself, to allow chaining
    */
   update(key: string, fn: (value: T | undefined) => T): SearchableMap<T> {
-    if (typeof key !== "string") {
-      throw new Error("key must be a string");
-    }
+    if (typeof key !== "string") throw new Error("key must be a string");
+
     this._size = undefined;
     const node = createPath(this._tree, key);
+
     node.set(LEAF, fn(node.get(LEAF)));
+
     return this;
   }
 
@@ -271,16 +273,14 @@ export class SearchableMap<T = any> {
    * @return The existing or new value at the given key
    */
   fetch(key: string, initial: () => T): T {
-    if (typeof key !== "string") {
-      throw new Error("key must be a string");
-    }
+    if (typeof key !== "string") throw new Error("key must be a string");
+
     this._size = undefined;
     const node = createPath(this._tree, key);
 
     let value = node.get(LEAF);
-    if (value === undefined) {
-      node.set(LEAF, (value = initial()));
-    }
+
+    if (value === undefined) node.set(LEAF, (value = initial()));
 
     return value;
   }
@@ -308,9 +308,9 @@ export class SearchableMap<T = any> {
    */
   static from<T = any>(entries: Iterable<Entry<T>> | Entry<T>[]) {
     const tree = new SearchableMap();
-    for (const [key, value] of entries) {
-      tree.set(key, value);
-    }
+
+    for (const [key, value] of entries) tree.set(key, value);
+
     return tree;
   }
 
@@ -330,18 +330,17 @@ const trackDown = <T = any>(
   key: string,
   path: Path<T> = []
 ): [RadixTree<T> | undefined, Path<T>] => {
-  if (key.length === 0 || tree == null) {
-    return [tree, path];
-  }
+  if (key.length === 0 || tree == null) return [tree, path];
 
-  for (const k of tree.keys()) {
+  for (const k of tree.keys())
     if (k !== LEAF && key.startsWith(k)) {
       path.push([tree, k]); // performance: update in place
-      return trackDown(tree.get(k)!, key.slice(k.length), path);
+
+      return trackDown(tree.get(k), key.slice(k.length), path);
     }
-  }
 
   path.push([tree, key]); // performance: update in place
+
   return trackDown(undefined, "", path);
 };
 
@@ -349,15 +348,11 @@ const lookup = <T = any>(
   tree: RadixTree<T>,
   key: string
 ): RadixTree<T> | undefined => {
-  if (key.length === 0 || tree == null) {
-    return tree;
-  }
+  if (key.length === 0 || tree == null) return tree;
 
-  for (const k of tree.keys()) {
-    if (k !== LEAF && key.startsWith(k)) {
+  for (const k of tree.keys())
+    if (k !== LEAF && key.startsWith(k))
       return lookup(tree.get(k)!, key.slice(k.length));
-    }
-  }
 };
 
 // Create a path in the radix tree for the given key, and returns the deepest
@@ -367,16 +362,18 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
   const keyLength = key.length;
 
   outer: for (let pos = 0; node && pos < keyLength; ) {
-    for (const k of node.keys()) {
-      // Check whether this key is a candidate: the first characters must match.
+    // Check whether this key is a candidate: the first characters must match.
+    for (const k of node.keys())
       if (k !== LEAF && key[pos] === k[0]) {
         const len = Math.min(keyLength - pos, k.length);
 
         // Advance offset to the point where key and k no longer match.
         let offset = 1;
+
         while (offset < len && key[pos + offset] === k[offset]) ++offset;
 
         const child = node.get(k)!;
+
         if (offset === k.length) {
           // The existing key is shorter than the key we need to create.
           node = child;
@@ -384,6 +381,7 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
           // Partial match: we need to insert an intermediate node to contain
           // both the existing subtree and the new node.
           const intermediate = new Map();
+
           intermediate.set(k.slice(offset), child);
           node.set(key.slice(pos, pos + offset), intermediate);
           node.delete(k);
@@ -393,11 +391,12 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
         pos += offset;
         continue outer;
       }
-    }
 
     // Create a final child node to contain the final suffix of the key.
     const child = new Map();
+
     node.set(key.slice(pos), child);
+
     return child;
   }
 
@@ -406,34 +405,33 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
 
 const remove = <T = any>(tree: RadixTree<T>, key: string): void => {
   const [node, path] = trackDown(tree, key);
-  if (node === undefined) {
-    return;
-  }
+
+  if (node === undefined) return;
+
   node.delete(LEAF);
 
   if (node.size === 0) {
     cleanup(path);
   } else if (node.size === 1) {
     const [key, value] = node.entries().next().value;
+
     merge(path, key, value);
   }
 };
 
 const cleanup = <T = any>(path: Path<T>): void => {
-  if (path.length === 0) {
-    return;
-  }
+  if (path.length === 0) return;
 
   const [node, key] = last(path);
+
   node!.delete(key);
 
   if (node!.size === 0) {
     cleanup(path.slice(0, -1));
   } else if (node!.size === 1) {
     const [key, value] = node!.entries().next().value;
-    if (key !== LEAF) {
-      merge(path.slice(0, -1), key, value);
-    }
+
+    if (key !== LEAF) merge(path.slice(0, -1), key, value);
   }
 };
 
@@ -442,11 +440,10 @@ const merge = <T = any>(
   key: string,
   value: RadixTree<T>
 ): void => {
-  if (path.length === 0) {
-    return;
-  }
+  if (path.length === 0) return;
 
   const [node, nodeKey] = last(path);
+
   node!.set(nodeKey + key, value);
   node!.delete(nodeKey);
 };

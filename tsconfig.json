@@ -20,15 +20,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.js",
-    "__tests__/SearchableMap.test.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "./src/**/*.test.ts",
-    "./src/**/*.test.js",
-    "./src/testSetup/**/*"
-  ]
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
 }

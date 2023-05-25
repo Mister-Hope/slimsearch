@@ -12,6 +12,7 @@ export const fuzzySearch = <T = any>(
   maxDistance: number
 ): FuzzyResults<T> => {
   const results: FuzzyResults<T> = new Map();
+
   if (query === undefined) return results;
 
   // Number of columns in the Levenshtein matrix.
@@ -22,6 +23,7 @@ export const fuzzySearch = <T = any>(
 
   // Fill first matrix row and column with numbers: 0 1 2 3 ...
   const matrix = new Uint8Array(m * n).fill(maxDistance + 1);
+
   for (let j = 0; j < n; ++j) matrix[j] = j;
   for (let i = 1; i < m; ++i) matrix[i * n] = i;
 
@@ -57,19 +59,20 @@ const recurse = <T = any>(
 ): void => {
   const offset = m * n;
 
-  key: for (const key of node.keys()) {
+  key: for (const key of node.keys())
     if (key === LEAF) {
       // We've reached a leaf node. Check if the edit distance acceptable and
       // store the result if it is.
       const distance = matrix[offset - 1];
-      if (distance <= maxDistance) {
+
+      if (distance <= maxDistance)
         results.set(prefix, [node.get(key)!, distance]);
-      }
     } else {
       // Iterate over all characters in the key. Update the Levenshtein matrix
       // and check if the minimum distance in the last row is still within the
       // maximum edit distance. If it is, we can recurse over all child nodes.
       let i = m;
+
       for (let pos = 0; pos < key.length; ++pos, ++i) {
         const char = key[pos];
         const thisRowOffset = n * i;
@@ -104,9 +107,7 @@ const recurse = <T = any>(
 
         // Because distance will never decrease, we can stop. There will be no
         // matching child nodes.
-        if (minDistance > maxDistance) {
-          continue key;
-        }
+        if (minDistance > maxDistance) continue key;
       }
 
       recurse(
@@ -120,5 +121,4 @@ const recurse = <T = any>(
         prefix + key
       );
     }
-  }
 };
