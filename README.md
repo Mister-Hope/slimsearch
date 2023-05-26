@@ -9,7 +9,7 @@
 JavaScript. It is respectful of resources, and it can comfortably run both in
 Node and in the browser.
 
-## SlimSearch is based on [MiniSearch](https://lucaong.github.io/minisearch/)
+## SlimSearch is based on [MiniSearch](https://lucaong.github.io/minisearch/), sharing the SAME index structure.
 
 ## Use case
 
@@ -114,7 +114,7 @@ const documents = [
   // ...and more
 ];
 
-let index = createIndex({
+const index = createIndex({
   fields: ["title", "text"], // fields to index for full-text search
   storeFields: ["title", "category"], // fields to return with search results
 });
