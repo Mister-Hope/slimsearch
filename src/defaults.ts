@@ -6,15 +6,16 @@ export const defaultBM25params: BM25Params = { k: 1.2, b: 0.7, d: 0.5 };
 
 export const defaultOptions = {
   idField: "id",
-  extractField: (document: any, fieldName: string) => document[fieldName],
-  tokenize: (text: string, _fieldName?: string) =>
-    text.split(SPACE_OR_PUNCTUATION),
-  processTerm: (term: string, _fieldName?: string) => term.toLowerCase(),
+  extractField: (document: any, fieldName: string): unknown =>
+    document[fieldName],
+  tokenize: (text: string): string[] => text.split(SPACE_OR_PUNCTUATION),
+  processTerm: (term: string): string => term.toLowerCase(),
   fields: undefined,
   searchOptions: undefined,
   storeFields: [],
-  logger: (level: LogLevel, message: string, _code?: string) =>
-    console != null && console.warn != null && console[level](message),
+  logger: (level: LogLevel, message: string): void => {
+    if (typeof console?.[level] === "function") console[level](message);
+  },
   autoVacuum: true,
 };
 
