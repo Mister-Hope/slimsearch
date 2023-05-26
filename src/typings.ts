@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export interface SerializedIndexEntry {
   [key: string]: number;
 }
 
 /**
  * Parameters of the BM25+ scoring algorithm. Customizing these is almost never
- * necessary, and finetuning them requires an understanding of the BM25 scoring
+ * necessary, and fine-tuning them requires an understanding of the BM25 scoring
  * model.
  *
  * Some information about BM25 (and BM25+) can be found at these links:
@@ -61,7 +59,10 @@ export interface MatchInfo {
  *
  * @typeParam ID  The type of id being indexed.
  */
-export interface SearchResult<ID = any> {
+export type SearchResult<
+  ID = any,
+  Field extends Record<string, any> = Record<never, never>
+> = Field & {
   /**
    * The document ID
    */
@@ -81,12 +82,7 @@ export interface SearchResult<ID = any> {
    * Match information, see [[MatchInfo]]
    */
   match: MatchInfo;
-
-  /**
-   * Stored fields
-   */
-  [key: string]: any;
-}
+};
 
 /**
  * Search options to customize the search behavior.
@@ -337,7 +333,7 @@ export interface IndexObject {
   fieldIds: { [fieldName: string]: number };
   fieldLength: { [shortId: string]: number[] };
   averageFieldLength: number[];
-  storedFields: { [shortId: string]: any };
+  storedFields: { [shortId: string]: Record<string, unknown> };
   dirtCount?: number;
   index: [string, { [fieldId: string]: SerializedIndexEntry }][];
   serializationVersion: number;

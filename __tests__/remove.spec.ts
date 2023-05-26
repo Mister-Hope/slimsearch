@@ -11,6 +11,7 @@ import {
 } from "../src/index.js";
 
 describe("remove()", () => {
+  type Document = { id: number; text: string; title: string };
   const documents = [
     {
       id: 1,
@@ -25,7 +26,7 @@ describe("remove()", () => {
     },
   ];
 
-  let index: SearchIndex, _warn: (...args: any[]) => void;
+  let index: SearchIndex<Document, number>, _warn: (...args: any[]) => void;
 
   beforeEach(() => {
     index = createIndex({ fields: ["title", "text"] });
@@ -77,12 +78,17 @@ describe("remove()", () => {
   });
 
   it("removes documents when using a custom extractField", () => {
-    const extractField = (document: any, fieldName: string) => {
+    type Document = { id: number; text: { value: string } };
+    const extractField = (document: Document, fieldName: string): string => {
       const path = fieldName.split(".");
 
-      return path.reduce((doc, key) => doc && doc[key], document);
+      return path.reduce(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        (doc, key) => doc && doc[key],
+        document
+      ) as unknown as string;
     };
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["text.value"],
       storeFields: ["id"],
       extractField,
@@ -113,20 +119,32 @@ describe("remove()", () => {
   });
 
   it("throws error if the document does not have the ID field", () => {
-    const index = createIndex({ idField: "foo", fields: ["title", "text"] });
+    const index = createIndex<
+      { foo: string; text: string; title: string },
+      string
+    >({ idField: "foo", fields: ["title", "text"] });
 
     expect(() => {
+      // @ts-expect-error
       remove(index, { text: "I do not have an ID" });
     }).toThrowError('SlimSearch: document does not have ID field "foo"');
   });
 
   it("extracts the ID field using extractField", () => {
-    const extractField = (document: any, fieldName: string) => {
+    type Document = { id: { value: number }; text: string };
+
+    const extractField = (document: Document, fieldName: string): string => {
+      // @ts-ignore
       if (fieldName === "id") return document.id.value;
 
-      return getDefaultValue("extractField")(document, fieldName);
+      return (<(document: Document, fieldName: string) => string>(
+        getDefaultValue("extractField")
+      ))(document, fieldName);
     };
-    const index = createIndex({ fields: ["text"], extractField });
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+      extractField,
+    });
     const document = {
       id: { value: 123 },
       text: "Nel mezzo del cammin di nostra vita",
@@ -142,7 +160,9 @@ describe("remove()", () => {
   });
 
   it("does not crash when the document has field named like default properties of object", () => {
-    const index = createIndex({ fields: ["constructor"] });
+    const index = createIndex<{ id: number }, number>({
+      fields: ["constructor"],
+    });
     const document = { id: 1 };
 
     add(index, document);
@@ -164,8 +184,13 @@ describe("remove()", () => {
   });
 
   it("rejects falsy terms", () => {
-    const processTerm = (term: string) => (term === "foo" ? null : term);
-    const index = createIndex({ fields: ["title", "text"], processTerm });
+    type Document = { id: number; title: string };
+    const processTerm = (term: string): string | null =>
+      term === "foo" ? null : term;
+    const index = createIndex<Document, number>({
+      fields: ["title", "text"],
+      processTerm,
+    });
     const document = { id: 123, title: "foo bar" };
 
     add(index, document);
@@ -175,9 +200,13 @@ describe("remove()", () => {
   });
 
   it("allows processTerm to expand a single term into several terms", () => {
-    const processTerm = (term: string) =>
+    type Document = { id: number; title: string };
+    const processTerm = (term: string): string[] | string =>
       term === "foobar" ? ["foo", "bar"] : term;
-    const index = createIndex({ fields: ["title", "text"], processTerm });
+    const index = createIndex<Document, number>({
+      fields: ["title", "text"],
+      processTerm,
+    });
     const document = { id: 123, title: "foobar" };
 
     add(index, document);
@@ -189,7 +218,15 @@ describe("remove()", () => {
   });
 
   describe("when using custom per-field extraction/tokenizer/processing", () => {
-    const documents = [
+    type Document = {
+      id: number;
+      title: string;
+      tags?: string;
+      author: {
+        name: string;
+      };
+    };
+    const documents: Document[] = [
       {
         id: 1,
         title: "Divina Commedia",
@@ -205,13 +242,14 @@ describe("remove()", () => {
       { id: 3, title: "Vita Nova", author: { name: "Dante Alighieri" } },
     ];
 
-    let index: SearchIndex, _warn: (...args: any[]) => void;
+    let index: SearchIndex<Document, number>, _warn: (...args: any[]) => void;
 
     beforeEach(() => {
       index = createIndex({
         fields: ["title", "tags", "authorName"],
         extractField: (doc, fieldName) => {
           if (fieldName === "authorName") return doc.author.name;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           else return doc[fieldName];
         },
         tokenize: (field, fieldName) => {
@@ -244,6 +282,7 @@ describe("remove()", () => {
 
   describe("when the document was not in the index", () => {
     it("throws an error", () => {
+      // @ts-expect-errorF
       expect(() => remove(index, { id: 99 })).toThrow(
         "SlimSearch: cannot remove document with ID 99: it is not in the index"
       );

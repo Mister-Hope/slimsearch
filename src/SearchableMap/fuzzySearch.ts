@@ -6,12 +6,12 @@ export type FuzzyResult<T> = [T, number];
 
 export type FuzzyResults<T> = Map<string, FuzzyResult<T>>;
 
-export const fuzzySearch = <T = any>(
-  node: RadixTree<T>,
+export const fuzzySearch = <Value = any>(
+  node: RadixTree<Value>,
   query: string,
   maxDistance: number
-): FuzzyResults<T> => {
-  const results: FuzzyResults<T> = new Map();
+): FuzzyResults<Value> => {
+  const results: FuzzyResults<Value> = new Map();
 
   if (query === undefined) return results;
 
@@ -47,11 +47,11 @@ export const fuzzySearch = <T = any>(
 //   ^
 //   ^ term in radix tree, rows are added and removed as needed
 
-const recurse = <T = any>(
-  node: RadixTree<T>,
+const recurse = <Value = any>(
+  node: RadixTree<Value>,
   query: string,
   maxDistance: number,
-  results: FuzzyResults<T>,
+  results: FuzzyResults<Value>,
   matrix: Uint8Array,
   m: number,
   n: number,

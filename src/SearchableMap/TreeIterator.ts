@@ -103,7 +103,7 @@ class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>> {
     }
   }
 
-  [Symbol.iterator]() {
+  [Symbol.iterator](): TreeIterator<T, K> {
     return this;
   }
 }

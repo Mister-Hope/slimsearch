@@ -13,8 +13,9 @@ import {
 } from "../src/index.js";
 
 describe("discard()", () => {
+  type Document = { id: number; text: string };
   it("prevents a document from appearing in search results", () => {
-    const index = createIndex({ fields: ["text"] });
+    const index = createIndex<Document, number>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Some interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
@@ -42,14 +43,14 @@ describe("discard()", () => {
   });
 
   it("adjusts internal data to account for the document being discarded", () => {
-    const index = createIndex({ fields: ["text"] });
+    const index = createIndex<Document, number>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Some interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
     ];
 
     addAll(index, documents);
-    const clone = loadJSONIndex(JSON.stringify(index), {
+    const clone = loadJSONIndex<Document, number>(JSON.stringify(index), {
       fields: ["text"],
     });
 
@@ -66,7 +67,10 @@ describe("discard()", () => {
   });
 
   it("allows adding a new version of the document afterwards", () => {
-    const index = createIndex({ fields: ["text"], storeFields: ["text"] });
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+      storeFields: ["text"],
+    });
     const documents = [
       { id: 1, text: "Some interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
@@ -90,11 +94,14 @@ describe("discard()", () => {
   });
 
   it("leaves the index in the same state as removal when all terms are searched at least once", () => {
-    const index = createIndex({ fields: ["text"], storeFields: ["text"] });
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+      storeFields: ["text"],
+    });
     const document = { id: 1, text: "Some stuff" };
 
     add(index, document);
-    const clone = loadJSONIndex(JSON.stringify(index), {
+    const clone = loadJSONIndex<Document, number>(JSON.stringify(index), {
       fields: ["text"],
       storeFields: ["text"],
     });
@@ -113,7 +120,7 @@ describe("discard()", () => {
   });
 
   it("triggers auto vacuum by default", () => {
-    const index = createIndex({ fields: ["text"] });
+    const index = createIndex<Document, number>({ fields: ["text"] });
 
     add(index, { id: 1, text: "Some stuff" });
     index._dirtCount = 1000;
@@ -123,7 +130,7 @@ describe("discard()", () => {
   });
 
   it("triggers auto vacuum when the threshold is met", () => {
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount: 2,
@@ -150,7 +157,10 @@ describe("discard()", () => {
   });
 
   it("does not trigger auto vacuum if disabled", () => {
-    const index = createIndex({ fields: ["text"], autoVacuum: false });
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+      autoVacuum: false,
+    });
     const documents = [
       { id: 1, text: "Some stuff" },
       { id: 2, text: "Some additional stuff" },
@@ -164,7 +174,10 @@ describe("discard()", () => {
   });
 
   it("applies default settings if autoVacuum is set to true", () => {
-    const index = createIndex({ fields: ["text"], autoVacuum: true });
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+      autoVacuum: true,
+    });
     const documents = [
       { id: 1, text: "Some stuff" },
       { id: 2, text: "Some additional stuff" },
@@ -178,7 +191,7 @@ describe("discard()", () => {
   });
 
   it("applies default settings if options are set to null", async () => {
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         // @ts-ignore
@@ -202,12 +215,13 @@ describe("discard()", () => {
     const x = discard(index, 1);
 
     expect(index.isVacuuming).toEqual(true);
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     await x;
   });
 
   it("vacuums until under the dirt thresholds when called multiple times", async () => {
     const minDirtCount = 2;
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount,
@@ -216,7 +230,7 @@ describe("discard()", () => {
         batchWait: 10,
       },
     });
-    const documents = [];
+    const documents: Document[] = [];
 
     for (let i = 0; i < 5; i++)
       documents.push({ id: i + 1, text: `Document number ${i}` });
@@ -237,7 +251,7 @@ describe("discard()", () => {
 
   it("does not perform unnecessary vacuuming when called multiple times", async () => {
     const minDirtCount = 2;
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount,
@@ -267,7 +281,7 @@ describe("discard()", () => {
 
   it("enqueued vacuum runs without conditions if a manual vacuum was called while enqueued", async () => {
     const minDirtCount = 2;
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount,
@@ -293,7 +307,7 @@ describe("discard()", () => {
     // But before the enqueued vacuum is ran, we invoke a manual vacuum with
     // no conditions, so it should run even with a dirt count below
     // minDirtCount
-    vacuum(index);
+    void vacuum(index);
 
     while (index.isVacuuming) await index._currentVacuum;
 

@@ -1,4 +1,4 @@
-import { addAll, createIndex } from "./divinaCommedia.js";
+import { type SearchIndex, addAll, createIndex } from "./divinaCommedia.js";
 
 const heapSize = (): number => {
   if (global.gc) global.gc();
@@ -8,7 +8,15 @@ const heapSize = (): number => {
 
 const bytesToMb = (bytes: number): string => (bytes / (1024 * 1024)).toFixed(2);
 
-const memory = (docs: unknown[]) => {
+const memory = (
+  docs: unknown[]
+): {
+  terms: number;
+  documents: number;
+  memSize: string;
+  serializedSize: string;
+  index: SearchIndex<any, any>;
+} => {
   const index = createIndex({ fields: ["txt"], storeFields: ["txt"] });
 
   const heapBefore = heapSize();

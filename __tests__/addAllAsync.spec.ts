@@ -4,7 +4,8 @@ import { addAllAsync, createIndex } from "../src/index.js";
 
 describe("addAllAsync()", () => {
   it("adds all the documents to the index", () => {
-    const index = createIndex({ fields: ["text"] });
+    type Document = { id: number; text: string };
+    const index = createIndex<Document, number>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Nel mezzo" },
       { id: 2, text: "del cammin" },
@@ -27,7 +28,8 @@ describe("addAllAsync()", () => {
   });
 
   it("accepts a chunkSize option", () => {
-    const index = createIndex({ fields: ["text"] });
+    type Document = { id: number; text: string };
+    const index = createIndex<Document, number>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Nel mezzo" },
       { id: 2, text: "del cammin" },

@@ -50,19 +50,19 @@ export class SearchableMap<T = any> {
    * ### Usage:
    *
    * ```js
-   * let map = new SearchableMap()
+   * const map = new SearchableMap()
    * map.set("unicorn", 1)
    * map.set("universe", 2)
    * map.set("university", 3)
    * map.set("unique", 4)
    * map.set("hello", 5)
    *
-   * let uni = map.atPrefix("uni")
+   * const uni = map.atPrefix("uni")
    * uni.get("unique") // => 4
    * uni.get("unicorn") // => 1
    * uni.get("hello") // => undefined
    *
-   * let univer = map.atPrefix("univer")
+   * const univer = map.atPrefix("univer")
    * univer.get("unique") // => undefined
    * univer.get("universe") // => 2
    * univer.get("university") // => 3
@@ -117,7 +117,7 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
    * @return An iterator iterating through `[key, value]` entries.
    */
-  entries() {
+  entries(): TreeIterator<T, "ENTRIES"> {
     return new TreeIterator(this, ENTRIES);
   }
 
@@ -139,7 +139,7 @@ export class SearchableMap<T = any> {
    * ### Usage:
    *
    * ```js
-   * let map = new SearchableMap()
+   * const map = new SearchableMap()
    * map.set('hello', 'world')
    * map.set('hell', 'yeah')
    * map.set('ciao', 'mondo')
@@ -188,7 +188,7 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
    * @return An `Iterable` iterating through keys
    */
-  keys() {
+  keys(): TreeIterator<T, "KEYS"> {
     return new TreeIterator(this, KEYS);
   }
 
@@ -289,14 +289,14 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
    * @return An `Iterable` iterating through values.
    */
-  values() {
+  values(): TreeIterator<T, "VALUES"> {
     return new TreeIterator(this, VALUES);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@iterator
    */
-  [Symbol.iterator]() {
+  [Symbol.iterator](): TreeIterator<T, "ENTRIES"> {
     return this.entries();
   }
 
@@ -306,8 +306,10 @@ export class SearchableMap<T = any> {
    * @param entries  Entries to be inserted in the [[SearchableMap]]
    * @return A new [[SearchableMap]] with the given entries
    */
-  static from<T = any>(entries: Iterable<Entry<T>> | Entry<T>[]) {
-    const tree = new SearchableMap();
+  static from<T = any>(
+    entries: Iterable<Entry<T>> | Entry<T>[]
+  ): SearchableMap<T> {
+    const tree = new SearchableMap<T>();
 
     for (const [key, value] of entries) tree.set(key, value);
 
@@ -320,7 +322,7 @@ export class SearchableMap<T = any> {
    * @param object  Object of entries for the [[SearchableMap]]
    * @return A new [[SearchableMap]] with the given entries
    */
-  static fromObject<T = any>(object: { [key: string]: T }) {
+  static fromObject<T = any>(object: { [key: string]: T }): SearchableMap<T> {
     return SearchableMap.from<T>(Object.entries(object));
   }
 }
@@ -332,11 +334,11 @@ const trackDown = <T = any>(
 ): [RadixTree<T> | undefined, Path<T>] => {
   if (key.length === 0 || tree == null) return [tree, path];
 
-  for (const k of tree.keys())
-    if (k !== LEAF && key.startsWith(k)) {
-      path.push([tree, k]); // performance: update in place
+  for (const treeKey of tree.keys())
+    if (treeKey !== LEAF && key.startsWith(treeKey)) {
+      path.push([tree, treeKey]); // performance: update in place
 
-      return trackDown(tree.get(k), key.slice(k.length), path);
+      return trackDown(tree.get(treeKey), key.slice(treeKey.length), path);
     }
 
   path.push([tree, key]); // performance: update in place
@@ -350,9 +352,9 @@ const lookup = <T = any>(
 ): RadixTree<T> | undefined => {
   if (key.length === 0 || tree == null) return tree;
 
-  for (const k of tree.keys())
-    if (k !== LEAF && key.startsWith(k))
-      return lookup(tree.get(k)!, key.slice(k.length));
+  for (const treeKey of tree.keys())
+    if (treeKey !== LEAF && key.startsWith(treeKey))
+      return lookup(tree.get(treeKey)!, key.slice(treeKey.length));
 };
 
 // Create a path in the radix tree for the given key, and returns the deepest
@@ -413,7 +415,9 @@ const remove = <T = any>(tree: RadixTree<T>, key: string): void => {
   if (node.size === 0) {
     cleanup(path);
   } else if (node.size === 1) {
-    const [key, value] = node.entries().next().value;
+    const [key, value] = (<
+      IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
+    >node.entries().next()).value;
 
     merge(path, key, value);
   }
@@ -429,7 +433,9 @@ const cleanup = <T = any>(path: Path<T>): void => {
   if (node!.size === 0) {
     cleanup(path.slice(0, -1));
   } else if (node!.size === 1) {
-    const [key, value] = node!.entries().next().value;
+    const [key, value] = (<
+      IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
+    >node!.entries().next()).value;
 
     if (key !== LEAF) merge(path.slice(0, -1), key, value);
   }

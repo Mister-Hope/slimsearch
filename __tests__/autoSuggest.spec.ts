@@ -8,6 +8,8 @@ import {
 } from "../src/index.js";
 
 describe("autoSuggest", () => {
+  type Document = { id: number; text: string; title: string; category: string };
+
   const documents = [
     {
       id: 1,
@@ -28,7 +30,7 @@ describe("autoSuggest", () => {
       category: "poetry",
     },
   ];
-  const index = createIndex({
+  const index = createIndex<Document, number>({
     fields: ["title", "text"],
     storeFields: ["category"],
   });
@@ -109,7 +111,7 @@ describe("autoSuggest", () => {
   });
 
   it("respects the custom defaults set in the constructor", () => {
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["title", "text"],
       autoSuggestOptions: { combineWith: "OR", fuzzy: true },
     });
@@ -124,7 +126,7 @@ describe("autoSuggest", () => {
   });
 
   it("applies the default search options if not overridden by the auto suggest defaults", () => {
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["title", "text"],
       searchOptions: { combineWith: "OR", fuzzy: true },
     });

@@ -10,16 +10,24 @@ import {
   vacuum,
 } from "../src/index.js";
 
+interface Document {
+  id: number;
+  text: string;
+}
+
 describe("vacuum", () => {
   it("cleans up discarded documents from the index", async () => {
-    const index = createIndex({ fields: ["text"], storeFields: ["text"] });
-    const documents = [
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+      storeFields: ["text"],
+    });
+    const documents: Document[] = [
       { id: 1, text: "Some stuff" },
       { id: 2, text: "Some additional stuff" },
     ];
 
     addAll(index, documents);
-    const clone = loadJSONIndex(JSON.stringify(index), {
+    const clone = loadJSONIndex<Document, number>(JSON.stringify(index), {
       fields: ["text"],
       storeFields: ["text"],
     });
@@ -38,11 +46,13 @@ describe("vacuum", () => {
   });
 
   it("schedules a second vacuum right after the current one completes, if one is ongoing", async () => {
-    const index = createIndex({ fields: ["text"] });
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+    });
     const empty = loadJSONIndex(JSON.stringify(index), {
       fields: ["text"],
     });
-    const documents = [
+    const documents: Document[] = [
       { id: 1, text: "Some stuff" },
       { id: 2, text: "Some additional stuff" },
     ];
@@ -53,7 +63,7 @@ describe("vacuum", () => {
     discard(index, 2);
     add(index, { id: 3, text: "Even more stuff" });
 
-    vacuum(index, { batchSize: 1, batchWait: 50 });
+    void vacuum(index, { batchSize: 1, batchWait: 50 });
     discard(index, 3);
 
     await vacuum(index);
@@ -63,8 +73,10 @@ describe("vacuum", () => {
   });
 
   it("does not enqueue more than one vacuum on top of the ongoing one", async () => {
-    const index = createIndex({ fields: ["text"] });
-    const documents = [
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+    });
+    const documents: Document[] = [
       { id: 1, text: "Some stuff" },
       { id: 2, text: "Some additional stuff" },
     ];
@@ -87,8 +99,10 @@ describe("vacuum", () => {
   });
 
   it("allows batch size to be bigger than the term count", async () => {
-    const index = createIndex({ fields: ["text"] });
-    const documents = [
+    const index = createIndex<Document, number>({
+      fields: ["text"],
+    });
+    const documents: Document[] = [
       { id: 1, text: "Some stuff" },
       { id: 2, text: "Some additional stuff" },
     ];

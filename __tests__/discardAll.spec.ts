@@ -11,7 +11,8 @@ import {
 
 describe("discardAll()", () => {
   it("prevents the documents from appearing in search results", () => {
-    const index = createIndex({ fields: ["text"] });
+    type Document = { id: number; text: string };
+    const index = createIndex<Document, number>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Some interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
@@ -30,7 +31,8 @@ describe("discardAll()", () => {
   });
 
   it("only triggers at most a single auto vacuum at the end", () => {
-    const index = createIndex({
+    type Document = { id: number; text: string };
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount: 3,
@@ -39,7 +41,7 @@ describe("discardAll()", () => {
         batchWait: 10,
       },
     });
-    const documents = [];
+    const documents: Document[] = [];
 
     for (let i = 1; i <= 10; i++)
       documents.push({ id: i, text: `Document ${i}` });
@@ -54,7 +56,8 @@ describe("discardAll()", () => {
   });
 
   it("does not change auto vacuum settings in case of errors", () => {
-    const index = createIndex({
+    type Document = { id: number; text: string };
+    const index = createIndex<Document, number>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount: 1,

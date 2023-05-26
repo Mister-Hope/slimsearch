@@ -10,7 +10,15 @@ import {
 } from "../src/index.js";
 
 describe("search()", () => {
-  const documents = [
+  interface Document {
+    id: number;
+    title: string;
+    text: string;
+    lang?: string;
+    category?: string;
+  }
+
+  const documents: Document[] = [
     {
       id: 1,
       title: "Divina Commedia",
@@ -30,7 +38,7 @@ describe("search()", () => {
       category: "poetry",
     },
   ];
-  const index = createIndex({
+  const index = createIndex<Document, number>({
     fields: ["title", "text"],
     storeFields: ["lang", "category"],
   });
@@ -90,7 +98,9 @@ describe("search()", () => {
   });
 
   it("computes a meaningful score when fields are named liked default properties of object", () => {
-    const index = createIndex({ fields: ["constructor"] });
+    const index = createIndex<{ id: number; constructor: string }, number>({
+      fields: ["constructor"],
+    });
 
     add(index, { id: 1, constructor: "something" });
     add(index, { id: 2, constructor: "something else" });
@@ -217,8 +227,12 @@ describe("search()", () => {
   });
 
   it("assigns weight lower than exact match to a match that is both a prefix and fuzzy match", () => {
-    const index = createIndex({ fields: ["text"] });
-    const documents = [
+    interface Document {
+      id: number;
+      text: string;
+    }
+    const index = createIndex<Document, number>({ fields: ["text"] });
+    const documents: Document[] = [
       { id: 1, text: "Poi che la gente poverella crebbe" },
       { id: 2, text: "Deus, venerunt gentes" },
     ];
@@ -253,7 +267,7 @@ describe("search()", () => {
   it("boosts documents by calling boostDocument with document ID, term, and stored fields", () => {
     const query = "divina commedia nova";
     const boostFactor = 1.234;
-    const boostDocument = vi.fn((id, term) => boostFactor);
+    const boostDocument = vi.fn(() => boostFactor);
     const resultsWithoutBoost = search(index, query);
     const results = search(index, query, { boostDocument });
 
@@ -269,9 +283,7 @@ describe("search()", () => {
 
   it("skips document if boostDocument returns a falsy value", () => {
     const query = "vita";
-    const boostDocument = vi.fn((id: any, term: string) =>
-      id === 3 ? null : 1
-    );
+    const boostDocument = vi.fn((id: any) => (id === 3 ? null : 1));
     const resultsWithoutBoost = search(index, query);
     // @ts-ignore
     const results = search(index, query, { boostDocument });
@@ -281,7 +293,7 @@ describe("search()", () => {
   });
 
   it("uses a specific search-time tokenizer if specified", () => {
-    const tokenize = (token: string) => token.split("X");
+    const tokenize = (token: string): string[] => token.split("X");
     const results = search(index, "divinaXcommedia", { tokenize });
 
     expect(results.length).toBeGreaterThan(0);
@@ -289,7 +301,7 @@ describe("search()", () => {
   });
 
   it("uses a specific search-time term processing function if specified", () => {
-    const processTerm = (term: string) =>
+    const processTerm = (term: string): string =>
       term.replace(/1/g, "i").replace(/4/g, "a").toLowerCase();
     const results = search(index, "d1v1n4", { processTerm });
 
@@ -298,7 +310,8 @@ describe("search()", () => {
   });
 
   it("rejects falsy terms", () => {
-    const processTerm = (term: string) => (term === "quel" ? null : term);
+    const processTerm = (term: string): string | null =>
+      term === "quel" ? null : term;
     const results = search(index, "quel commedia", { processTerm });
 
     expect(results.length).toBeGreaterThan(0);
@@ -306,7 +319,7 @@ describe("search()", () => {
   });
 
   it("allows processTerm to expand a single term into several terms", () => {
-    const processTerm = (term: string) =>
+    const processTerm = (term: string): string[] | string =>
       term === "divinacommedia" ? ["divina", "commedia"] : term;
     const results = search(index, "divinacommedia", { processTerm });
 
@@ -324,7 +337,11 @@ describe("search()", () => {
   });
 
   it("allows customizing BM25+ parameters", () => {
-    const index = createIndex({
+    type Document = {
+      id: number;
+      text: string;
+    };
+    const index = createIndex<Document, number>({
       fields: ["text"],
       searchOptions: { bm25: { k: 1.2, b: 0.7, d: 0.5 } },
     });
@@ -346,7 +363,7 @@ describe("search()", () => {
     );
 
     // Defaults are taken from the searchOptions passed to the constructor
-    const other = createIndex({
+    const other = createIndex<Document, number>({
       fields: ["text"],
       searchOptions: { bm25: { k: 1, b: 0.7, d: 0.5 } },
     });
@@ -461,6 +478,11 @@ describe("search()", () => {
   });
 
   describe("match data", () => {
+    type Document = {
+      id: number;
+      title: string;
+      text: string;
+    };
     const documents = [
       {
         id: 1,
@@ -478,7 +500,7 @@ describe("search()", () => {
         text: "In quella parte del libro della mia memoria ... vita",
       },
     ];
-    const index = createIndex({ fields: ["title", "text"] });
+    const index = createIndex<Document, number>({ fields: ["title", "text"] });
 
     addAll(index, documents);
 
@@ -544,7 +566,7 @@ describe("search()", () => {
     });
 
     it("passes only the query to tokenize", () => {
-      const tokenize = vi.fn((string) => string.split(/\W+/));
+      const tokenize = vi.fn((content: string) => content.split(/\W+/));
       const index = createIndex({
         fields: ["text", "title"],
         searchOptions: { tokenize },
@@ -556,7 +578,7 @@ describe("search()", () => {
     });
 
     it("passes only the term to processTerm", () => {
-      const processTerm = vi.fn((term) => term.toLowerCase());
+      const processTerm = vi.fn((term: string) => term.toLowerCase());
       const index = createIndex({
         fields: ["text", "title"],
         searchOptions: { processTerm },
@@ -570,9 +592,15 @@ describe("search()", () => {
     });
 
     it("does not break when special properties of object are used as a term", () => {
+      type Document = {
+        id: number;
+        text: string;
+      };
       const specialWords = ["constructor", "hasOwnProperty", "isPrototypeOf"];
-      const index = createIndex({ fields: ["text"] });
-      const processTerm = getDefaultValue("processTerm");
+      const index = createIndex<Document, number>({ fields: ["text"] });
+      const processTerm = <(term: string) => string>(
+        getDefaultValue("processTerm")
+      );
 
       add(index, { id: 1, text: specialWords.join(" ") });
 
@@ -590,7 +618,10 @@ describe("search()", () => {
   });
 
   describe("movie ranking set", () => {
-    const index = createIndex({
+    const index = createIndex<
+      { id: string; title: string; description: string },
+      string
+    >({
       fields: ["title", "description"],
       storeFields: ["title"],
     });
@@ -753,7 +784,8 @@ describe("search()", () => {
   });
 
   describe("song ranking set", () => {
-    const index = createIndex({
+    type Document = { id: string; song: string; artist: string };
+    const index = createIndex<Document, string>({
       fields: ["song", "artist"],
       storeFields: ["song"],
     });

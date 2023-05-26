@@ -38,9 +38,10 @@ export const objectToNumericMap = <Value>(object: {
   return map;
 };
 
-export const getOwnProperty = (object: any, property: string) =>
+export const getOwnProperty = (object: any, property: string): unknown =>
   Object.prototype.hasOwnProperty.call(object, property)
-    ? object[property]
+    ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      object[property]
     : undefined;
 
 interface RawResultValue {

@@ -32,6 +32,7 @@ console.log(
       console.log("=".repeat(suite.name!.length + 1));
     })
     .on("cycle", ({ target: benchmark }) => {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       console.log(`  * ${benchmark}`);
     })
     .on("complete", () => {

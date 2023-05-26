@@ -27,7 +27,7 @@ describe("SearchableMap", () => {
     [key]: value,
   }));
 
-  const editDistance = function (a, b, mem = [[0]]) {
+  const editDistance = (a: string, b: string, mem = [[0]]): number => {
     mem[a.length] = mem[a.length] || [a.length];
     if (mem[a.length][b.length] !== undefined) return mem[a.length][b.length];
 
@@ -121,7 +121,8 @@ describe("SearchableMap", () => {
   describe("forEach", () => {
     it("iterates through each entry", () => {
       const entries: [key: string, value: unknown][] = [];
-      const fn = (key: string, value: unknown) => entries.push([key, value]);
+      const fn = (key: string, value: unknown): number =>
+        entries.push([key, value]);
       const map = SearchableMap.from(keyValues);
 
       map.forEach(fn);
@@ -232,7 +233,7 @@ describe("SearchableMap", () => {
     it("sets a value at key applying a function to the previous value", () => {
       const map = new SearchableMap();
       const key = "foo";
-      const fn = vi.fn((x) => (x || 0) + 1);
+      const fn = vi.fn((x: number) => (x || 0) + 1);
 
       map.update(key, fn);
       expect(fn).toHaveBeenCalledWith(undefined);
@@ -245,8 +246,12 @@ describe("SearchableMap", () => {
     it("throws error if the given key is not a string", () => {
       const map = new SearchableMap();
 
-      // @ts-expect-error
-      expect(() => map.update(123, () => {})).toThrow("key must be a string");
+      expect(() =>
+        // @ts-expect-error
+        map.update(123, () => {
+          // do nothing
+        })
+      ).toThrow("key must be a string");
     });
   });
 
@@ -318,7 +323,10 @@ describe("SearchableMap", () => {
 
         expect(entries.map(([key, [, dist]]) => [key, dist]).sort()).toEqual(
           terms
-            .map((term) => [term, editDistance("acqua", term)])
+            .map<[string, number]>((term) => [
+              term,
+              editDistance("acqua", term),
+            ])
             .filter(([, d]) => d <= distance)
             .sort()
         );
@@ -387,7 +395,10 @@ describe("SearchableMap", () => {
             Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort()
           ).toEqual(
             uniqueTerms
-              .map((term) => [term, editDistance(terms[0], term)])
+              .map<[string, number]>((term) => [
+                term,
+                editDistance(terms[0], term),
+              ])
               .filter(([, dist]) => dist <= maxDist)
               .sort()
           );

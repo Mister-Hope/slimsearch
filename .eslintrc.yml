@@ -16,12 +16,13 @@ plugins:
 parserOptions:
   parser: "@typescript-eslint/parser"
   project:
-    - "./tsconfig.json"
+    - "./tsconfig.eslint.json"
 
 ignorePatterns:
-  - "**/dist/**"
-  - "**/node_modules/**"
   - "coverage/**"
+  - "dist/**"
+  - "docs/**"
+  - "node_modules/**"
 
 rules:
   "@typescript-eslint/ban-ts-comment":
@@ -81,8 +82,7 @@ rules:
         - PascalCase
 
   "@typescript-eslint/no-explicit-any":
-    - warn
-    - ignoreRestArgs: true
+    - off
 
   "@typescript-eslint/no-non-null-assertion":
     - off

@@ -7,6 +7,7 @@ export const defaultBM25params: BM25Params = { k: 1.2, b: 0.7, d: 0.5 };
 export const defaultOptions = {
   idField: "id",
   extractField: (document: any, fieldName: string): unknown =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     document[fieldName],
   tokenize: (text: string): string[] => text.split(SPACE_OR_PUNCTUATION),
   processTerm: (term: string): string => term.toLowerCase(),
@@ -64,7 +65,7 @@ export const defaultAutoVacuumOptions = {
  * // => throws 'SlimSearch: unknown option "notExisting"'
  * ```
  */
-export const getDefaultValue = (optionName: string): any => {
+export const getDefaultValue = (optionName: string): unknown => {
   // eslint-disable-next-line no-prototype-builtins
   if (defaultOptions.hasOwnProperty(optionName))
     return getOwnProperty(defaultOptions, optionName);

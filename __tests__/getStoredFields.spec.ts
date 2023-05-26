@@ -4,6 +4,7 @@ import { addAll, createIndex, discard, getStoredFields } from "../src/index.js";
 
 describe("getStoredFields()", () => {
   it("returns the stored fields for the given document ID, or undefined if the document is not in the index", () => {
+    type Document = { id: number; text: string; title: string };
     const documents = [
       {
         id: 1,
@@ -16,7 +17,7 @@ describe("getStoredFields()", () => {
         text: "Quel ramo del lago di Como",
       },
     ];
-    const index = createIndex({
+    const index = createIndex<Document, number>({
       fields: ["title", "text"],
       storeFields: ["title", "text"],
     });

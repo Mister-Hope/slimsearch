@@ -52,11 +52,7 @@ const termResults = <Document, ID>(
   fieldTermData: FieldTermData | undefined,
   fieldBoosts: { [field: string]: number },
   boostDocumentFn:
-    | ((
-        id: any,
-        term: string,
-        storedFields?: Record<string, unknown>
-      ) => number)
+    | ((id: ID, term: string, storedFields?: Record<string, unknown>) => number)
     | undefined,
   bm25params: BM25Params,
   results: RawResult = new Map()
@@ -83,7 +79,7 @@ const termResults = <Document, ID>(
 
       const docBoost = boostDocumentFn
         ? boostDocumentFn(
-            searchIndex._documentIds.get(docId),
+            searchIndex._documentIds.get(docId)!,
             derivedTerm,
             searchIndex._storedFields.get(docId)
           )
@@ -115,7 +111,7 @@ const termResults = <Document, ID>(
       if (result) {
         result.score += weightedScore;
         assignUniqueTerm(result.terms, sourceTerm);
-        const match = getOwnProperty(result.match, derivedTerm);
+        const match = <string[]>getOwnProperty(result.match, derivedTerm);
 
         if (match) match.push(field);
         else result.match[derivedTerm] = [field];
@@ -247,7 +243,7 @@ const executeQuerySpec = <Document, ID>(
 export const executeQuery = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   query: Query,
-  searchOptions: SearchOptions = {}
+  searchOptions: SearchOptions<ID> = {}
 ): RawResult => {
   if (typeof query !== "string") {
     const options = { ...searchOptions, ...query, queries: undefined };

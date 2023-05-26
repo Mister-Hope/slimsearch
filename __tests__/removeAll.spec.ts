@@ -10,6 +10,7 @@ import {
 } from "../src/index.js";
 
 describe("removeAll()", () => {
+  type Document = { id: number; text: string; title: string };
   const documents = [
     {
       id: 1,
@@ -24,7 +25,7 @@ describe("removeAll()", () => {
     },
   ];
 
-  let index: SearchIndex, _warn: (...args: any[]) => void;
+  let index: SearchIndex<Document, number>, _warn: (...args: any[]) => void;
 
   beforeEach(() => {
     index = createIndex({ fields: ["title", "text"] });

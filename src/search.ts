@@ -146,14 +146,18 @@ import { byScore } from "./utils.js";
  * @param query  Search query
  * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
  */
-export const search = <Document, ID>(
+export const search = <
+  Document,
+  ID,
+  Field extends Record<string, any> = Partial<Document>
+>(
   searchIndex: SearchIndex<Document, ID>,
   query: Query,
   searchOptions: SearchOptions<ID> = {}
-): SearchResult[] => {
+): SearchResult<ID, Field>[] => {
   const combinedResults = executeQuery(searchIndex, query, searchOptions);
 
-  const results = [];
+  const results: SearchResult<ID, Field>[] = [];
 
   for (const [docId, { score, terms, match }] of combinedResults) {
     // Final score takes into account the number of matching QUERY terms.
@@ -161,7 +165,7 @@ export const search = <Document, ID>(
     const quality = terms.length;
 
     const result = {
-      id: searchIndex._documentIds.get(docId),
+      id: searchIndex._documentIds.get(docId)!,
       score: score * quality,
       terms: Object.keys(match),
       match,
@@ -169,7 +173,7 @@ export const search = <Document, ID>(
 
     Object.assign(result, searchIndex._storedFields.get(docId));
     if (searchOptions.filter == null || searchOptions.filter(result))
-      results.push(result);
+      results.push(<SearchResult<ID, Field>>result);
   }
 
   results.sort(byScore);
