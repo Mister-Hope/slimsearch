@@ -1,17 +1,17 @@
 import { type SearchIndex } from "./SearchIndex.js";
 
-export const warnDocumentChanged = (
-  index: SearchIndex,
+export const warnDocumentChanged = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   shortDocumentId: number,
   fieldId: number,
   term: string
 ): void => {
-  for (const fieldName of Object.keys(index._fieldIds))
-    if (index._fieldIds[fieldName] === fieldId) {
-      index._options.logger(
+  for (const fieldName of Object.keys(searchIndex._fieldIds))
+    if (searchIndex._fieldIds[fieldName] === fieldId) {
+      searchIndex._options.logger(
         "warn",
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        `SlimSearch: document with ID ${index._documentIds.get(
+        `SlimSearch: document with ID ${searchIndex._documentIds.get(
           shortDocumentId
         )} has changed before removal: term "${term}" was not present in field "${fieldName}". Removing a document after it has changed can corrupt the index!`,
         "version_conflict"

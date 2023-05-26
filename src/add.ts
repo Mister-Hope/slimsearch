@@ -2,49 +2,52 @@ import { type SearchIndex } from "./SearchIndex.js";
 import { has } from "./info.js";
 import { addTerm } from "./term.js";
 
-const addFieldLength = <T>(
-  index: SearchIndex<T>,
+const addFieldLength = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   documentId: number,
   fieldId: number,
   count: number,
   length: number
 ): void => {
-  let fieldLengths = index._fieldLength.get(documentId);
+  let fieldLengths = searchIndex._fieldLength.get(documentId);
 
   if (fieldLengths == null)
-    index._fieldLength.set(documentId, (fieldLengths = []));
+    searchIndex._fieldLength.set(documentId, (fieldLengths = []));
   fieldLengths[fieldId] = length;
 
-  const averageFieldLength = index._avgFieldLength[fieldId] || 0;
+  const averageFieldLength = searchIndex._avgFieldLength[fieldId] || 0;
   const totalFieldLength = averageFieldLength * count + length;
 
-  index._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
+  searchIndex._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
 };
 
-const addDocumentId = <T>(index: SearchIndex<T>, documentId: any): number => {
-  const shortDocumentId = index._nextId;
+const addDocumentId = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  documentId: ID
+): number => {
+  const shortDocumentId = searchIndex._nextId;
 
-  index._idToShortId.set(documentId, shortDocumentId);
-  index._documentIds.set(shortDocumentId, documentId);
-  index._documentCount += 1;
-  index._nextId += 1;
+  searchIndex._idToShortId.set(documentId, shortDocumentId);
+  searchIndex._documentIds.set(shortDocumentId, documentId);
+  searchIndex._documentCount += 1;
+  searchIndex._nextId += 1;
 
   return shortDocumentId;
 };
 
-const saveStoredFields = <T>(
-  index: SearchIndex<T>,
+const saveStoredFields = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   documentId: number,
-  doc: T
+  doc: Document
 ): void => {
-  const { storeFields, extractField } = index._options;
+  const { storeFields, extractField } = searchIndex._options;
 
   if (storeFields == null || storeFields.length === 0) return;
 
-  let documentFields = index._storedFields.get(documentId);
+  let documentFields = searchIndex._storedFields.get(documentId);
 
   if (documentFields == null)
-    index._storedFields.set(documentId, (documentFields = {}));
+    searchIndex._storedFields.set(documentId, (documentFields = {}));
 
   for (const fieldName of storeFields) {
     const fieldValue = extractField(doc, fieldName);
@@ -56,22 +59,26 @@ const saveStoredFields = <T>(
 /**
  * Adds a document to the index
  *
- * @param index  The search index
+ * @param searchIndex  The search index
  * @param document  The document to be indexed
  */
-export const add = <T>(index: SearchIndex<T>, document: T): void => {
+export const add = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  document: Document
+): void => {
   const { extractField, tokenize, processTerm, fields, idField } =
-    index._options;
+    searchIndex._options;
   const id = extractField(document, idField);
 
   if (id == null)
     throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
-  if (has(index, id)) throw new Error(`SlimSearch: duplicate ID ${id}`);
+  if (has(searchIndex, id)) throw new Error(`SlimSearch: duplicate ID ${id}`);
 
-  const shortDocumentId = addDocumentId(index, id);
+  // @ts-ignore
+  const shortDocumentId = addDocumentId(searchIndex, id);
 
-  saveStoredFields(index, shortDocumentId, document);
+  saveStoredFields(searchIndex, shortDocumentId, document);
 
   for (const field of fields) {
     const fieldValue = extractField(document, field);
@@ -79,15 +86,15 @@ export const add = <T>(index: SearchIndex<T>, document: T): void => {
     if (fieldValue == null) continue;
 
     const tokens = tokenize(fieldValue.toString(), field);
-    const fieldId = index._fieldIds[field];
+    const fieldId = searchIndex._fieldIds[field];
 
     const uniqueTerms = new Set(tokens).size;
 
     addFieldLength(
-      index,
+      searchIndex,
       shortDocumentId,
       fieldId,
-      index._documentCount - 1,
+      searchIndex._documentCount - 1,
       uniqueTerms
     );
 
@@ -96,9 +103,9 @@ export const add = <T>(index: SearchIndex<T>, document: T): void => {
 
       if (Array.isArray(processedTerm))
         for (const t of processedTerm)
-          addTerm(index, fieldId, shortDocumentId, t);
+          addTerm(searchIndex, fieldId, shortDocumentId, t);
       else if (processedTerm)
-        addTerm(index, fieldId, shortDocumentId, processedTerm);
+        addTerm(searchIndex, fieldId, shortDocumentId, processedTerm);
     }
   }
 };
@@ -106,14 +113,14 @@ export const add = <T>(index: SearchIndex<T>, document: T): void => {
 /**
  * Adds all the given documents to the index
  *
- * @param index  The search index
+ * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  */
-export const addAll = <T>(
-  index: SearchIndex<T>,
-  documents: readonly T[]
+export const addAll = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  documents: readonly Document[]
 ): void => {
-  for (const document of documents) add(index, document);
+  for (const document of documents) add(searchIndex, document);
 };
 
 /**
@@ -123,36 +130,36 @@ export const addAll = <T>(
  * This method is useful when index many documents, to avoid blocking the main
  * thread. The indexing is performed asynchronously and in chunks.
  *
- * @param index  The search index
+ * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  * @param options  Configuration options
  * @return A promise resolving to `undefined` when the indexing is done
  */
-export const addAllAsync = <T>(
-  index: SearchIndex<T>,
-  documents: readonly T[],
+export const addAllAsync = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  documents: readonly Document[],
   options: { chunkSize?: number } = {}
 ): Promise<void> => {
   const { chunkSize = 10 } = options;
-  const acc: { chunk: T[]; promise: Promise<void> } = {
+  const acc: { chunk: Document[]; promise: Promise<void> } = {
     chunk: [],
     promise: Promise.resolve(),
   };
 
   const { chunk, promise } = documents.reduce(
-    ({ chunk, promise }, document: T, i: number) => {
+    ({ chunk, promise }, document, index) => {
       chunk.push(document);
-      if ((i + 1) % chunkSize === 0)
+      if ((index + 1) % chunkSize === 0)
         return {
           chunk: [],
           promise: promise
             .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
-            .then(() => addAll(index, chunk)),
+            .then(() => addAll(searchIndex, chunk)),
         };
       else return { chunk, promise };
     },
     acc
   );
 
-  return promise.then(() => addAll(index, chunk));
+  return promise.then(() => addAll(searchIndex, chunk));
 };

@@ -17,17 +17,17 @@ import { byScore } from "./utils.js";
  *
  * ### Basic usage:
  *
- * ```javascript
+ * ```js
  * // Get suggestions for 'neuro':
- * autoSuggest(index, 'neuro')
+ * autoSuggest(searchIndex, 'neuro')
  * // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 0.46240 } ]
  * ```
  *
  * ### Multiple words:
  *
- * ```javascript
+ * ```js
  * // Get suggestions for 'zen ar':
- * autoSuggest(index, 'zen ar')
+ * autoSuggest(searchIndex, 'zen ar')
  * // => [
  * //  { suggestion: 'zen archery art', terms: [ 'zen', 'archery', 'art' ], score: 1.73332 },
  * //  { suggestion: 'zen art', terms: [ 'zen', 'art' ], score: 1.21313 }
@@ -36,18 +36,18 @@ import { byScore } from "./utils.js";
  *
  * ### Fuzzy suggestions:
  *
- * ```javascript
+ * ```js
  * // Correct spelling mistakes using fuzzy search:
- * autoSuggest(index, 'neromancer', { fuzzy: 0.2 })
+ * autoSuggest(searchIndex, 'neromancer', { fuzzy: 0.2 })
  * // => [ { suggestion: 'neuromancer', terms: [ 'neuromancer' ], score: 1.03998 } ]
  * ```
  *
  * ### Filtering:
  *
- * ```javascript
+ * ```js
  * // Get suggestions for 'zen ar', but only within the 'fiction' category
  * // (assuming that 'category' is a stored field):
- * autoSuggest(index, 'zen ar', {
+ * autoSuggest(searchIndex, 'zen ar', {
  *   filter: (result) => result.category === 'fiction'
  * })
  * // => [
@@ -56,7 +56,7 @@ import { byScore } from "./utils.js";
  * // ]
  * ```
  *
- * @param index The search Index
+ * @param searchIndex The search Index
  * @param queryString  Query string to be expanded into suggestions
  * @param options  Search options. The supported options and default values
  * are the same as for the `search` method, except that by default prefix
@@ -64,19 +64,19 @@ import { byScore } from "./utils.js";
  * with `'AND'`.
  * @return  A sorted array of suggestions sorted by relevance score.
  */
-export const autoSuggest = <T>(
-  index: SearchIndex<T>,
+export const autoSuggest = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   queryString: string,
   options: SearchOptions = {}
 ): Suggestion[] => {
-  options = { ...index._options.autoSuggestOptions, ...options };
+  options = { ...searchIndex._options.autoSuggestOptions, ...options };
 
   const suggestions: Map<
     string,
     Omit<Suggestion, "suggestion"> & { count: number }
   > = new Map();
 
-  for (const { score, terms } of search(index, queryString, options)) {
+  for (const { score, terms } of search(searchIndex, queryString, options)) {
     const phrase = terms.join(" ");
     const suggestion = suggestions.get(phrase);
 

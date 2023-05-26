@@ -52,7 +52,7 @@ export const defaultAutoVacuumOptions = {
  *
  * ### Usage:
  *
- * ```javascript
+ * ```js
  * // Get default tokenizer
  * getDefaultValue('tokenize')
  *

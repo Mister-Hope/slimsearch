@@ -13,7 +13,7 @@ import {
   termToQuerySpec,
 } from "./utils.js";
 
-export type SearchOptionsWithDefaults = SearchOptions & {
+export interface SearchOptionsWithDefaults<ID = any> extends SearchOptions<ID> {
   boost: { [fieldName: string]: number };
 
   weights: { fuzzy: number; prefix: number };
@@ -30,11 +30,11 @@ export type SearchOptionsWithDefaults = SearchOptions & {
   combineWith: string;
 
   bm25: BM25Params;
-};
+}
 
-export type DocumentTermFreqs = Map<number, number>;
+export type DocumentTermFrequencies = Map<number, number>;
 
-type FieldTermData = Map<number, DocumentTermFreqs>;
+type FieldTermData = Map<number, DocumentTermFrequencies>;
 
 const combineResults = (results: RawResult[], combineWith = OR): RawResult => {
   if (results.length === 0) return new Map();
@@ -44,8 +44,8 @@ const combineResults = (results: RawResult[], combineWith = OR): RawResult => {
   return results.reduce(combinators[operator]) || new Map();
 };
 
-const termResults = <T>(
-  index: SearchIndex<T>,
+const termResults = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   sourceTerm: string,
   derivedTerm: string,
   termWeight: number,
@@ -65,34 +65,34 @@ const termResults = <T>(
 
   for (const field of Object.keys(fieldBoosts)) {
     const fieldBoost = fieldBoosts[field];
-    const fieldId = index._fieldIds[field];
+    const fieldId = searchIndex._fieldIds[field];
 
-    const fieldTermFreqs = fieldTermData.get(fieldId);
+    const fieldTermFrequencies = fieldTermData.get(fieldId);
 
-    if (fieldTermFreqs == null) continue;
+    if (fieldTermFrequencies == null) continue;
 
-    let matchingFields = fieldTermFreqs.size;
-    const avgFieldLength = index._avgFieldLength[fieldId];
+    let matchingFields = fieldTermFrequencies.size;
+    const avgFieldLength = searchIndex._avgFieldLength[fieldId];
 
-    for (const docId of fieldTermFreqs.keys()) {
-      if (!index._documentIds.has(docId)) {
-        removeTerm(index, fieldId, docId, derivedTerm);
+    for (const docId of fieldTermFrequencies.keys()) {
+      if (!searchIndex._documentIds.has(docId)) {
+        removeTerm(searchIndex, fieldId, docId, derivedTerm);
         matchingFields -= 1;
         continue;
       }
 
       const docBoost = boostDocumentFn
         ? boostDocumentFn(
-            index._documentIds.get(docId),
+            searchIndex._documentIds.get(docId),
             derivedTerm,
-            index._storedFields.get(docId)
+            searchIndex._storedFields.get(docId)
           )
         : 1;
 
       if (!docBoost) continue;
 
-      const termFreq = fieldTermFreqs.get(docId)!;
-      const fieldLength = index._fieldLength.get(docId)![fieldId];
+      const termFreq = fieldTermFrequencies.get(docId)!;
+      const fieldLength = searchIndex._fieldLength.get(docId)![fieldId];
 
       // NOTE: The total number of fields is set to the number of documents
       // `this._documentCount`. It could also make sense to use the number of
@@ -103,7 +103,7 @@ const termResults = <T>(
       const rawScore = calcBM25Score(
         termFreq,
         matchingFields,
-        index._documentCount,
+        searchIndex._documentCount,
         fieldLength,
         avgFieldLength,
         bm25params
@@ -132,17 +132,17 @@ const termResults = <T>(
   return results;
 };
 
-const executeQuerySpec = <T>(
-  index: SearchIndex<T>,
+const executeQuerySpec = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   query: QuerySpec,
   searchOptions: SearchOptions
 ): RawResult => {
   const options: SearchOptionsWithDefaults = {
-    ...index._options.searchOptions,
+    ...searchIndex._options.searchOptions,
     ...searchOptions,
   };
 
-  const boosts = (options.fields || index._options.fields).reduce(
+  const boosts = (options.fields || searchIndex._options.fields).reduce(
     (boosts, field) => ({
       ...boosts,
       [field]: getOwnProperty(options.boost, field) || 1,
@@ -157,9 +157,9 @@ const executeQuerySpec = <T>(
     ...weights,
   };
 
-  const data = index._index.get(query.term);
+  const data = searchIndex._index.get(query.term);
   const results = termResults(
-    index,
+    searchIndex,
     query.term,
     query.term,
     1,
@@ -172,7 +172,7 @@ const executeQuerySpec = <T>(
   let prefixMatches;
   let fuzzyMatches;
 
-  if (query.prefix) prefixMatches = index._index.atPrefix(query.term);
+  if (query.prefix) prefixMatches = searchIndex._index.atPrefix(query.term);
 
   if (query.fuzzy) {
     const fuzzy = query.fuzzy === true ? 0.2 : query.fuzzy;
@@ -182,7 +182,7 @@ const executeQuerySpec = <T>(
         : fuzzy;
 
     if (maxDistance)
-      fuzzyMatches = index._index.fuzzyGet(query.term, maxDistance);
+      fuzzyMatches = searchIndex._index.fuzzyGet(query.term, maxDistance);
   }
 
   if (prefixMatches)
@@ -205,7 +205,7 @@ const executeQuerySpec = <T>(
         (prefixWeight * term.length) / (term.length + 0.3 * distance);
 
       termResults(
-        index,
+        searchIndex,
         query.term,
         term,
         weight,
@@ -229,7 +229,7 @@ const executeQuerySpec = <T>(
       const weight = (fuzzyWeight * term.length) / (term.length + distance);
 
       termResults(
-        index,
+        searchIndex,
         query.term,
         term,
         weight,
@@ -244,15 +244,15 @@ const executeQuerySpec = <T>(
   return results;
 };
 
-export const executeQuery = <T>(
-  index: SearchIndex<T>,
+export const executeQuery = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   query: Query,
   searchOptions: SearchOptions = {}
 ): RawResult => {
   if (typeof query !== "string") {
     const options = { ...searchOptions, ...query, queries: undefined };
-    const results = query.queries.map((subquery) =>
-      executeQuery(index, subquery, options)
+    const results = query.queries.map((subQuery) =>
+      executeQuery(searchIndex, subQuery, options)
     );
 
     return combineResults(results, options.combineWith);
@@ -262,7 +262,7 @@ export const executeQuery = <T>(
     tokenize,
     processTerm,
     searchOptions: globalSearchOptions,
-  } = index._options;
+  } = searchIndex._options;
   const options = {
     tokenize,
     processTerm,
@@ -270,12 +270,16 @@ export const executeQuery = <T>(
     ...searchOptions,
   };
   const { tokenize: searchTokenize, processTerm: searchProcessTerm } = options;
+  // @ts-ignore
   const terms = searchTokenize(query)
+    // @ts-ignore
     .flatMap((term: string) => searchProcessTerm(term))
     .filter((term) => !!term) as string[];
+  // @ts-ignore
   const queries: QuerySpec[] = terms.map(termToQuerySpec(options));
   const results = queries.map((query) =>
-    executeQuerySpec(index, query, options)
+    // @ts-ignore
+    executeQuerySpec(searchIndex, query, options)
   );
 
   return combineResults(results, options.combineWith);

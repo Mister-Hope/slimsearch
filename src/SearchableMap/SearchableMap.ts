@@ -49,7 +49,7 @@ export class SearchableMap<T = any> {
    *
    * ### Usage:
    *
-   * ```javascript
+   * ```js
    * let map = new SearchableMap()
    * map.set("unicorn", 1)
    * map.set("universe", 2)
@@ -138,7 +138,7 @@ export class SearchableMap<T = any> {
    *
    * ### Usage:
    *
-   * ```javascript
+   * ```js
    * let map = new SearchableMap()
    * map.set('hello', 'world')
    * map.set('hell', 'yeah')
@@ -232,7 +232,7 @@ export class SearchableMap<T = any> {
    *
    * ### Example:
    *
-   * ```javascript
+   * ```js
    * // Increment the current value by one
    * searchableMap.update('somekey', (currentValue) => currentValue == null ? 0 : currentValue + 1)
    * ```
@@ -263,7 +263,7 @@ export class SearchableMap<T = any> {
    *
    * ### Example:
    *
-   * ```javascript
+   * ```js
    * const map = searchableMap.fetch('somekey', () => new Map())
    * map.set('foo', 'bar')
    * ```

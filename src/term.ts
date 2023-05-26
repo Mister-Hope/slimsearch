@@ -5,13 +5,13 @@ import { warnDocumentChanged } from "./warning.js";
 /**
  * @ignore
  */
-export const addTerm = <T>(
-  index: SearchIndex<T>,
+export const addTerm = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   documentId: number,
   term: string
 ): void => {
-  const indexData = index._index.fetch(term, createMap);
+  const indexData = searchIndex._index.fetch(term, createMap);
 
   let fieldIndex = indexData.get(fieldId);
 
@@ -26,28 +26,28 @@ export const addTerm = <T>(
   }
 };
 
-export const removeTerm = <T>(
-  index: SearchIndex<T>,
+export const removeTerm = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   documentId: number,
   term: string
 ): void => {
-  if (!index._index.has(term)) {
-    warnDocumentChanged(index, documentId, fieldId, term);
+  if (!searchIndex._index.has(term)) {
+    warnDocumentChanged(searchIndex, documentId, fieldId, term);
 
     return;
   }
 
-  const indexData = index._index.fetch(term, createMap);
+  const indexData = searchIndex._index.fetch(term, createMap);
 
   const fieldIndex = indexData.get(fieldId);
 
   if (fieldIndex == null || fieldIndex.get(documentId) == null)
-    warnDocumentChanged(index, documentId, fieldId, term);
+    warnDocumentChanged(searchIndex, documentId, fieldId, term);
   else if (fieldIndex.get(documentId)! <= 1)
     if (fieldIndex.size <= 1) indexData.delete(fieldId);
     else fieldIndex.delete(documentId);
   else fieldIndex.set(documentId, fieldIndex.get(documentId)! - 1);
 
-  if (index._index.get(term)!.size === 0) index._index.delete(term);
+  if (searchIndex._index.get(term)!.size === 0) searchIndex._index.delete(term);
 };

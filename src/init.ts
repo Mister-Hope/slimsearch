@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type FieldTermData, SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/SearchableMap.js";
-import { type DocumentTermFreqs } from "./results.js";
+import { type DocumentTermFrequencies } from "./results.js";
 import {
-  type AsPlainObject,
-  type Options,
+  type IndexObject,
+  type SearchIndexOptions,
   type SerializedIndexEntry,
 } from "./typings.js";
 import { objectToNumericMap } from "./utils.js";
@@ -13,26 +14,26 @@ import { objectToNumericMap } from "./utils.js";
  *
  * ### Examples:
  *
- * ```javascript
+ * ```js
  * // Create a search engine that indexes the 'title' and 'text' fields of your
  * // documents:
- * const index = createIndex({ fields: ['title', 'text'] })
+ * const searchIndex = createIndex({ fields: ['title', 'text'] })
  * ```
  *
  * ### ID Field:
  *
- * ```javascript
+ * ```js
  * // Your documents are assumed to include a unique 'id' field, but if you want
  * // to use a different field for document identification, you can set the
  * // 'idField' option:
- * const index = createIndex({ idField: 'key', fields: ['title', 'text'] })
+ * const searchIndex = createIndex({ idField: 'key', fields: ['title', 'text'] })
  * ```
  *
  * ### Options and defaults:
  *
- * ```javascript
+ * ```js
  * // The full set of options (here with their default value) is:
- * const index = createIndex({
+ * const searchIndex = createIndex({
  *   // idField: field that uniquely identifies a document
  *   idField: 'id',
  *
@@ -69,10 +70,11 @@ import { objectToNumericMap } from "./utils.js";
  * })
  * ```
  */
-export const createIndex = <T = any>(options: Options<T>) =>
-  new SearchIndex(options);
+export const createIndex = <Document = any, ID = any>(
+  options: SearchIndexOptions<Document, ID>
+): SearchIndex<Document, ID> => new SearchIndex(options);
 
-export const loadIndex = <T = any>(
+export const loadIndex = <Document = any, ID = any>(
   {
     index,
     documentCount,
@@ -84,9 +86,9 @@ export const loadIndex = <T = any>(
     storedFields,
     dirtCount,
     serializationVersion,
-  }: AsPlainObject,
-  options: Options<T>
-): SearchIndex<T> => {
+  }: IndexObject,
+  options: SearchIndexOptions<Document, ID>
+): SearchIndex<Document, ID> => {
   if (serializationVersion !== 1 && serializationVersion !== 2)
     throw new Error(
       "SlimSearch: cannot deserialize an index created with an incompatible version"
@@ -96,8 +98,8 @@ export const loadIndex = <T = any>(
 
   searchIndex._documentCount = documentCount;
   searchIndex._nextId = nextId;
-  searchIndex._documentIds = objectToNumericMap(documentIds);
-  searchIndex._idToShortId = new Map<any, number>();
+  searchIndex._documentIds = objectToNumericMap<ID>(documentIds);
+  searchIndex._idToShortId = new Map<ID, number>();
   searchIndex._fieldIds = fieldIds;
   searchIndex._fieldLength = objectToNumericMap(fieldLength);
   searchIndex._avgFieldLength = averageFieldLength;
@@ -120,7 +122,7 @@ export const loadIndex = <T = any>(
 
       dataMap.set(
         parseInt(fieldId, 10),
-        objectToNumericMap(indexEntry) as DocumentTermFreqs
+        objectToNumericMap(indexEntry) as DocumentTermFrequencies
       );
     }
 
@@ -137,7 +139,7 @@ export const loadIndex = <T = any>(
  *
  * ### Usage:
  *
- * ```javascript
+ * ```js
  * // If the index was serialized with:
  * let index = createIndex({ fields: ['title', 'text'] })
  *
@@ -152,14 +154,14 @@ export const loadIndex = <T = any>(
  * @param options  configuration options, same as the constructor
  * @return An instance of SearchIndex deserialized from the given JSON.
  */
-export const loadJSONIndex = <T = any>(
+export const loadJSONIndex = <Document = any, ID = any>(
   json: string,
-  options: Options<T>
-): SearchIndex<T> => {
+  options: SearchIndexOptions<Document, ID>
+): SearchIndex<Document, ID> => {
   if (options == null)
     throw new Error(
       "SlimSearch: loadJSON should be given the same options used when serializing the index"
     );
 
-  return loadIndex(JSON.parse(json), options);
+  return loadIndex(<IndexObject>JSON.parse(json), options);
 };

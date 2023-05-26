@@ -14,14 +14,17 @@ import { discard } from "./remove.js";
  * vacuuming to clean up obsolete document references from the index, allowing
  * memory to be released (see [[discard]]).
  *
- * @param index The search Index
+ * @param searchIndex The search Index
  * @param updatedDocument  The updated document to replace the old version
  * with
  */
-export const replace = <T>(index: SearchIndex<T>, updatedDocument: T): void => {
-  const { idField, extractField } = index._options;
-  const id = extractField(updatedDocument, idField);
+export const replace = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  updatedDocument: Document
+): void => {
+  const { idField, extractField } = searchIndex._options;
+  const id = <ID>extractField(updatedDocument, idField);
 
-  discard(index, id);
-  add(index, updatedDocument);
+  discard(searchIndex, id);
+  add(searchIndex, updatedDocument);
 };

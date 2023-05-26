@@ -18,16 +18,19 @@ export const assignUniqueTerms = (
   for (const term of source) if (!target.includes(term)) target.push(term);
 };
 
-type Scored = { score: number };
+interface Scored {
+  score: number;
+}
 
-export const byScore = ({ score: a }: Scored, { score: b }: Scored) => b - a;
+export const byScore = ({ score: a }: Scored, { score: b }: Scored): number =>
+  b - a;
 
-export const createMap = () => new Map();
+export const createMap = <K, V>(): Map<K, V> => new Map<K, V>();
 
-export const objectToNumericMap = <T>(object: {
-  [key: string]: T;
-}): Map<number, T> => {
-  const map = new Map();
+export const objectToNumericMap = <Value>(object: {
+  [key: string]: Value;
+}): Map<number, Value> => {
+  const map = new Map<number, Value>();
 
   for (const key of Object.keys(object))
     map.set(parseInt(key, 10), object[key]);

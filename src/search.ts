@@ -16,49 +16,49 @@ import { byScore } from "./utils.js";
  *
  * ### Basic usage:
  *
- * ```javascript
+ * ```js
  * // Search for "zen art motorcycle" with default options: terms have to match
  * // exactly, and individual terms are joined with OR
- * search(index, 'zen art motorcycle')
+ * search(searchIndex, 'zen art motorcycle')
  * // => [ { id: 2, score: 2.77258, match: { ... } }, { id: 4, score: 1.38629, match: { ... } } ]
  * ```
  *
  * ### Restrict search to specific fields:
  *
- * ```javascript
+ * ```js
  * // Search only in the 'title' field
- * search(index, 'zen', { fields: ['title'] })
+ * search(searchIndex, 'zen', { fields: ['title'] })
  * ```
  *
  * ### Field boosting:
  *
- * ```javascript
+ * ```js
  * // Boost a field
- * search(index, 'zen', { boost: { title: 2 } })
+ * search(searchIndex, 'zen', { boost: { title: 2 } })
  * ```
  *
  * ### Prefix search:
  *
- * ```javascript
+ * ```js
  * // Search for "moto" with prefix search (it will match documents
  * // containing terms that start with "moto" or "neuro")
- * search(index, 'moto neuro', { prefix: true })
+ * search(searchIndex, 'moto neuro', { prefix: true })
  * ```
  *
  * ### Fuzzy search:
  *
- * ```javascript
+ * ```js
  * // Search for "ismael" with fuzzy search (it will match documents containing
  * // terms similar to "ismael", with a maximum edit distance of 0.2 term.length
  * // (rounded to nearest integer)
- * search(index, 'ismael', { fuzzy: 0.2 })
+ * search(searchIndex, 'ismael', { fuzzy: 0.2 })
  * ```
  *
  * ### Combining strategies:
  *
- * ```javascript
+ * ```js
  * // Mix of exact match, prefix search, and fuzzy search
- * search(index, 'ismael mob', {
+ * search(searchIndex, 'ismael mob', {
  *  prefix: true,
  *  fuzzy: 0.2
  * })
@@ -66,10 +66,10 @@ import { byScore } from "./utils.js";
  *
  * ### Advanced prefix and fuzzy search:
  *
- * ```javascript
+ * ```js
  * // Perform fuzzy and prefix search depending on the search term. Here
  * // performing prefix and fuzzy search only on terms longer than 3 characters
- * search(index, 'ismael mob', {
+ * search(searchIndex, 'ismael mob', {
  *  prefix: term => term.length > 3
  *  fuzzy: term => term.length > 3 ? 0.2 : null
  * })
@@ -77,10 +77,10 @@ import { byScore } from "./utils.js";
  *
  * ### Combine with AND:
  *
- * ```javascript
+ * ```js
  * // Combine search terms with AND (to match only documents that contain both
  * // "motorcycle" and "art")
- * search(index, 'motorcycle art', { combineWith: 'AND' })
+ * search(searchIndex, 'motorcycle art', { combineWith: 'AND' })
  * ```
  *
  * ### Combine with AND_NOT:
@@ -92,10 +92,10 @@ import { byScore } from "./utils.js";
  *
  * ### Filtering results:
  *
- * ```javascript
+ * ```js
  * // Filter only results in the 'fiction' category (assuming that 'category'
  * // is a stored field)
- * search(index, 'motorcycle art', {
+ * search(searchIndex, 'motorcycle art', {
  *   filter: (result) => result.category === 'fiction'
  * })
  * ```
@@ -106,9 +106,9 @@ import { byScore } from "./utils.js";
  * and even with different search options, by passing a query expression
  * tree object as the first argument, instead of a string.
  *
- * ```javascript
+ * ```js
  * // Search for documents that contain "zen" and ("motorcycle" or "archery")
- * search(index, {
+ * search(searchIndex, {
  *   combineWith: 'AND',
  *   queries: [
  *     'zen',
@@ -121,7 +121,7 @@ import { byScore } from "./utils.js";
  *
  * // Search for documents that contain ("apple" or "pear") but not "juice" and
  * // not "tree"
- * search(index, {
+ * search(searchIndex, {
  *   combineWith: 'AND_NOT',
  *   queries: [
  *     {
@@ -142,16 +142,16 @@ import { byScore } from "./utils.js";
  * deeply nested queries, it provides a formalized expression tree API for
  * external libraries that implement a parser for custom query languages.
  *
- * @param index Search Index
+ * @param searchIndex Search Index
  * @param query  Search query
  * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
  */
-export const search = <T>(
-  index: SearchIndex<T>,
+export const search = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   query: Query,
-  searchOptions: SearchOptions = {}
+  searchOptions: SearchOptions<ID> = {}
 ): SearchResult[] => {
-  const combinedResults = executeQuery(index, query, searchOptions);
+  const combinedResults = executeQuery(searchIndex, query, searchOptions);
 
   const results = [];
 
@@ -161,13 +161,13 @@ export const search = <T>(
     const quality = terms.length;
 
     const result = {
-      id: index._documentIds.get(docId),
+      id: searchIndex._documentIds.get(docId),
       score: score * quality,
       terms: Object.keys(match),
       match,
     };
 
-    Object.assign(result, index._storedFields.get(docId));
+    Object.assign(result, searchIndex._storedFields.get(docId));
     if (searchOptions.filter == null || searchOptions.filter(result))
       results.push(result);
   }

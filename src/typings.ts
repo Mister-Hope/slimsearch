@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface SerializedIndexEntry {
   [key: string]: number;
 }
@@ -12,7 +14,7 @@ export interface SerializedIndexEntry {
  *   - https://en.wikipedia.org/wiki/Okapi_BM25
  *   - https://opensourceconnections.com/blog/2015/10/16/bm25-the-next-generation-of-lucene-relevation/
  */
-export type BM25Params = {
+export interface BM25Params {
   /** Term frequency saturation point.
    *
    * Recommended values are between `1.2` and `2`. Higher values increase the
@@ -41,27 +43,29 @@ export type BM25Params = {
    * invalid. Defaults to `0.5`.
    */
   d: number;
-};
+}
 
 /**
  * Match information for a search result. It is a key-value object where keys
  * are terms that matched, and values are the list of fields that the term was
  * found in.
  */
-export type MatchInfo = {
+export interface MatchInfo {
   [term: string]: string[];
-};
+}
 
 /**
  * Type of the search results. Each search result indicates the document ID, the
  * terms that matched, the match information, the score, and all the stored
  * fields.
+ *
+ * @typeParam ID  The type of id being indexed.
  */
-export type SearchResult = {
+export interface SearchResult<ID = any> {
   /**
    * The document ID
    */
-  id: any;
+  id: ID;
 
   /**
    * List of terms that matched
@@ -82,12 +86,14 @@ export type SearchResult = {
    * Stored fields
    */
   [key: string]: any;
-};
+}
 
 /**
  * Search options to customize the search behavior.
+ *
+ * @typeParam ID  The type of id being indexed.
  */
-export type SearchOptions = {
+export interface SearchOptions<ID = any> {
   /**
    * Names of the fields to search in. If omitted, all fields are searched.
    */
@@ -124,7 +130,7 @@ export type SearchOptions = {
    * result completely.
    */
   boostDocument?: (
-    documentId: any,
+    documentId: ID,
     term: string,
     storedFields?: Record<string, unknown>
   ) => number;
@@ -200,19 +206,20 @@ export type SearchOptions = {
 
   /**
    * BM25+ algorithm parameters. Customizing these is almost never necessary,
-   * and finetuning them requires an understanding of the BM25 scoring model. In
+   * and fine-tuning them requires an understanding of the BM25 scoring model. In
    * most cases, it is best to omit this option to use defaults, and instead use
    * boosting to tweak scoring for specific use cases.
    */
   bm25?: BM25Params;
-};
+}
 
 /**
  * Configuration options passed to the [[SearchIndex]] constructor
  *
- * @typeParam T  The type of documents being indexed.
+ * @typeParam Document  The type of documents being indexed.
+ * @typeParam ID  The type of id being indexed.
  */
-export type Options<T = any> = {
+export interface SearchIndexOptions<Document = any, ID = any> {
   /**
    * Names of the document fields to be indexed.
    */
@@ -238,7 +245,7 @@ export type Options<T = any> = {
    * The function takes as arguments the document, and the name of the field to
    * extract from it. It should return the field value as a string.
    */
-  extractField?: (document: T, fieldName: string) => string;
+  extractField?: (document: Document, fieldName: string) => string;
 
   /*
    * Function used to split a field value into individual terms to be indexed.
@@ -292,21 +299,21 @@ export type Options<T = any> = {
    * Default search options (see the [[SearchOptions]] type and the
    * [[search]] method for details)
    */
-  searchOptions?: SearchOptions;
+  searchOptions?: SearchOptions<ID>;
 
   /**
    * Default auto suggest options (see the [[SearchOptions]] type and the
    * [[autoSuggest]] method for details)
    */
-  autoSuggestOptions?: SearchOptions;
-};
+  autoSuggestOptions?: SearchOptions<ID>;
+}
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
  * The type of auto-suggestions
  */
-export type Suggestion = {
+export interface Suggestion {
   /**
    * The suggestion
    */
@@ -321,12 +328,9 @@ export type Suggestion = {
    * Score for the suggestion
    */
   score: number;
-};
+}
 
-/**
- * @ignore
- */
-export type AsPlainObject = {
+export interface IndexObject {
   documentCount: number;
   nextId: number;
   documentIds: { [shortId: string]: any };
@@ -337,9 +341,14 @@ export type AsPlainObject = {
   dirtCount?: number;
   index: [string, { [fieldId: string]: SerializedIndexEntry }][];
   serializationVersion: number;
-};
+}
 
-export type QueryCombination = SearchOptions & { queries: Query[] };
+/**
+ * @typeParam ID  The type of id being indexed.
+ */
+export interface QueryCombination<ID = any> extends SearchOptions<ID> {
+  queries: Query[];
+}
 
 /**
  * Search query expression, either a query string or an expression tree
@@ -358,7 +367,7 @@ export type Query = QueryCombination | string;
  * batch. These options are used to configure the batch size and the delay
  * between batches.
  */
-export type VacuumOptions = {
+export interface VacuumOptions {
   /**
    * Size of each vacuuming batch (the number of terms in the index that will be
    * traversed in each batch). Defaults to 1000.
@@ -369,13 +378,13 @@ export type VacuumOptions = {
    * Wait time between each vacuuming batch in milliseconds. Defaults to 10.
    */
   batchWait?: number;
-};
+}
 
 /**
  * Sets minimum thresholds for `dirtCount` and `dirtFactor` that trigger an
  * automatic vacuuming.
  */
-export type VacuumConditions = {
+export interface VacuumConditions {
   /**
    * Minimum `dirtCount` (number of discarded documents since the last vacuuming)
    * under which auto vacuum is not triggered. It defaults to 20.
@@ -387,7 +396,7 @@ export type VacuumConditions = {
    * under which auto vacuum is not triggered. It defaults to 0.1.
    */
   minDirtFactor?: number;
-};
+}
 
 /**
  * Options to control auto vacuum behavior. When discarding a document with

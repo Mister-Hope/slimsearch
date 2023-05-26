@@ -3,21 +3,22 @@ import { SearchableMap } from "./SearchableMap/SearchableMap.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
 
-const removeFieldLength = <T>(
-  index: SearchIndex<T>,
+const removeFieldLength = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   count: number,
   length: number
 ): void => {
   if (count === 1) {
-    index._avgFieldLength[fieldId] = 0;
+    searchIndex._avgFieldLength[fieldId] = 0;
 
     return;
   }
 
-  const totalFieldLength = index._avgFieldLength[fieldId] * count - length;
+  const totalFieldLength =
+    searchIndex._avgFieldLength[fieldId] * count - length;
 
-  index._avgFieldLength[fieldId] = totalFieldLength / (count - 1);
+  searchIndex._avgFieldLength[fieldId] = totalFieldLength / (count - 1);
 };
 
 /**
@@ -45,7 +46,7 @@ const removeFieldLength = <T>(
  *
  * #### Details about vacuuming
  *
- * Repetite calls to this method would leave obsolete document references in
+ * Repetitive calls to this method would leave obsolete document references in
  * the index, invisible to searches. Two mechanisms take care of cleaning up:
  * clean up during search, and vacuuming.
  *
@@ -61,30 +62,42 @@ const removeFieldLength = <T>(
  *   all references to discarded documents. Vacuuming can also be triggered
  *   manually by calling [[vacuum]].
  *
- * @param index The search Index
+ * @param searchIndex The search Index
  * @param id  The ID of the document to be discarded
  */
-export const discard = <T>(index: SearchIndex<T>, id: any): void => {
-  const shortId = index._idToShortId.get(id);
+export const discard = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  id: ID
+): void => {
+  const shortId = searchIndex._idToShortId.get(id);
 
   if (shortId == null)
     throw new Error(
-      `SlimSearch: cannot discard document with ID ${id}: it is not in the index`
+      `SlimSearch: cannot discard document with ID ${<string>(
+        id
+      )}: it is not in the index`
     );
 
-  index._idToShortId.delete(id);
-  index._documentIds.delete(shortId);
-  index._storedFields.delete(shortId);
-  (index._fieldLength.get(shortId) || []).forEach((fieldLength, fieldId) => {
-    removeFieldLength(index, fieldId, index._documentCount, fieldLength);
-  });
+  searchIndex._idToShortId.delete(id);
+  searchIndex._documentIds.delete(shortId);
+  searchIndex._storedFields.delete(shortId);
+  (searchIndex._fieldLength.get(shortId) || []).forEach(
+    (fieldLength, fieldId) => {
+      removeFieldLength(
+        searchIndex,
+        fieldId,
+        searchIndex._documentCount,
+        fieldLength
+      );
+    }
+  );
 
-  index._fieldLength.delete(shortId);
+  searchIndex._fieldLength.delete(shortId);
 
-  index._documentCount -= 1;
-  index._dirtCount += 1;
+  searchIndex._documentCount -= 1;
+  searchIndex._dirtCount += 1;
 
-  maybeAutoVacuum(index);
+  maybeAutoVacuum(searchIndex);
 };
 
 /**
@@ -99,21 +112,21 @@ export const discard = <T>(index: SearchIndex<T>, id: any): void => {
  * convenient to call [[removeAll]] with no argument, instead of
  * passing all IDs to this method.
  */
-export const discardAll = <T>(
-  index: SearchIndex<T>,
-  ids: readonly any[]
+export const discardAll = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  ids: readonly ID[]
 ): void => {
-  const autoVacuum = index._options.autoVacuum;
+  const autoVacuum = searchIndex._options.autoVacuum;
 
   try {
-    index._options.autoVacuum = false;
+    searchIndex._options.autoVacuum = false;
 
-    for (const id of ids) discard(index, id);
+    for (const id of ids) discard(searchIndex, id);
   } finally {
-    index._options.autoVacuum = autoVacuum;
+    searchIndex._options.autoVacuum = autoVacuum;
   }
 
-  maybeAutoVacuum(index);
+  maybeAutoVacuum(searchIndex);
 };
 
 /**
@@ -128,22 +141,27 @@ export const discardAll = <T>(
  * which needs only the document ID, and has the same visible effect, but
  * delays cleaning up the index until the next vacuuming.
  *
- * @param index The search Index
+ * @param searchIndex The search Index
  * @param document  The document to be removed
  */
-export const remove = <T>(index: SearchIndex<T>, document: T): void => {
+export const remove = <Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  document: Document
+): void => {
   const { tokenize, processTerm, extractField, fields, idField } =
-    index._options;
-  const id = extractField(document, idField);
+    searchIndex._options;
+  const id = <ID>extractField(document, idField);
 
   if (id == null)
     throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
-  const shortId = index._idToShortId.get(id);
+  const shortId = searchIndex._idToShortId.get(id);
 
   if (shortId == null)
     throw new Error(
-      `SlimSearch: cannot remove document with ID ${id}: it is not in the index`
+      `SlimSearch: cannot remove document with ID ${<string>(
+        id
+      )}: it is not in the index`
     );
 
   for (const field of fields) {
@@ -152,57 +170,63 @@ export const remove = <T>(index: SearchIndex<T>, document: T): void => {
     if (fieldValue == null) continue;
 
     const tokens = tokenize(fieldValue.toString(), field);
-    const fieldId = index._fieldIds[field];
+    const fieldId = searchIndex._fieldIds[field];
 
     const uniqueTerms = new Set(tokens).size;
 
-    removeFieldLength(index, fieldId, index._documentCount, uniqueTerms);
+    removeFieldLength(
+      searchIndex,
+      fieldId,
+      searchIndex._documentCount,
+      uniqueTerms
+    );
 
     for (const term of tokens) {
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const t of processedTerm) removeTerm(index, fieldId, shortId, t);
+        for (const t of processedTerm)
+          removeTerm(searchIndex, fieldId, shortId, t);
       else if (processedTerm)
-        removeTerm(index, fieldId, shortId, processedTerm);
+        removeTerm(searchIndex, fieldId, shortId, processedTerm);
     }
   }
 
-  index._storedFields.delete(shortId);
-  index._documentIds.delete(shortId);
-  index._idToShortId.delete(id);
-  index._fieldLength.delete(shortId);
-  index._documentCount -= 1;
+  searchIndex._storedFields.delete(shortId);
+  searchIndex._documentIds.delete(shortId);
+  searchIndex._idToShortId.delete(id);
+  searchIndex._fieldLength.delete(shortId);
+  searchIndex._documentCount -= 1;
 };
 
 /**
  * Removes all the given documents from the index. If called with no arguments,
  * it removes _all_ documents from the index.
  *
- * @param index The search Index
+ * @param searchIndex The search Index
  * @param documents  The documents to be removed. If this argument is omitted,
  * all documents are removed. Note that, for removing all documents, it is
  * more efficient to call this method with no arguments than to pass all
  * documents.
  */
-export const removeAll = function removeAll<T>(
-  index: SearchIndex<T>,
-  documents?: readonly T[]
+export const removeAll = function removeAll<Document, ID>(
+  searchIndex: SearchIndex<Document, ID>,
+  documents?: readonly Document[]
 ): void {
   if (documents) {
-    for (const document of documents) remove(index, document);
+    for (const document of documents) remove(searchIndex, document);
   } else if (arguments.length > 1) {
     throw new Error(
       "Expected documents to be present. Omit the argument to remove all documents."
     );
   } else {
-    index._index = new SearchableMap();
-    index._documentCount = 0;
-    index._documentIds = new Map();
-    index._idToShortId = new Map();
-    index._fieldLength = new Map();
-    index._avgFieldLength = [];
-    index._storedFields = new Map();
-    index._nextId = 0;
+    searchIndex._index = new SearchableMap();
+    searchIndex._documentCount = 0;
+    searchIndex._documentIds = new Map();
+    searchIndex._idToShortId = new Map();
+    searchIndex._fieldLength = new Map();
+    searchIndex._avgFieldLength = [];
+    searchIndex._storedFields = new Map();
+    searchIndex._nextId = 0;
   }
 };

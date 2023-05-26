@@ -7,25 +7,26 @@ import {
   defaultVacuumConditions,
 } from "./defaults.js";
 import {
-  type DocumentTermFreqs,
+  type DocumentTermFrequencies,
   type SearchOptionsWithDefaults,
 } from "./results.js";
 import {
-  type AsPlainObject,
   type AutoVacuumOptions,
+  type IndexObject,
   type LogLevel,
-  type Options,
+  type SearchIndexOptions,
   type SearchOptions,
   type SerializedIndexEntry,
   type VacuumConditions,
 } from "./typings.js";
 
-type OptionsWithDefaults<T = any> = Options<T> & {
+interface OptionsWithDefaults<Document = any, ID = any>
+  extends Omit<SearchIndexOptions<Document, ID>, "processTerm" | "tokenize"> {
   storeFields: string[];
 
   idField: string;
 
-  extractField: (document: T, fieldName: string) => string;
+  extractField: (document: Document, fieldName: string) => string;
 
   tokenize: (text: string, fieldName: string) => string[];
 
@@ -38,20 +39,21 @@ type OptionsWithDefaults<T = any> = Options<T> & {
 
   autoVacuum: false | AutoVacuumOptions;
 
-  searchOptions: SearchOptionsWithDefaults;
+  searchOptions: SearchOptionsWithDefaults<ID>;
 
-  autoSuggestOptions: SearchOptions;
-};
+  autoSuggestOptions: SearchOptions<ID>;
+}
 
-export type FieldTermData = Map<number, DocumentTermFreqs>;
+export type FieldTermData = Map<number, DocumentTermFrequencies>;
 
 /**
  *
- * @typeParam T  The type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID  The id type of the documents being indexed.
  *
  * ### Basic example:
  *
- * ```javascript
+ * ```js
  * const documents = [
  *   {
  *     id: 1,
@@ -83,53 +85,39 @@ export type FieldTermData = Map<number, DocumentTermFreqs>;
  * // Create a search engine that indexes the 'title' and 'text' fields for
  * // full-text search. Search results will include 'title' and 'category' (plus the
  * // id field, that is always stored and returned)
- * const index = createIndex({
+ * const searchIndex = createIndex({
  *   fields: ['title', 'text'],
  *   storeFields: ['title', 'category']
  * })
  *
  * // Add documents to the index
- * addAll(index, documents)
+ * addAll(searchIndex, documents)
  *
  * // Search for documents:
- * let results = search(index, 'zen art motorcycle')
+ * const results = search(searchIndex, 'zen art motorcycle')
  * // => [
  * //   { id: 2, title: 'Zen and the Art of Motorcycle Maintenance', category: 'fiction', score: 2.77258 },
  * //   { id: 4, title: 'Zen and the Art of Archery', category: 'non-fiction', score: 1.38629 }
  * // ]
  * ```
  */
-export class SearchIndex<T = any> {
-  // protected _options: OptionsWithDefaults<T>;
-  _options: OptionsWithDefaults<T>;
-  // protected _index: SearchableMap<FieldTermData>;
+export class SearchIndex<Document = any, ID = any> {
+  _options: OptionsWithDefaults<Document>;
   _index: SearchableMap<FieldTermData>;
-  // protected _documentCount: number;
   _documentCount: number;
-  // protected _documentIds: Map<number, any>;
-  _documentIds: Map<number, any>;
-  // protected _idToShortId: Map<any, number>;
-  _idToShortId: Map<any, number>;
-  // protected _fieldIds: { [key: string]: number };
+  _documentIds: Map<number, ID>;
+  _idToShortId: Map<ID, number>;
   _fieldIds: { [key: string]: number };
-  // protected _fieldLength: Map<number, number[]>;
   _fieldLength: Map<number, number[]>;
-  // protected _avgFieldLength: number[];
   _avgFieldLength: number[];
-  // protected _nextId: number;
   _nextId: number;
-  // protected _storedFields: Map<number, Record<string, unknown>>;
   _storedFields: Map<number, Record<string, unknown>>;
-  // protected _dirtCount: number;
   _dirtCount: number;
-  // private _currentVacuum: Promise<void> | null;
   _currentVacuum: Promise<void> | null;
-  // private _enqueuedVacuum: Promise<void> | null;
   _enqueuedVacuum: Promise<void> | null;
-  // private _enqueuedVacuumConditions: VacuumConditions | undefined;
   _enqueuedVacuumConditions: VacuumConditions | undefined;
 
-  constructor(options: Options<T>) {
+  constructor(options: SearchIndexOptions<Document, ID>) {
     if (options?.fields == null)
       throw new Error('SlimSearch: option "fields" must be provided');
 
@@ -138,6 +126,7 @@ export class SearchIndex<T = any> {
         ? defaultAutoVacuumOptions
         : options.autoVacuum;
 
+    // @ts-ignore
     this._options = {
       ...defaultOptions,
       ...options,
@@ -235,26 +224,26 @@ export class SearchIndex<T = any> {
    *
    * ### Usage:
    *
-   * ```javascript
+   * ```js
    * // Serialize the index:
-   * let index = createIndex({ fields: ['title', 'text'] })
-   * addAll(index, documents)
+   * let searchIndex = createIndex({ fields: ['title', 'text'] })
+   * addAll(searchIndex, documents)
    * const json = JSON.stringify(index)
    *
    * // Later, to deserialize it:
-   * index = loadJSONIndex(json, { fields: ['title', 'text'] })
+   * searchIndex = loadJSONIndex(json, { fields: ['title', 'text'] })
    * ```
    *
    * @return A plain-object serializable representation of the search index.
    */
-  toJSON(): AsPlainObject {
+  toJSON(): IndexObject {
     const index: [string, { [key: string]: SerializedIndexEntry }][] = [];
 
     for (const [term, fieldIndex] of this._index) {
       const data: { [key: string]: SerializedIndexEntry } = {};
 
-      for (const [fieldId, freqs] of fieldIndex)
-        data[fieldId] = Object.fromEntries(freqs);
+      for (const [fieldId, frequencies] of fieldIndex)
+        data[fieldId] = Object.fromEntries(frequencies);
 
       index.push([term, data]);
     }
