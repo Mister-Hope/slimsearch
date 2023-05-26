@@ -1,6 +1,6 @@
 {
   "name": "slimsearch",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Tiny but powerful full-text search engine for browser and Node",
   "type": "module",
   "author": "Luca Ongaro, Mister Hope",
