@@ -39,8 +39,9 @@
   ],
   "packageManager": "pnpm@8.5.1",
   "scripts": {
+    "benchmark": "vitest bench",
     "benchmark:build": "BENCHMARK=true pnpm build",
-    "benchmark": "pnpm build-benchmark && NODE_ENV=production node --expose-gc benchmarks/dist/index.cjs",
+    "benchmark:legacy": "pnpm build-benchmark && NODE_ENV=production node --expose-gc benchmarks/dist/index.cjs",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "docs:build": "typedoc --options typedoc.json",
     "coverage": "vitest --coverage",
