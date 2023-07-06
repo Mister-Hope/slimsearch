@@ -7,7 +7,7 @@ const addFieldLength = <Document, ID>(
   documentId: number,
   fieldId: number,
   count: number,
-  length: number
+  length: number,
 ): void => {
   let fieldLengths = searchIndex._fieldLength.get(documentId);
 
@@ -23,7 +23,7 @@ const addFieldLength = <Document, ID>(
 
 const addDocumentId = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  documentId: ID
+  documentId: ID,
 ): number => {
   const shortDocumentId = searchIndex._nextId;
 
@@ -38,7 +38,7 @@ const addDocumentId = <Document, ID>(
 const saveStoredFields = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   documentId: number,
-  doc: Document
+  doc: Document,
 ): void => {
   const { storeFields, extractField } = searchIndex._options;
 
@@ -64,7 +64,7 @@ const saveStoredFields = <Document, ID>(
  */
 export const add = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  document: Document
+  document: Document,
 ): void => {
   const { extractField, tokenize, processTerm, fields, idField } =
     searchIndex._options;
@@ -95,7 +95,7 @@ export const add = <Document, ID>(
       shortDocumentId,
       fieldId,
       searchIndex._documentCount - 1,
-      uniqueTerms
+      uniqueTerms,
     );
 
     for (const term of tokens) {
@@ -118,7 +118,7 @@ export const add = <Document, ID>(
  */
 export const addAll = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  documents: readonly Document[]
+  documents: readonly Document[],
 ): void => {
   for (const document of documents) add(searchIndex, document);
 };
@@ -138,7 +138,7 @@ export const addAll = <Document, ID>(
 export const addAllAsync = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   documents: readonly Document[],
-  options: { chunkSize?: number } = {}
+  options: { chunkSize?: number } = {},
 ): Promise<void> => {
   const { chunkSize = 10 } = options;
   const acc: { chunk: Document[]; promise: Promise<void> } = {
@@ -158,7 +158,7 @@ export const addAllAsync = <Document, ID>(
         };
       else return { chunk, promise };
     },
-    acc
+    acc,
   );
 
   return promise.then(() => addAll(searchIndex, chunk));

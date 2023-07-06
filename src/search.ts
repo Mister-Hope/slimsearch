@@ -149,11 +149,11 @@ import { byScore } from "./utils.js";
 export const search = <
   Document,
   ID,
-  Field extends Record<string, any> = Partial<Document>
+  Field extends Record<string, any> = Partial<Document>,
 >(
   searchIndex: SearchIndex<Document, ID>,
   query: Query,
-  searchOptions: SearchOptions<ID> = {}
+  searchOptions: SearchOptions<ID> = {},
 ): SearchResult<ID, Field>[] => {
   const combinedResults = executeQuery(searchIndex, query, searchOptions);
 

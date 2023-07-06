@@ -7,7 +7,7 @@ const removeFieldLength = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   count: number,
-  length: number
+  length: number,
 ): void => {
   if (count === 1) {
     searchIndex._avgFieldLength[fieldId] = 0;
@@ -67,7 +67,7 @@ const removeFieldLength = <Document, ID>(
  */
 export const discard = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  id: ID
+  id: ID,
 ): void => {
   const shortId = searchIndex._idToShortId.get(id);
 
@@ -75,7 +75,7 @@ export const discard = <Document, ID>(
     throw new Error(
       `SlimSearch: cannot discard document with ID ${<string>(
         id
-      )}: it is not in the index`
+      )}: it is not in the index`,
     );
 
   searchIndex._idToShortId.delete(id);
@@ -87,9 +87,9 @@ export const discard = <Document, ID>(
         searchIndex,
         fieldId,
         searchIndex._documentCount,
-        fieldLength
+        fieldLength,
       );
-    }
+    },
   );
 
   searchIndex._fieldLength.delete(shortId);
@@ -114,7 +114,7 @@ export const discard = <Document, ID>(
  */
 export const discardAll = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  ids: readonly ID[]
+  ids: readonly ID[],
 ): void => {
   const autoVacuum = searchIndex._options.autoVacuum;
 
@@ -146,7 +146,7 @@ export const discardAll = <Document, ID>(
  */
 export const remove = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  document: Document
+  document: Document,
 ): void => {
   const { tokenize, processTerm, extractField, fields, idField } =
     searchIndex._options;
@@ -161,7 +161,7 @@ export const remove = <Document, ID>(
     throw new Error(
       `SlimSearch: cannot remove document with ID ${<string>(
         id
-      )}: it is not in the index`
+      )}: it is not in the index`,
     );
 
   for (const field of fields) {
@@ -178,7 +178,7 @@ export const remove = <Document, ID>(
       searchIndex,
       fieldId,
       searchIndex._documentCount,
-      uniqueTerms
+      uniqueTerms,
     );
 
     for (const term of tokens) {
@@ -211,13 +211,13 @@ export const remove = <Document, ID>(
  */
 export const removeAll = function removeAll<Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  documents?: readonly Document[]
+  documents?: readonly Document[],
 ): void {
   if (documents) {
     for (const document of documents) remove(searchIndex, document);
   } else if (arguments.length > 1) {
     throw new Error(
-      "Expected documents to be present. Omit the argument to remove all documents."
+      "Expected documents to be present. Omit the argument to remove all documents.",
     );
   } else {
     searchIndex._index = new SearchableMap();

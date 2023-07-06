@@ -61,7 +61,7 @@ export interface MatchInfo {
  */
 export type SearchResult<
   ID = any,
-  Field extends Record<string, any> = Record<never, never>
+  Field extends Record<string, any> = Record<never, never>,
 > = Field & {
   /**
    * The document ID
@@ -128,7 +128,7 @@ export interface SearchOptions<ID = any> {
   boostDocument?: (
     documentId: ID,
     term: string,
-    storedFields?: Record<string, unknown>
+    storedFields?: Record<string, unknown>,
   ) => number;
 
   /**
@@ -269,7 +269,7 @@ export interface SearchIndexOptions<Document = any, ID = any> {
    */
   processTerm?: (
     term: string,
-    fieldName?: string
+    fieldName?: string,
   ) => string | string[] | null | undefined | false;
 
   /**

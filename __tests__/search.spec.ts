@@ -142,10 +142,10 @@ describe("search()", () => {
     expect(results.length).toEqual(1);
     expect(results.map(({ id }) => id)).toEqual([1]);
     expect(
-      search(index, "vita sottomarino", { combineWith: "AND" }).length
+      search(index, "vita sottomarino", { combineWith: "AND" }).length,
     ).toEqual(0);
     expect(
-      search(index, "sottomarino vita", { combineWith: "AND" }).length
+      search(index, "sottomarino vita", { combineWith: "AND" }).length,
     ).toEqual(0);
   });
 
@@ -155,10 +155,10 @@ describe("search()", () => {
     expect(results.length).toEqual(1);
     expect(results.map(({ id }) => id)).toEqual([3]);
     expect(
-      search(index, "vita sottomarino", { combineWith: "AND_NOT" }).length
+      search(index, "vita sottomarino", { combineWith: "AND_NOT" }).length,
     ).toEqual(2);
     expect(
-      search(index, "sottomarino vita", { combineWith: "AND_NOT" }).length
+      search(index, "sottomarino vita", { combineWith: "AND_NOT" }).length,
     ).toEqual(0);
   });
 
@@ -277,7 +277,7 @@ describe("search()", () => {
       category: "poetry",
     });
     expect(results[0].score).toBeCloseTo(
-      resultsWithoutBoost[0].score * boostFactor
+      resultsWithoutBoost[0].score * boostFactor,
     );
   });
 
@@ -353,13 +353,13 @@ describe("search()", () => {
     addAll(index, documents);
 
     expect(search(index, "very")[0].score).toBeGreaterThan(
-      search(index, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score
+      search(index, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score,
     );
     expect(search(index, "something")[1].score).toBeGreaterThan(
-      search(index, "something", { bm25: { k: 1.2, b: 1, d: 0.5 } })[1].score
+      search(index, "something", { bm25: { k: 1.2, b: 1, d: 0.5 } })[1].score,
     );
     expect(search(index, "something")[1].score).toBeGreaterThan(
-      search(index, "something", { bm25: { k: 1.2, b: 0.7, d: 0.1 } })[1].score
+      search(index, "something", { bm25: { k: 1.2, b: 0.7, d: 0.1 } })[1].score,
     );
 
     // Defaults are taken from the searchOptions passed to the constructor
@@ -371,7 +371,7 @@ describe("search()", () => {
     addAll(other, documents);
 
     expect(search(other, "very")).toEqual(
-      search(index, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })
+      search(index, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } }),
     );
   });
 
@@ -438,12 +438,12 @@ describe("search()", () => {
             { fields: ["title"], queries: ["promessi"] },
           ],
         },
-        { boost: { title: 2 } }
+        { boost: { title: 2 } },
       );
 
       expect(results.length).toEqual(reference.length);
       expect(results.find((r) => r.id === 2)!.score).toBeGreaterThan(
-        reference.find((r) => r.id === 2)!.score
+        reference.find((r) => r.id === 2)!.score,
       );
 
       // Combine with AND
@@ -455,7 +455,7 @@ describe("search()", () => {
             { fields: ["title"], queries: ["promessi"] },
           ],
         },
-        { combineWith: "AND" }
+        { combineWith: "AND" },
       );
 
       expect(results.length).toEqual(0);
@@ -470,7 +470,7 @@ describe("search()", () => {
           ],
           combineWith: "OR",
         },
-        { combineWith: "AND" }
+        { combineWith: "AND" },
       );
 
       expect(results.length).toEqual(reference.length);
@@ -742,10 +742,10 @@ describe("search()", () => {
     it("returns best results for shaun", () => {
       // Two movies contain the query in the title. Pick the shorter title.
       expect(search(index, "shaun the sheep")[0].title).toEqual(
-        "Shaun the Sheep"
+        "Shaun the Sheep",
       );
       expect(
-        search(index, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title
+        search(index, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title,
       ).toEqual("Shaun the Sheep");
     });
 
@@ -753,10 +753,10 @@ describe("search()", () => {
       // The title contains neither 'sheep' nor the character name. Movies
       // that have 'sheep' or 'the' in the title should not outrank this.
       expect(search(index, "chirin the sheep")[0].title).toEqual(
-        "Ringing Bell"
+        "Ringing Bell",
       );
       expect(
-        search(index, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title
+        search(index, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title,
       ).toEqual("Ringing Bell");
     });
 
@@ -764,10 +764,10 @@ describe("search()", () => {
       // Title contains the character's name, but the word 'sheep' never
       // occurs. Other movies that do contain 'sheep' should not outrank this.
       expect(search(index, "judah the sheep")[0].title).toEqual(
-        "The Lion of Judah"
+        "The Lion of Judah",
       );
       expect(
-        search(index, "judah the sheep", { fuzzy: 1, prefix: true })[0].title
+        search(index, "judah the sheep", { fuzzy: 1, prefix: true })[0].title,
       ).toEqual("The Lion of Judah");
     });
 
@@ -778,7 +778,7 @@ describe("search()", () => {
       // slightly more common term in the dataset, that should not cause other
       // results to outrank this.
       expect(search(index, "bounding sheep", { fuzzy: 1 })[0].title).toEqual(
-        "Boundin'"
+        "Boundin'",
       );
     });
   });
@@ -860,7 +860,7 @@ describe("search()", () => {
     it("returns best results for queen", () => {
       // The only match where both song and artist contain 'queen'.
       expect(
-        search(index, "queen", { fuzzy: 1, prefix: true })[0].song
+        search(index, "queen", { fuzzy: 1, prefix: true })[0].song,
       ).toEqual("Killer Queen");
     });
   });

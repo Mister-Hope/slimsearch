@@ -12,7 +12,7 @@ suite
         fuzzy: 0.2,
         prefix: true,
       });
-    }
+    },
   )
   .add('SlimSearch#search("virtu", { fuzzy: 0.2, prefix: true })', () => {
     search(index, "virtu", {

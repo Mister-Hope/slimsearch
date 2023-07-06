@@ -9,7 +9,7 @@ const heapSize = (): number => {
 const bytesToMb = (bytes: number): string => (bytes / (1024 * 1024)).toFixed(2);
 
 const memory = (
-  docs: unknown[]
+  docs: unknown[],
 ): {
   terms: number;
   documents: number;

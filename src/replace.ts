@@ -20,7 +20,7 @@ import { discard } from "./remove.js";
  */
 export const replace = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  updatedDocument: Document
+  updatedDocument: Document,
 ): void => {
   const { idField, extractField } = searchIndex._options;
   const id = <ID>extractField(updatedDocument, idField);

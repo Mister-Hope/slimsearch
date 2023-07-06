@@ -40,7 +40,7 @@ describe("SearchableMap", () => {
             b.length > 0 ? editDistance(a, b.slice(0, -1), mem) + 1 : Infinity,
             a.length > 0 && b.length > 0
               ? editDistance(a.slice(0, -1), b.slice(0, -1), mem) + d
-              : Infinity
+              : Infinity,
           );
 
     mem[a.length][b.length] = distance;
@@ -250,7 +250,7 @@ describe("SearchableMap", () => {
         // @ts-expect-error
         map.update(123, () => {
           // do nothing
-        })
+        }),
       ).toThrow("key must be a string");
     });
   });
@@ -285,13 +285,13 @@ describe("SearchableMap", () => {
       const sum = map.atPrefix("sum");
 
       expect(Array.from(sum.keys()).sort()).toEqual(
-        strings.filter((string) => string.startsWith("sum")).sort()
+        strings.filter((string) => string.startsWith("sum")).sort(),
       );
 
       const summer = sum.atPrefix("summer");
 
       expect(Array.from(summer.keys()).sort()).toEqual(
-        strings.filter((string) => string.startsWith("summer")).sort()
+        strings.filter((string) => string.startsWith("summer")).sort(),
       );
 
       const xyz = map.atPrefix("xyz");
@@ -306,7 +306,7 @@ describe("SearchableMap", () => {
       const sum = map.atPrefix("sum");
 
       expect(sum.size).toEqual(
-        strings.filter((string) => string.startsWith("sum")).length
+        strings.filter((string) => string.startsWith("sum")).length,
       );
     });
   });
@@ -328,10 +328,10 @@ describe("SearchableMap", () => {
               editDistance("acqua", term),
             ])
             .filter(([, d]) => d <= distance)
-            .sort()
+            .sort(),
         );
         expect(entries.every(([key, [value]]) => map.get(key) === value)).toBe(
-          true
+          true,
         );
       });
     });
@@ -357,11 +357,11 @@ describe("SearchableMap", () => {
     it("adds and removes entries", () => {
       const arrayOfStrings = fc.array(
         fc.oneof(fc.unicodeString(), fc.string()),
-        { maxLength: 70 }
+        { maxLength: 70 },
       );
       const string = fc.oneof(
         fc.unicodeString({ minLength: 0, maxLength: 4 }),
-        fc.string({ minLength: 0, maxLength: 4 })
+        fc.string({ minLength: 0, maxLength: 4 }),
       );
       const int = fc.integer({ min: 1, max: 4 });
 
@@ -380,19 +380,19 @@ describe("SearchableMap", () => {
 
           expect(map.size).toEqual(standardMap.size);
           expect(Array.from(map.entries()).sort()).toEqual(
-            Array.from(standardMap.entries()).sort()
+            Array.from(standardMap.entries()).sort(),
           );
 
           expect(Array.from(map.atPrefix(prefix).keys()).sort()).toEqual(
             Array.from(new Set(terms))
               .filter((t) => t.startsWith(prefix))
-              .sort()
+              .sort(),
           );
 
           const fuzzy = map.fuzzyGet(terms[0], maxDist);
 
           expect(
-            Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort()
+            Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort(),
           ).toEqual(
             uniqueTerms
               .map<[string, number]>((term) => [
@@ -400,7 +400,7 @@ describe("SearchableMap", () => {
                 editDistance(terms[0], term),
               ])
               .filter(([, dist]) => dist <= maxDist)
-              .sort()
+              .sort(),
           );
 
           terms.forEach((term) => {
@@ -410,7 +410,7 @@ describe("SearchableMap", () => {
           });
 
           expect(map.size).toEqual(0);
-        })
+        }),
       );
     });
   });

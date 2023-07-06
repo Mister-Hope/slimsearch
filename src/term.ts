@@ -9,7 +9,7 @@ export const addTerm = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   documentId: number,
-  term: string
+  term: string,
 ): void => {
   const indexData = searchIndex._index.fetch(term, createMap);
 
@@ -30,7 +30,7 @@ export const removeTerm = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   documentId: number,
-  term: string
+  term: string,
 ): void => {
   if (!searchIndex._index.has(term)) {
     warnDocumentChanged(searchIndex, documentId, fieldId, term);

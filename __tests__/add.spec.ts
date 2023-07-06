@@ -58,7 +58,7 @@ describe("add()", () => {
 
     const extractField = (
       document: Document,
-      fieldName: string
+      fieldName: string,
     ): string | number => {
       if (fieldName === "id") return document.id.value;
 
@@ -138,9 +138,9 @@ describe("add()", () => {
         return fieldName.split(".").reduce(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           (doc, key) => doc && doc[key],
-          document
+          document,
         ) as unknown as string;
-      }
+      },
     );
     const tokenize = vi.fn((token: string): string[] => token.split(/\W+/));
     const index = createIndex<Document, number>({

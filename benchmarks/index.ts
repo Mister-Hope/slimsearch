@@ -13,7 +13,7 @@ import searchFiltering from "./searchFiltering.js";
 const { terms, documents, memSize, serializedSize } = memory(lines);
 
 console.log(
-  `Index size: ${terms} terms, ${documents} documents, ~${memSize}MB in memory, ${serializedSize}MB serialized.\n`
+  `Index size: ${terms} terms, ${documents} documents, ~${memSize}MB in memory, ${serializedSize}MB serialized.\n`,
 );
 [
   fuzzySearch,

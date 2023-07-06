@@ -9,7 +9,7 @@ export type FuzzyResults<T> = Map<string, FuzzyResult<T>>;
 export const fuzzySearch = <Value = any>(
   node: RadixTree<Value>,
   query: string,
-  maxDistance: number
+  maxDistance: number,
 ): FuzzyResults<Value> => {
   const results: FuzzyResults<Value> = new Map();
 
@@ -55,7 +55,7 @@ const recurse = <Value = any>(
   matrix: Uint8Array,
   m: number,
   n: number,
-  prefix: string
+  prefix: string,
 ): void => {
   const offset = m * n;
 
@@ -99,7 +99,7 @@ const recurse = <Value = any>(
           const dist = (matrix[thisRowOffset + j + 1] = Math.min(
             rpl,
             del,
-            ins
+            ins,
           ));
 
           if (dist < minDistance) minDistance = dist;
@@ -118,7 +118,7 @@ const recurse = <Value = any>(
         matrix,
         i,
         n,
-        prefix + key
+        prefix + key,
       );
     }
 };

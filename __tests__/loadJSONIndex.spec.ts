@@ -57,7 +57,7 @@ describe("loadJSONIndex()", () => {
       // @ts-expect-error
       loadJSONIndex(json);
     }).toThrowError(
-      "SlimSearch: loadJSON should be given the same options used when serializing the index"
+      "SlimSearch: loadJSON should be given the same options used when serializing the index",
     );
   });
 
@@ -68,7 +68,7 @@ describe("loadJSONIndex()", () => {
     expect(() => {
       loadJSONIndex(json, options);
     }).toThrowError(
-      "SlimSearch: cannot deserialize an index created with an incompatible version"
+      "SlimSearch: cannot deserialize an index created with an incompatible version",
     );
   });
 

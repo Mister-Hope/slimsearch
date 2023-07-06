@@ -85,7 +85,7 @@ describe("remove()", () => {
       return path.reduce(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         (doc, key) => doc && doc[key],
-        document
+        document,
       ) as unknown as string;
     };
     const index = createIndex<Document, number>({
@@ -284,7 +284,7 @@ describe("remove()", () => {
     it("throws an error", () => {
       // @ts-expect-errorF
       expect(() => remove(index, { id: 99 })).toThrow(
-        "SlimSearch: cannot remove document with ID 99: it is not in the index"
+        "SlimSearch: cannot remove document with ID 99: it is not in the index",
       );
     });
   });
@@ -296,7 +296,7 @@ describe("remove()", () => {
           id: 1,
           title: "Divina Commedia cammin",
           text: "something has changed",
-        })
+        }),
       ).not.toThrow();
       expect(console.warn).toHaveBeenCalledTimes(4);
       [
@@ -307,7 +307,7 @@ describe("remove()", () => {
       ].forEach(([term, field], i) => {
         expect(console.warn).toHaveBeenNthCalledWith(
           i + 1,
-          `SlimSearch: document with ID 1 has changed before removal: term "${term}" was not present in field "${field}". Removing a document after it has changed can corrupt the index!`
+          `SlimSearch: document with ID 1 has changed before removal: term "${term}" was not present in field "${field}". Removing a document after it has changed can corrupt the index!`,
         );
       });
     });
@@ -320,7 +320,7 @@ describe("remove()", () => {
           id: 1,
           title: "Divina Commedia cammin",
           text: "something has changed",
-        })
+        }),
       ).not.toThrow();
     });
 
@@ -334,7 +334,7 @@ describe("remove()", () => {
       expect(logger).toHaveBeenCalledWith(
         "warn",
         'SlimSearch: document with ID 1 has changed before removal: term "something" was not present in field "text". Removing a document after it has changed can corrupt the index!',
-        "version_conflict"
+        "version_conflict",
       );
       expect(console.warn).not.toHaveBeenCalled();
     });

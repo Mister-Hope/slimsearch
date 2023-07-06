@@ -38,7 +38,7 @@ describe("discard()", () => {
     expect(() => {
       discard(index, 99);
     }).toThrow(
-      "SlimSearch: cannot discard document with ID 99: it is not in the index"
+      "SlimSearch: cannot discard document with ID 99: it is not in the index",
     );
   });
 

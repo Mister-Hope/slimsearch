@@ -32,7 +32,7 @@ interface OptionsWithDefaults<Document = any, ID = any>
 
   processTerm: (
     term: string,
-    fieldName: string
+    fieldName: string,
   ) => string | string[] | null | undefined | false;
 
   logger: (level: LogLevel, message: string, code?: string) => void;

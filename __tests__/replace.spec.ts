@@ -31,7 +31,7 @@ describe("replace()", () => {
     expect(() => {
       replace(index, { id: 1, text: "Some stuff" });
     }).toThrow(
-      "SlimSearch: cannot discard document with ID 1: it is not in the index"
+      "SlimSearch: cannot discard document with ID 1: it is not in the index",
     );
   });
 });

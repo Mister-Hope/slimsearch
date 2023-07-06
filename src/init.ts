@@ -71,7 +71,7 @@ import { objectToNumericMap } from "./utils.js";
  * ```
  */
 export const createIndex = <Document = any, ID = any>(
-  options: SearchIndexOptions<Document, ID>
+  options: SearchIndexOptions<Document, ID>,
 ): SearchIndex<Document, ID> => new SearchIndex(options);
 
 export const loadIndex = <Document = any, ID = any>(
@@ -87,11 +87,11 @@ export const loadIndex = <Document = any, ID = any>(
     dirtCount,
     serializationVersion,
   }: IndexObject,
-  options: SearchIndexOptions<Document, ID>
+  options: SearchIndexOptions<Document, ID>,
 ): SearchIndex<Document, ID> => {
   if (serializationVersion !== 1 && serializationVersion !== 2)
     throw new Error(
-      "SlimSearch: cannot deserialize an index created with an incompatible version"
+      "SlimSearch: cannot deserialize an index created with an incompatible version",
     );
 
   const searchIndex = new SearchIndex(options);
@@ -122,7 +122,7 @@ export const loadIndex = <Document = any, ID = any>(
 
       dataMap.set(
         parseInt(fieldId, 10),
-        objectToNumericMap(indexEntry) as DocumentTermFrequencies
+        objectToNumericMap(indexEntry) as DocumentTermFrequencies,
       );
     }
 
@@ -156,11 +156,11 @@ export const loadIndex = <Document = any, ID = any>(
  */
 export const loadJSONIndex = <Document = any, ID = any>(
   json: string,
-  options: SearchIndexOptions<Document, ID>
+  options: SearchIndexOptions<Document, ID>,
 ): SearchIndex<Document, ID> => {
   if (options == null)
     throw new Error(
-      "SlimSearch: loadJSON should be given the same options used when serializing the index"
+      "SlimSearch: loadJSON should be given the same options used when serializing the index",
     );
 
   return loadIndex(<IndexObject>JSON.parse(json), options);

@@ -9,7 +9,7 @@ import { type SearchIndex } from "./SearchIndex.js";
  */
 export const has = <Document, ID>(
   searchIndex: SearchIndex<Document>,
-  id: ID
+  id: ID,
 ): boolean => searchIndex._idToShortId.has(id);
 
 /**
@@ -22,7 +22,7 @@ export const has = <Document, ID>(
  */
 export const getStoredFields = <Document, ID>(
   searchIndex: SearchIndex<Document>,
-  id: ID
+  id: ID,
 ): Record<string, unknown> | undefined => {
   const shortId = searchIndex._idToShortId.get(id);
 

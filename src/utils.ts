@@ -12,7 +12,7 @@ export const assignUniqueTerm = (target: string[], term: string): void => {
 
 export const assignUniqueTerms = (
   target: string[],
-  source: readonly string[]
+  source: readonly string[],
 ): void => {
   // Avoid adding duplicate terms.
   for (const term of source) if (!target.includes(term)) target.push(term);
@@ -116,11 +116,11 @@ export const calcBM25Score = (
   totalCount: number,
   fieldLength: number,
   avgFieldLength: number,
-  bm25params: BM25Params
+  bm25params: BM25Params,
 ): number => {
   const { k, b, d } = bm25params;
   const invDocFreq = Math.log(
-    1 + (totalCount - matchingCount + 0.5) / (matchingCount + 0.5)
+    1 + (totalCount - matchingCount + 0.5) / (matchingCount + 0.5),
   );
 
   return (

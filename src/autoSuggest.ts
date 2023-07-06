@@ -67,7 +67,7 @@ import { byScore } from "./utils.js";
 export const autoSuggest = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   queryString: string,
-  options: SearchOptions<ID> = {}
+  options: SearchOptions<ID> = {},
 ): Suggestion[] => {
   options = { ...searchIndex._options.autoSuggestOptions, ...options };
 
