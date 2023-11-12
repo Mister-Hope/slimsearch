@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2023",
+    "target": "ES2022",
     "lib": ["DOM", "ESNext"],
     "checkJs": false /* Report errors in .js files. */,
 
