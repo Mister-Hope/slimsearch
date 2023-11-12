@@ -11,7 +11,7 @@ interface BundleOptions {
 const bundle = ({
   input,
   output = input,
-  target = "node16",
+  target = "node18",
 }: BundleOptions): RollupOptions[] => [
   {
     input: `./src/${input}.ts`,
