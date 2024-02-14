@@ -190,7 +190,12 @@ overrides:
         - off
 
   - files:
+      - "benchmarks/**/*.ts"
       - "**/__tests__/**/*.spec.{j,t}s?(x)"
+      - "rollup.config.ts"
+
+    env:
+      node: true
 
     rules:
       "@typescript-eslint/no-explicit-any":
