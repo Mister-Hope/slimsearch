@@ -1,9 +1,6 @@
-/node_modules
+node_modules/
+coverage/
+dist/
+
+.npmrc
 .DS_Store
-/closet
-/tmp
-/dist
-/examples/dist
-/examples/node_modules
-/benchmarks/dist
-/coverage

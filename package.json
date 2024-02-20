@@ -2,14 +2,6 @@
   "name": "slimsearch",
   "version": "2.0.0",
   "description": "Tiny but powerful full-text search engine for browser and Node",
-  "type": "module",
-  "author": "Luca Ongaro, Mister Hope",
-  "homepage": "https://mister-hope.github.io/slimsearch/",
-  "bugs": "https://github.com/Mister-Hope/slimsearch/issues",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Mister-Hope/slimsearch.git"
-  },
   "keywords": [
     "search",
     "full text",
@@ -19,9 +11,16 @@
     "auto complete",
     "index"
   ],
+  "homepage": "https://mister-hope.github.io/slimsearch/",
+  "bugs": "https://github.com/Mister-Hope/slimsearch/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mister-Hope/slimsearch.git"
+  },
   "license": "MIT",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
+  "author": "Luca Ongaro, Mister Hope",
+  "sideEffects": false,
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -34,48 +33,49 @@
       "default": "./dist/SearchableMap.mjs"
     }
   },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "files": [
     "dist"
   ],
-  "sideEffects": false,
   "scripts": {
     "benchmark": "vitest bench",
     "benchmark:build": "BENCHMARK=true pnpm build",
     "benchmark:legacy": "pnpm build-benchmark && NODE_ENV=production node --expose-gc benchmarks/dist/index.cjs",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
-    "docs:build": "typedoc --options typedoc.json",
+    "clean": "rm -rf dist",
     "coverage": "vitest --coverage",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
-    "clean": "rm -rf dist",
+    "docs:build": "typedoc --options typedoc.json",
     "lint": "eslint . --ext .js,.ts && prettier --check .",
     "lint:fix": "eslint . --ext .js,.ts --fix && prettier --check --write .",
     "prepublishOnly": "pnpm test && pnpm clean && pnpm build",
     "test": "vitest"
   },
-  "packageManager": "pnpm@8.15.2",
-  "engines": {
-    "node": ">=18.18.0"
-  },
   "devDependencies": {
     "@types/benchmark": "2.1.5",
-    "@types/node": "20.11.17",
-    "@typescript-eslint/eslint-plugin": "7.0.1",
-    "@typescript-eslint/parser": "7.0.1",
-    "@vitest/coverage-v8": "1.2.2",
+    "@types/node": "20.11.19",
+    "@typescript-eslint/eslint-plugin": "7.0.2",
+    "@typescript-eslint/parser": "7.0.2",
+    "@vitest/coverage-v8": "1.3.1",
     "benchmark": "2.1.4",
-    "esbuild": "0.20.0",
+    "esbuild": "0.20.1",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-prettier": "5.1.3",
     "fast-check": "3.15.1",
     "prettier": "3.2.5",
-    "rollup": "4.10.0",
+    "rollup": "4.12.0",
     "rollup-plugin-dts": "6.1.0",
     "rollup-plugin-esbuild": "6.1.1",
     "tslib": "2.6.2",
     "typedoc": "0.25.8",
     "typescript": "5.3.3",
-    "vitest": "1.2.2"
+    "vitest": "1.3.1"
+  },
+  "packageManager": "pnpm@8.15.3",
+  "engines": {
+    "node": ">=18.18.0"
   }
 }
