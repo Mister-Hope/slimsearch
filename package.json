@@ -1,6 +1,6 @@
 {
   "name": "slimsearch",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Tiny but powerful full-text search engine for browser and Node",
   "keywords": [
     "search",
