@@ -170,8 +170,8 @@ import { byScore } from "./utils.js";
  * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
  */
 export const search = <
-  Document,
   ID,
+  Document,
   Index extends Record<string, any> = Partial<Document>,
 >(
   searchIndex: SearchIndex<ID, Document, Index>,
