@@ -1,6 +1,7 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import { FieldTermData, type SearchIndex } from "./SearchIndex.js";
 import { OR } from "./constant.js";
 import { defaultSearchOptions } from "./defaults.js";
+import { WILDCARD } from "./symbols.js";
 import { removeTerm } from "./term.js";
 import { type BM25Params, type Query, type SearchOptions } from "./typings.js";
 import {
@@ -34,7 +35,30 @@ export interface SearchOptionsWithDefaults<ID = any> extends SearchOptions<ID> {
 
 export type DocumentTermFrequencies = Map<number, number>;
 
-type FieldTermData = Map<number, DocumentTermFrequencies>;
+const executeWildcardQuery = (
+  searchIndex: SearchIndex,
+  searchOptions: SearchOptions
+): RawResult => {
+  const results = new Map() as RawResult;
+  const options: SearchOptionsWithDefaults = {
+    ...searchIndex._options.searchOptions,
+    ...searchOptions,
+  };
+
+  for (const [shortId, id] of searchIndex._documentIds) {
+    const score = options.boostDocument
+      ? options.boostDocument(id, "", searchIndex._storedFields.get(shortId))
+      : 1;
+
+    results.set(shortId, {
+      score,
+      terms: [],
+      match: {},
+    });
+  }
+
+  return results;
+};
 
 const combineResults = (results: RawResult[], combineWith = OR): RawResult => {
   if (results.length === 0) return new Map();
@@ -55,7 +79,7 @@ const termResults = <Document, ID>(
     | ((id: ID, term: string, storedFields?: Record<string, unknown>) => number)
     | undefined,
   bm25params: BM25Params,
-  results: RawResult = new Map(),
+  results: RawResult = new Map()
 ): RawResult => {
   if (fieldTermData == null) return results;
 
@@ -81,7 +105,7 @@ const termResults = <Document, ID>(
         ? boostDocumentFn(
             searchIndex._documentIds.get(docId)!,
             derivedTerm,
-            searchIndex._storedFields.get(docId),
+            searchIndex._storedFields.get(docId)
           )
         : 1;
 
@@ -102,7 +126,7 @@ const termResults = <Document, ID>(
         searchIndex._documentCount,
         fieldLength,
         avgFieldLength,
-        bm25params,
+        bm25params
       );
       const weightedScore = termWeight * fieldBoost * docBoost * rawScore;
 
@@ -131,7 +155,7 @@ const termResults = <Document, ID>(
 const executeQuerySpec = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   query: QuerySpec,
-  searchOptions: SearchOptions,
+  searchOptions: SearchOptions
 ): RawResult => {
   const options: SearchOptionsWithDefaults = {
     ...searchIndex._options.searchOptions,
@@ -143,7 +167,7 @@ const executeQuerySpec = <Document, ID>(
       ...boosts,
       [field]: getOwnProperty(options.boost, field) || 1,
     }),
-    {},
+    {}
   );
 
   const { boostDocument, weights, maxFuzzy, bm25: bm25params } = options;
@@ -162,7 +186,7 @@ const executeQuerySpec = <Document, ID>(
     data,
     boosts,
     boostDocument,
-    bm25params,
+    bm25params
   );
 
   let prefixMatches;
@@ -209,7 +233,7 @@ const executeQuerySpec = <Document, ID>(
         boosts,
         boostDocument,
         bm25params,
-        results,
+        results
       );
     }
 
@@ -233,7 +257,7 @@ const executeQuerySpec = <Document, ID>(
         boosts,
         boostDocument,
         bm25params,
-        results,
+        results
       );
     }
 
@@ -243,12 +267,15 @@ const executeQuerySpec = <Document, ID>(
 export const executeQuery = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   query: Query,
-  searchOptions: SearchOptions<ID> = {},
+  searchOptions: SearchOptions<ID> = {}
 ): RawResult => {
+  if (query === WILDCARD)
+    return executeWildcardQuery(searchIndex, searchOptions);
+
   if (typeof query !== "string") {
     const options = { ...searchOptions, ...query, queries: undefined };
     const results = query.queries.map((subQuery) =>
-      executeQuery(searchIndex, subQuery, options),
+      executeQuery(searchIndex, subQuery, options)
     );
 
     return combineResults(results, options.combineWith);
@@ -275,7 +302,7 @@ export const executeQuery = <Document, ID>(
   const queries: QuerySpec[] = terms.map(termToQuerySpec(options));
   const results = queries.map((query) =>
     // @ts-ignore
-    executeQuerySpec(searchIndex, query, options),
+    executeQuerySpec(searchIndex, query, options)
   );
 
   return combineResults(results, options.combineWith);

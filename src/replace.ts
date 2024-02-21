@@ -6,13 +6,13 @@ import { discard } from "./remove.js";
  * It replaces an existing document with the given updated version
  *
  * It works by discarding the current version and adding the updated one, so
- * it is functionally equivalent to calling [[discard]] followed by
- * [[add]]. The ID of the updated document should be the same as
+ * it is functionally equivalent to calling {@link discard} followed by
+ * {@link add}. The ID of the updated document should be the same as
  * the original one.
  *
- * Since it uses [[discard]] internally, this method relies on
+ * Since it uses {@link discard} internally, this method relies on
  * vacuuming to clean up obsolete document references from the index, allowing
- * memory to be released (see [[discard]]).
+ * memory to be released (see {@link discard}).
  *
  * @param searchIndex The search Index
  * @param updatedDocument  The updated document to replace the old version
@@ -20,7 +20,7 @@ import { discard } from "./remove.js";
  */
 export const replace = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  updatedDocument: Document,
+  updatedDocument: Document
 ): void => {
   const { idField, extractField } = searchIndex._options;
   const id = <ID>extractField(updatedDocument, idField);

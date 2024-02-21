@@ -7,7 +7,7 @@ const removeFieldLength = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   fieldId: number,
   count: number,
-  length: number,
+  length: number
 ): void => {
   if (count === 1) {
     searchIndex._avgFieldLength[fieldId] = 0;
@@ -24,14 +24,14 @@ const removeFieldLength = <Document, ID>(
 /**
  * Discards the document with the given ID, so it won't appear in search results
  *
- * It has the same visible effect of [[remove]] (both cause the
+ * It has the same visible effect of {@link remove} (both cause the
  * document to stop appearing in searches), but a different effect on the
  * internal data structures:
  *
- *   - [[remove]] requires passing the full document to be removed
+ *   - {@link remove} requires passing the full document to be removed
  *   as argument, and removes it from the inverted index immediately.
  *
- *   - [[discard]] instead only needs the document ID, and works by
+ *   - {@link discard} instead only needs the document ID, and works by
  *   marking the current version of the document as discarded, so it is
  *   immediately ignored by searches. This is faster and more convenient than
  *   `remove`, but the index is not immediately modified. To take care of
@@ -41,7 +41,7 @@ const removeFieldLength = <Document, ID>(
  * After discarding a document, it is possible to re-add a new version, and
  * only the new version will appear in searches. In other words, discarding
  * and re-adding a document works exactly like removing and re-adding it. The
- * [[replace]] method can also be used to replace a document with a
+ * {@link replace} method can also be used to replace a document with a
  * new version.
  *
  * #### Details about vacuuming
@@ -57,17 +57,17 @@ const removeFieldLength = <Document, ID>(
  *   again.
  *
  *   - In addition, vacuuming is performed automatically by default (see the
- *   `autoVacuum` field in [[Options]]) after a certain number of documents
+ *   `autoVacuum` field in {@link SearchOptions}) after a certain number of documents
  *   are discarded. Vacuuming traverses all terms in the index, cleaning up
  *   all references to discarded documents. Vacuuming can also be triggered
- *   manually by calling [[vacuum]].
+ *   manually by calling {@link vacuum}.
  *
  * @param searchIndex The search Index
  * @param id  The ID of the document to be discarded
  */
 export const discard = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  id: ID,
+  id: ID
 ): void => {
   const shortId = searchIndex._idToShortId.get(id);
 
@@ -75,7 +75,7 @@ export const discard = <Document, ID>(
     throw new Error(
       `SlimSearch: cannot discard document with ID ${<string>(
         id
-      )}: it is not in the index`,
+      )}: it is not in the index`
     );
 
   searchIndex._idToShortId.delete(id);
@@ -87,9 +87,9 @@ export const discard = <Document, ID>(
         searchIndex,
         fieldId,
         searchIndex._documentCount,
-        fieldLength,
+        fieldLength
       );
-    },
+    }
   );
 
   searchIndex._fieldLength.delete(shortId);
@@ -104,17 +104,17 @@ export const discard = <Document, ID>(
  * Discards the documents with the given IDs, so they won't appear in search
  * results
  *
- * It is equivalent to calling [[discard]] for all the given IDs,
+ * It is equivalent to calling {@link discard} for all the given IDs,
  * but with the optimization of triggering at most one automatic vacuuming at
  * the end.
  *
  * Note: to remove all documents from the index, it is faster and more
- * convenient to call [[removeAll]] with no argument, instead of
+ * convenient to call {@link removeAll} with no argument, instead of
  * passing all IDs to this method.
  */
 export const discardAll = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  ids: readonly ID[],
+  ids: readonly ID[]
 ): void => {
   const autoVacuum = searchIndex._options.autoVacuum;
 
@@ -137,7 +137,7 @@ export const discardAll = <Document, ID>(
  *
  * This method requires passing the full document to be removed (not just the
  * ID), and immediately removes the document from the inverted index, allowing
- * memory to be released. A convenient alternative is [[discard]],
+ * memory to be released. A convenient alternative is {@link discard},
  * which needs only the document ID, and has the same visible effect, but
  * delays cleaning up the index until the next vacuuming.
  *
@@ -146,7 +146,7 @@ export const discardAll = <Document, ID>(
  */
 export const remove = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  document: Document,
+  document: Document
 ): void => {
   const { tokenize, processTerm, extractField, fields, idField } =
     searchIndex._options;
@@ -161,7 +161,7 @@ export const remove = <Document, ID>(
     throw new Error(
       `SlimSearch: cannot remove document with ID ${<string>(
         id
-      )}: it is not in the index`,
+      )}: it is not in the index`
     );
 
   for (const field of fields) {
@@ -178,7 +178,7 @@ export const remove = <Document, ID>(
       searchIndex,
       fieldId,
       searchIndex._documentCount,
-      uniqueTerms,
+      uniqueTerms
     );
 
     for (const term of tokens) {
@@ -211,13 +211,13 @@ export const remove = <Document, ID>(
  */
 export const removeAll = function removeAll<Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  documents?: readonly Document[],
+  documents?: readonly Document[]
 ): void {
   if (documents) {
     for (const document of documents) remove(searchIndex, document);
   } else if (arguments.length > 1) {
     throw new Error(
-      "Expected documents to be present. Omit the argument to remove all documents.",
+      "Expected documents to be present. Omit the argument to remove all documents."
     );
   } else {
     searchIndex._index = new SearchableMap();

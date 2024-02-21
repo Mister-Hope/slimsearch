@@ -1,3 +1,5 @@
+import { WILDCARD } from "./symbols.js";
+
 export interface SerializedIndexEntry {
   [key: string]: number;
 }
@@ -79,7 +81,7 @@ export type SearchResult<
   score: number;
 
   /**
-   * Match information, see [[MatchInfo]]
+   * Match information, see {@link MatchInfo}
    */
   match: MatchInfo;
 };
@@ -128,7 +130,7 @@ export interface SearchOptions<ID = any> {
   boostDocument?: (
     documentId: ID,
     term: string,
-    storedFields?: Record<string, unknown>,
+    storedFields?: Record<string, unknown>
   ) => number;
 
   /**
@@ -210,7 +212,7 @@ export interface SearchOptions<ID = any> {
 }
 
 /**
- * Configuration options passed to the [[SearchIndex]] constructor
+ * Configuration options passed to the {@link SearchIndex} constructor
  *
  * @typeParam Document  The type of documents being indexed.
  * @typeParam ID  The type of id being indexed.
@@ -269,7 +271,7 @@ export interface SearchIndexOptions<Document = any, ID = any> {
    */
   processTerm?: (
     term: string,
-    fieldName?: string,
+    fieldName?: string
   ) => string | string[] | null | undefined | false;
 
   /**
@@ -283,23 +285,23 @@ export interface SearchIndexOptions<Document = any, ID = any> {
 
   /**
    * If `true` (the default), vacuuming is performed automatically as soon as
-   * [[discard]] is called a certain number of times, cleaning up
+   * {@link discard} is called a certain number of times, cleaning up
    * obsolete references from the index. If `false`, no automatic vacuuming is
    * performed. Custom settings controlling auto vacuuming thresholds, as well
    * as batching behavior, can be passed as an object (see the
-   * [[AutoVacuumOptions]] type).
+   * {@link AutoVacuumOptions} type).
    */
   autoVacuum?: boolean | AutoVacuumOptions;
 
   /**
-   * Default search options (see the [[SearchOptions]] type and the
-   * [[search]] method for details)
+   * Default search options (see the {@link SearchOptions} type and the
+   * {@link search} method for details)
    */
   searchOptions?: SearchOptions<ID>;
 
   /**
-   * Default auto suggest options (see the [[SearchOptions]] type and the
-   * [[autoSuggest]] method for details)
+   * Default auto suggest options (see the {@link SearchOptions} type and the
+   * {@link autoSuggest} method for details)
    */
   autoSuggestOptions?: SearchOptions<ID>;
 }
@@ -347,16 +349,21 @@ export interface QueryCombination<ID = any> extends SearchOptions<ID> {
 }
 
 /**
+ * Wildcard query, used to match all terms
+ */
+export type Wildcard = typeof WILDCARD;
+
+/**
  * Search query expression, either a query string or an expression tree
  * combining several queries with a combination of AND or OR.
  */
-export type Query = QueryCombination | string;
+export type Query = QueryCombination | string | Wildcard;
 
 /**
  * Options to control vacuuming behavior.
  *
  * Vacuuming cleans up document references made obsolete by
- * [[discard]] from the index. On large indexes, vacuuming is
+ * {@link discard} from the index. On large indexes, vacuuming is
  * potentially costly, because it has to traverse the whole inverted index.
  * Therefore, in order to dilute this cost so it does not negatively affects the
  * application, vacuuming is performed in batches, with a delay between each
@@ -396,12 +403,12 @@ export interface VacuumConditions {
 
 /**
  * Options to control auto vacuum behavior. When discarding a document with
- * [[discard]], a vacuuming operation is automatically started if the
+ * {@link discard}, a vacuuming operation is automatically started if the
  * `dirtCount` and `dirtFactor` are above the `minDirtCount` and `minDirtFactor`
- * thresholds defined by this configuration. See [[VacuumConditions]] for
+ * thresholds defined by this configuration. See {@link VacuumConditions} for
  * details on these.
  *
  * Also, `batchSize` and `batchWait` can be specified, controlling batching
- * behavior (see [[VacuumOptions]]).
+ * behavior (see {@link VacuumOptions}).
  */
 export type AutoVacuumOptions = VacuumOptions & VacuumConditions;

@@ -1,5 +1,6 @@
 import { type SearchIndex } from "./SearchIndex.js";
 import { executeQuery } from "./results.js";
+import { WILDCARD } from "./symbols.js";
 import {
   type Query,
   type SearchOptions,
@@ -100,6 +101,28 @@ import { byScore } from "./utils.js";
  * })
  * ```
  *
+ * ### Wildcard query
+ *
+ * Searching for an empty string (assuming the default tokenizer) returns no
+ * results. Sometimes though, one needs to match all documents, like in a
+ * "wildcard" search. This is possible by passing the special value
+ * `wildcard` as the query:
+ *
+ * ```javascript
+ * // Return search results for all documents
+ * search(index, WILDCARD)
+ * ```
+ *
+ * Note that search options such as `filter` and `boostDocument` are still
+ * applied, influencing which results are returned, and their order:
+ *
+ * ```javascript
+ * // Return search results for all documents in the 'fiction' category
+ * search(index, WILDCARD, {
+ *   filter: (result) => result.category === 'fiction'
+ * })
+ * ```
+ *
  * ### Advanced combination of queries:
  *
  * It is possible to combine different subqueries with OR, AND, and AND_NOT,
@@ -153,16 +176,16 @@ export const search = <
 >(
   searchIndex: SearchIndex<Document, ID>,
   query: Query,
-  searchOptions: SearchOptions<ID> = {},
+  searchOptions: SearchOptions<ID> = {}
 ): SearchResult<ID, Field>[] => {
-  const combinedResults = executeQuery(searchIndex, query, searchOptions);
+  const rawResults = executeQuery(searchIndex, query, searchOptions);
 
   const results: SearchResult<ID, Field>[] = [];
 
-  for (const [docId, { score, terms, match }] of combinedResults) {
+  for (const [docId, { score, terms, match }] of rawResults) {
     // Final score takes into account the number of matching QUERY terms.
     // The end user will only receive the MATCHED terms.
-    const quality = terms.length;
+    const quality = terms.length || 1;
 
     const result = {
       id: searchIndex._documentIds.get(docId)!,
@@ -175,6 +198,15 @@ export const search = <
     if (searchOptions.filter == null || searchOptions.filter(result))
       results.push(<SearchResult<ID, Field>>result);
   }
+
+  // If it's a wildcard query, and no document boost is applied, skip sorting
+  // the results, as all results have the same score of 1
+  if (
+    query === WILDCARD &&
+    searchOptions.boostDocument == null &&
+    searchIndex._options.searchOptions.boostDocument == null
+  )
+    return results;
 
   results.sort(byScore);
 

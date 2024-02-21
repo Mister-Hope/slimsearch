@@ -8,7 +8,7 @@ import { type VacuumConditions, type VacuumOptions } from "./typings.js";
 
 const shouldVacuum = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  conditions?: VacuumConditions,
+  conditions?: VacuumConditions
 ): boolean => {
   if (conditions == null) return true;
 
@@ -26,7 +26,7 @@ const shouldVacuum = <Document, ID>(
 const doVacuum = async <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   options: VacuumOptions,
-  conditions?: VacuumConditions,
+  conditions?: VacuumConditions
 ): Promise<void> => {
   const initialDirtCount = searchIndex._dirtCount;
 
@@ -67,7 +67,7 @@ const doVacuum = async <Document, ID>(
 const conditionalVacuum = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
   options: VacuumOptions,
-  conditions?: VacuumConditions,
+  conditions?: VacuumConditions
 ): Promise<void> => {
   // If a vacuum is already ongoing, schedule another as soon as it finishes,
   // unless there's already one enqueued. If one was already enqueued, do not
@@ -97,7 +97,7 @@ const conditionalVacuum = <Document, ID>(
 };
 
 export const maybeAutoVacuum = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+  searchIndex: SearchIndex<Document, ID>
 ): void => {
   if (searchIndex._options.autoVacuum === false) return;
 
@@ -107,7 +107,7 @@ export const maybeAutoVacuum = <Document, ID>(
   void conditionalVacuum(
     searchIndex,
     { batchSize, batchWait },
-    { minDirtCount, minDirtFactor },
+    { minDirtCount, minDirtFactor }
   );
 };
 
@@ -116,10 +116,10 @@ export const maybeAutoVacuum = <Document, ID>(
  * from the inverted index
  *
  * Vacuuming is only useful for applications that use the
- * [[discard]] or [[replace]] methods.
+ * {@link discard} or {@link replace} methods.
  *
  * By default, vacuuming is performed automatically when needed (controlled by
- * the `autoVacuum` field in [[Options]]), so there is usually no need to call
+ * the `autoVacuum` field in {@link SearchOptions}), so there is usually no need to call
  * this method, unless one wants to make sure to perform vacuuming at a
  * specific moment.
  *
@@ -149,9 +149,9 @@ export const maybeAutoVacuum = <Document, ID>(
  *
  * @param searchIndex Search Index
  * @param options  Configuration options for the batch size and delay. See
- * [[VacuumOptions]].
+ * {@link VacuumOptions}.
  */
 export const vacuum = <Document, ID>(
   searchIndex: SearchIndex<Document, ID>,
-  options: VacuumOptions = {},
+  options: VacuumOptions = {}
 ): Promise<void> => conditionalVacuum(searchIndex, options);
