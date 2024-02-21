@@ -71,9 +71,16 @@ export type SearchResult<
   id: ID;
 
   /**
-   * List of terms that matched
+   * List of document terms that matched. For example, if a prefix search for
+   * `"moto"` matches `"motorcycle"`, `terms` will contain `"motorcycle"`.
    */
   terms: string[];
+
+  /**
+   * List of query terms that matched. For example, if a prefix search for
+   * `"moto"` matches `"motorcycle"`, `queryTerms` will contain `"moto"`.
+   */
+  queryTerms: string[];
 
   /**
    * Score of the search results

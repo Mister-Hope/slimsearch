@@ -183,14 +183,17 @@ export const search = <
   const results: SearchResult<ID, Field>[] = [];
 
   for (const [docId, { score, terms, match }] of rawResults) {
-    // Final score takes into account the number of matching QUERY terms.
-    // The end user will only receive the MATCHED terms.
+    // terms are the matched query terms, which will be returned to the user
+    // as queryTerms. The quality is calculated based on them, as opposed to
+    // the matched terms in the document (which can be different due to
+    // prefix and fuzzy match)
     const quality = terms.length || 1;
 
     const result = {
       id: searchIndex._documentIds.get(docId)!,
       score: score * quality,
       terms: Object.keys(match),
+      queryTerms: terms,
       match,
     };
 
