@@ -1,5 +1,12 @@
 import { WILDCARD } from "./symbols.js";
 
+export type LowercaseCombinationOperator = "or" | "and" | "and_not";
+
+export type CombinationOperator =
+  | LowercaseCombinationOperator
+  | Uppercase<LowercaseCombinationOperator>
+  | Capitalize<LowercaseCombinationOperator>;
+
 export interface SerializedIndexEntry {
   [key: string]: number;
 }
@@ -60,11 +67,12 @@ export interface MatchInfo {
  * fields.
  *
  * @typeParam ID  The type of id being indexed.
+ * @typeParam Index The type of the documents being indexed.
  */
 export type SearchResult<
   ID = any,
-  Field extends Record<string, any> = Record<never, never>,
-> = Field & {
+  Index extends Record<string, any> = Record<never, never>,
+> = Index & {
   /**
    * The document ID
    */
@@ -98,7 +106,10 @@ export type SearchResult<
  *
  * @typeParam ID  The type of id being indexed.
  */
-export interface SearchOptions<ID = any> {
+export interface SearchOptions<
+  ID = any,
+  Index extends Record<string, any> = Record<never, never>,
+> {
   /**
    * Names of the fields to search in. If omitted, all fields are searched.
    */
@@ -109,7 +120,7 @@ export interface SearchOptions<ID = any> {
    * fields. It takes as argument each search result and should return a boolean
    * to indicate if the result should be kept or not.
    */
-  filter?: (result: SearchResult) => boolean;
+  filter?: (result: SearchResult<ID, Index>) => boolean;
 
   /**
    * Key-value object of field names to boosting values. By default, fields are
@@ -137,7 +148,7 @@ export interface SearchOptions<ID = any> {
   boostDocument?: (
     documentId: ID,
     term: string,
-    storedFields?: Record<string, unknown>
+    storedFields?: Index,
   ) => number;
 
   /**
@@ -195,7 +206,7 @@ export interface SearchOptions<ID = any> {
    * search. If "AND" is given, only results matching _all_ the search terms are
    * returned by a search.
    */
-  combineWith?: string;
+  combineWith?: CombinationOperator;
 
   /**
    * Function to tokenize the search query. By default, the same tokenizer used
@@ -221,10 +232,15 @@ export interface SearchOptions<ID = any> {
 /**
  * Configuration options passed to the {@link SearchIndex} constructor
  *
- * @typeParam Document  The type of documents being indexed.
  * @typeParam ID  The type of id being indexed.
+ * @typeParam Document  The type of documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
  */
-export interface SearchIndexOptions<Document = any, ID = any> {
+export interface SearchIndexOptions<
+  ID = any,
+  Document = any,
+  Index extends Record<string, any> = Record<never, never>,
+> {
   /**
    * Names of the document fields to be indexed.
    */
@@ -278,7 +294,7 @@ export interface SearchIndexOptions<Document = any, ID = any> {
    */
   processTerm?: (
     term: string,
-    fieldName?: string
+    fieldName?: string,
   ) => string | string[] | null | undefined | false;
 
   /**
@@ -304,13 +320,13 @@ export interface SearchIndexOptions<Document = any, ID = any> {
    * Default search options (see the {@link SearchOptions} type and the
    * {@link search} method for details)
    */
-  searchOptions?: SearchOptions<ID>;
+  searchOptions?: SearchOptions<ID, Index>;
 
   /**
    * Default auto suggest options (see the {@link SearchOptions} type and the
    * {@link autoSuggest} method for details)
    */
-  autoSuggestOptions?: SearchOptions<ID>;
+  autoSuggestOptions?: SearchOptions<ID, Index>;
 }
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
@@ -335,14 +351,16 @@ export interface Suggestion {
   score: number;
 }
 
-export interface IndexObject {
+export interface IndexObject<
+  Index extends Record<string, any> = Record<never, never>,
+> {
   documentCount: number;
   nextId: number;
   documentIds: { [shortId: string]: any };
   fieldIds: { [fieldName: string]: number };
   fieldLength: { [shortId: string]: number[] };
   averageFieldLength: number[];
-  storedFields: { [shortId: string]: Record<string, unknown> };
+  storedFields: { [shortId: string]: Index };
   dirtCount?: number;
   index: [string, { [fieldId: string]: SerializedIndexEntry }][];
   serializationVersion: number;
@@ -350,8 +368,12 @@ export interface IndexObject {
 
 /**
  * @typeParam ID  The type of id being indexed.
+ * @typeParam Index The type of the documents being indexed.
  */
-export interface QueryCombination<ID = any> extends SearchOptions<ID> {
+export interface QueryCombination<
+  ID = any,
+  Index extends Record<string, any> = Record<never, never>,
+> extends SearchOptions<ID, Index> {
   queries: Query[];
 }
 

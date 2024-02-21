@@ -17,7 +17,7 @@ describe("has()", () => {
         text: "Quel ramo del lago di Como",
       },
     ];
-    const index = createIndex<Document, number>({ fields: ["title", "text"] });
+    const index = createIndex<number, Document>({ fields: ["title", "text"] });
 
     addAll(index, documents);
 
@@ -50,7 +50,7 @@ describe("has()", () => {
         text: "Quel ramo del lago di Como",
       },
     ];
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "text"],
       idField: "uid",
     });

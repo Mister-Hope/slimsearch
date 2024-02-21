@@ -1,7 +1,11 @@
 import { type SearchIndex } from "./SearchIndex.js";
 
-export const warnDocumentChanged = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const warnDocumentChanged = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   shortDocumentId: number,
   fieldId: number,
   term: string,

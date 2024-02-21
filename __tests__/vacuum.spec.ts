@@ -17,7 +17,7 @@ interface Document {
 
 describe("vacuum", () => {
   it("cleans up discarded documents from the index", async () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       storeFields: ["text"],
     });
@@ -46,7 +46,7 @@ describe("vacuum", () => {
   });
 
   it("schedules a second vacuum right after the current one completes, if one is ongoing", async () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
     });
     const empty = loadJSONIndex(JSON.stringify(index), {
@@ -73,7 +73,7 @@ describe("vacuum", () => {
   });
 
   it("does not enqueue more than one vacuum on top of the ongoing one", async () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
     });
     const documents: Document[] = [
@@ -99,7 +99,7 @@ describe("vacuum", () => {
   });
 
   it("allows batch size to be bigger than the term count", async () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
     });
     const documents: Document[] = [

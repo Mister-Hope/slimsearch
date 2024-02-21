@@ -11,7 +11,7 @@ import {
 
 describe("index", () => {
   bench("add(document)", () => {
-    const index = createIndex<Index>({ fields: ["txt"] });
+    const index = createIndex<string, Index>({ fields: ["txt"] });
 
     lines.forEach((line) => {
       add(index, line);
@@ -19,13 +19,13 @@ describe("index", () => {
   });
 
   bench("addAll(documents)", () => {
-    const index = createIndex<Index>({ fields: ["txt"] });
+    const index = createIndex<string, Index>({ fields: ["txt"] });
 
     addAll(index, lines);
   });
 
   bench("addAllAsync(documents)", async () => {
-    const index = createIndex<Index>({ fields: ["txt"] });
+    const index = createIndex<string, Index>({ fields: ["txt"] });
 
     await addAllAsync(index, lines);
   });

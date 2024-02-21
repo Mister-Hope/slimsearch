@@ -26,7 +26,7 @@ describe("remove()", () => {
     },
   ];
 
-  let index: SearchIndex<Document, number>, _warn: (...args: any[]) => void;
+  let index: SearchIndex<number, Document>, _warn: (...args: any[]) => void;
 
   beforeEach(() => {
     index = createIndex({ fields: ["title", "text"] });
@@ -88,7 +88,7 @@ describe("remove()", () => {
         document,
       ) as unknown as string;
     };
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text.value"],
       storeFields: ["id"],
       extractField,
@@ -141,7 +141,7 @@ describe("remove()", () => {
         getDefaultValue("extractField")
       ))(document, fieldName);
     };
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       extractField,
     });
@@ -160,7 +160,7 @@ describe("remove()", () => {
   });
 
   it("does not crash when the document has field named like default properties of object", () => {
-    const index = createIndex<{ id: number }, number>({
+    const index = createIndex<number, { id: number }>({
       fields: ["constructor"],
     });
     const document = { id: 1 };
@@ -187,7 +187,7 @@ describe("remove()", () => {
     type Document = { id: number; title: string };
     const processTerm = (term: string): string | null =>
       term === "foo" ? null : term;
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "text"],
       processTerm,
     });
@@ -203,7 +203,7 @@ describe("remove()", () => {
     type Document = { id: number; title: string };
     const processTerm = (term: string): string[] | string =>
       term === "foobar" ? ["foo", "bar"] : term;
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "text"],
       processTerm,
     });
@@ -242,7 +242,7 @@ describe("remove()", () => {
       { id: 3, title: "Vita Nova", author: { name: "Dante Alighieri" } },
     ];
 
-    let index: SearchIndex<Document, number>, _warn: (...args: any[]) => void;
+    let index: SearchIndex<number, Document>, _warn: (...args: any[]) => void;
 
     beforeEach(() => {
       index = createIndex({

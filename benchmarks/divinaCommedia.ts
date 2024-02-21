@@ -8,7 +8,7 @@ export interface Index {
   txt: string;
 }
 
-const index = createIndex<Index>({ fields: ["txt"] });
+const index = createIndex<number, Index>({ fields: ["txt"] });
 
 addAll(index, lines);
 

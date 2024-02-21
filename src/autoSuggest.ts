@@ -64,10 +64,14 @@ import { byScore } from "./utils.js";
  * with `'AND'`.
  * @return  A sorted array of suggestions sorted by relevance score.
  */
-export const autoSuggest = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const autoSuggest = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   queryString: string,
-  options: SearchOptions<ID> = {},
+  options: SearchOptions<ID, Index> = {},
 ): Suggestion[] => {
   options = { ...searchIndex._options.autoSuggestOptions, ...options };
 

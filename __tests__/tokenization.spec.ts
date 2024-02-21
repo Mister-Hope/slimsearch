@@ -43,7 +43,7 @@ e forse del mio dir poco ti cale`,
       { id: 4, title: "سمت  الرأس" },
       { id: 5, title: "123 45" },
     ];
-    const index = createIndex<{ id: number; title: string }, number>({
+    const index = createIndex<number, { id: number; title: string }>({
       fields: ["title"],
     });
 

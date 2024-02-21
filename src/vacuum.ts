@@ -6,9 +6,13 @@ import {
 } from "./defaults.js";
 import { type VacuumConditions, type VacuumOptions } from "./typings.js";
 
-const shouldVacuum = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  conditions?: VacuumConditions
+const shouldVacuum = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  conditions?: VacuumConditions,
 ): boolean => {
   if (conditions == null) return true;
 
@@ -23,10 +27,14 @@ const shouldVacuum = <Document, ID>(
   );
 };
 
-const doVacuum = async <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+const doVacuum = async <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   options: VacuumOptions,
-  conditions?: VacuumConditions
+  conditions?: VacuumConditions,
 ): Promise<void> => {
   const initialDirtCount = searchIndex._dirtCount;
 
@@ -64,10 +72,14 @@ const doVacuum = async <Document, ID>(
   searchIndex._enqueuedVacuum = null;
 };
 
-const conditionalVacuum = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+const conditionalVacuum = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   options: VacuumOptions,
-  conditions?: VacuumConditions
+  conditions?: VacuumConditions,
 ): Promise<void> => {
   // If a vacuum is already ongoing, schedule another as soon as it finishes,
   // unless there's already one enqueued. If one was already enqueued, do not
@@ -96,8 +108,12 @@ const conditionalVacuum = <Document, ID>(
   return searchIndex._currentVacuum;
 };
 
-export const maybeAutoVacuum = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>
+export const maybeAutoVacuum = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
 ): void => {
   if (searchIndex._options.autoVacuum === false) return;
 
@@ -107,7 +123,7 @@ export const maybeAutoVacuum = <Document, ID>(
   void conditionalVacuum(
     searchIndex,
     { batchSize, batchWait },
-    { minDirtCount, minDirtFactor }
+    { minDirtCount, minDirtFactor },
   );
 };
 
@@ -151,7 +167,11 @@ export const maybeAutoVacuum = <Document, ID>(
  * @param options  Configuration options for the batch size and delay. See
  * {@link VacuumOptions}.
  */
-export const vacuum = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  options: VacuumOptions = {}
+export const vacuum = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  options: VacuumOptions = {},
 ): Promise<void> => conditionalVacuum(searchIndex, options);

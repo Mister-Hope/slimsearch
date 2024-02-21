@@ -30,7 +30,7 @@ describe("autoSuggest", () => {
       category: "poetry",
     },
   ];
-  const index = createIndex<Document, number>({
+  const index = createIndex<number, Document, { category: string }>({
     fields: ["title", "text"],
     storeFields: ["category"],
   });
@@ -111,7 +111,7 @@ describe("autoSuggest", () => {
   });
 
   it("respects the custom defaults set in the constructor", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "text"],
       autoSuggestOptions: { combineWith: "OR", fuzzy: true },
     });
@@ -126,7 +126,7 @@ describe("autoSuggest", () => {
   });
 
   it("applies the default search options if not overridden by the auto suggest defaults", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "text"],
       searchOptions: { combineWith: "OR", fuzzy: true },
     });

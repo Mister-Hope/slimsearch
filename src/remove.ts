@@ -3,11 +3,15 @@ import { SearchableMap } from "./SearchableMap/SearchableMap.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
 
-const removeFieldLength = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+const removeFieldLength = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   count: number,
-  length: number
+  length: number,
 ): void => {
   if (count === 1) {
     searchIndex._avgFieldLength[fieldId] = 0;
@@ -65,9 +69,13 @@ const removeFieldLength = <Document, ID>(
  * @param searchIndex The search Index
  * @param id  The ID of the document to be discarded
  */
-export const discard = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  id: ID
+export const discard = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  id: ID,
 ): void => {
   const shortId = searchIndex._idToShortId.get(id);
 
@@ -75,7 +83,7 @@ export const discard = <Document, ID>(
     throw new Error(
       `SlimSearch: cannot discard document with ID ${<string>(
         id
-      )}: it is not in the index`
+      )}: it is not in the index`,
     );
 
   searchIndex._idToShortId.delete(id);
@@ -87,9 +95,9 @@ export const discard = <Document, ID>(
         searchIndex,
         fieldId,
         searchIndex._documentCount,
-        fieldLength
+        fieldLength,
       );
-    }
+    },
   );
 
   searchIndex._fieldLength.delete(shortId);
@@ -112,9 +120,13 @@ export const discard = <Document, ID>(
  * convenient to call {@link removeAll} with no argument, instead of
  * passing all IDs to this method.
  */
-export const discardAll = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  ids: readonly ID[]
+export const discardAll = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  ids: readonly ID[],
 ): void => {
   const autoVacuum = searchIndex._options.autoVacuum;
 
@@ -144,9 +156,13 @@ export const discardAll = <Document, ID>(
  * @param searchIndex The search Index
  * @param document  The document to be removed
  */
-export const remove = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  document: Document
+export const remove = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  document: Document,
 ): void => {
   const { tokenize, processTerm, extractField, fields, idField } =
     searchIndex._options;
@@ -161,7 +177,7 @@ export const remove = <Document, ID>(
     throw new Error(
       `SlimSearch: cannot remove document with ID ${<string>(
         id
-      )}: it is not in the index`
+      )}: it is not in the index`,
     );
 
   for (const field of fields) {
@@ -178,7 +194,7 @@ export const remove = <Document, ID>(
       searchIndex,
       fieldId,
       searchIndex._documentCount,
-      uniqueTerms
+      uniqueTerms,
     );
 
     for (const term of tokens) {
@@ -209,15 +225,19 @@ export const remove = <Document, ID>(
  * more efficient to call this method with no arguments than to pass all
  * documents.
  */
-export const removeAll = function removeAll<Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  documents?: readonly Document[]
+export const removeAll = function removeAll<
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  documents?: readonly Document[],
 ): void {
   if (documents) {
     for (const document of documents) remove(searchIndex, document);
   } else if (arguments.length > 1) {
     throw new Error(
-      "Expected documents to be present. Omit the argument to remove all documents."
+      "Expected documents to be present. Omit the argument to remove all documents.",
     );
   } else {
     searchIndex._index = new SearchableMap();

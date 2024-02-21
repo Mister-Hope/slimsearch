@@ -6,7 +6,7 @@ describe("replace()", () => {
   type Document = { id: number; text: string };
 
   it("replaces an existing document with a new version", () => {
-    const index = createIndex<Document, number>({ fields: ["text"] });
+    const index = createIndex<number, Document>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Some quite interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
@@ -26,7 +26,7 @@ describe("replace()", () => {
   });
 
   it("raises error if a document with the given ID does not exist", () => {
-    const index = createIndex<Document, number>({ fields: ["text"] });
+    const index = createIndex<number, Document>({ fields: ["text"] });
 
     expect(() => {
       replace(index, { id: 1, text: "Some stuff" });

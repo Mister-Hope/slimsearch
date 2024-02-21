@@ -20,8 +20,14 @@ import {
   type VacuumConditions,
 } from "./typings.js";
 
-interface OptionsWithDefaults<Document = any, ID = any>
-  extends Omit<SearchIndexOptions<Document, ID>, "processTerm" | "tokenize"> {
+interface OptionsWithDefaults<
+  ID = any,
+  Document = any,
+  Index extends Record<string, any> = Record<string, never>,
+> extends Omit<
+    SearchIndexOptions<ID, Document, Index>,
+    "processTerm" | "tokenize"
+  > {
   storeFields: string[];
 
   idField: string;
@@ -39,17 +45,18 @@ interface OptionsWithDefaults<Document = any, ID = any>
 
   autoVacuum: false | AutoVacuumOptions;
 
-  searchOptions: SearchOptionsWithDefaults<ID>;
+  searchOptions: SearchOptionsWithDefaults<ID, Index>;
 
-  autoSuggestOptions: SearchOptions<ID>;
+  autoSuggestOptions: SearchOptions<ID, Index>;
 }
 
 export type FieldTermData = Map<number, DocumentTermFrequencies>;
 
 /**
  *
- * @typeParam Document  The type of the documents being indexed.
  * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
  *
  * ### Basic example:
  *
@@ -101,8 +108,12 @@ export type FieldTermData = Map<number, DocumentTermFrequencies>;
  * // ]
  * ```
  */
-export class SearchIndex<Document = any, ID = any> {
-  _options: OptionsWithDefaults<Document>;
+export class SearchIndex<
+  ID = any,
+  Document = any,
+  Index extends Record<string, any> = Record<never, never>,
+> {
+  _options: OptionsWithDefaults<ID, Document, Index>;
   _index: SearchableMap<FieldTermData>;
   _documentCount: number;
   _documentIds: Map<number, ID>;
@@ -111,13 +122,13 @@ export class SearchIndex<Document = any, ID = any> {
   _fieldLength: Map<number, number[]>;
   _avgFieldLength: number[];
   _nextId: number;
-  _storedFields: Map<number, Record<string, unknown>>;
+  _storedFields: Map<number, Index>;
   _dirtCount: number;
   _currentVacuum: Promise<void> | null;
   _enqueuedVacuum: Promise<void> | null;
   _enqueuedVacuumConditions: VacuumConditions | undefined;
 
-  constructor(options: SearchIndexOptions<Document, ID>) {
+  constructor(options: SearchIndexOptions<ID, Document, Index>) {
     if (options?.fields == null)
       throw new Error('SlimSearch: option "fields" must be provided');
 
@@ -236,7 +247,7 @@ export class SearchIndex<Document = any, ID = any> {
    *
    * @return A plain-object serializable representation of the search index.
    */
-  toJSON(): IndexObject {
+  toJSON(): IndexObject<Index> {
     const index: [string, { [key: string]: SerializedIndexEntry }][] = [];
 
     for (const [term, fieldIndex] of this._index) {

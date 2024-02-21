@@ -1,6 +1,7 @@
 import { AND, AND_NOT, OR } from "./constant.js";
 import {
   type BM25Params,
+  type LowercaseCombinationOperator,
   type MatchInfo,
   type SearchOptions,
 } from "./typings.js";
@@ -65,7 +66,10 @@ export type RawResult = Map<number, RawResultValue>;
 
 export type CombinatorFunction = (a: RawResult, b: RawResult) => RawResult;
 
-export const combinators: { [kind: string]: CombinatorFunction } = {
+export const combinators: Record<
+  LowercaseCombinationOperator,
+  CombinatorFunction
+> = {
   [OR]: (a: RawResult, b: RawResult) => {
     for (const docId of b.keys()) {
       const existing = a.get(docId);

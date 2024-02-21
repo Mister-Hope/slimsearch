@@ -70,11 +70,19 @@ import { objectToNumericMap } from "./utils.js";
  * })
  * ```
  */
-export const createIndex = <Document = any, ID = any>(
-  options: SearchIndexOptions<Document, ID>,
-): SearchIndex<Document, ID> => new SearchIndex(options);
+export const createIndex = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  options: SearchIndexOptions<ID, Document, Index>,
+): SearchIndex<ID, Document, Index> => new SearchIndex(options);
 
-export const loadIndex = <Document = any, ID = any>(
+export const loadIndex = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
   {
     index,
     documentCount,
@@ -86,9 +94,9 @@ export const loadIndex = <Document = any, ID = any>(
     storedFields,
     dirtCount,
     serializationVersion,
-  }: IndexObject,
-  options: SearchIndexOptions<Document, ID>,
-): SearchIndex<Document, ID> => {
+  }: IndexObject<Index>,
+  options: SearchIndexOptions<ID, Document, Index>,
+): SearchIndex<ID, Document, Index> => {
   if (serializationVersion !== 1 && serializationVersion !== 2)
     throw new Error(
       "SlimSearch: cannot deserialize an index created with an incompatible version",
@@ -154,14 +162,18 @@ export const loadIndex = <Document = any, ID = any>(
  * @param options  configuration options, same as the constructor
  * @return An instance of SearchIndex deserialized from the given JSON.
  */
-export const loadJSONIndex = <Document = any, ID = any>(
+export const loadJSONIndex = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
   json: string,
-  options: SearchIndexOptions<Document, ID>,
-): SearchIndex<Document, ID> => {
+  options: SearchIndexOptions<ID, Document, Index>,
+): SearchIndex<ID, Document, Index> => {
   if (options == null)
     throw new Error(
       "SlimSearch: loadJSON should be given the same options used when serializing the index",
     );
 
-  return loadIndex(<IndexObject>JSON.parse(json), options);
+  return loadIndex(<IndexObject<Index>>JSON.parse(json), options);
 };

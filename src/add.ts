@@ -2,8 +2,12 @@ import { type SearchIndex } from "./SearchIndex.js";
 import { has } from "./info.js";
 import { addTerm } from "./term.js";
 
-const addFieldLength = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+const addFieldLength = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   documentId: number,
   fieldId: number,
   count: number,
@@ -21,8 +25,12 @@ const addFieldLength = <Document, ID>(
   searchIndex._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
 };
 
-const addDocumentId = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+const addDocumentId = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   documentId: ID,
 ): number => {
   const shortDocumentId = searchIndex._nextId;
@@ -35,8 +43,12 @@ const addDocumentId = <Document, ID>(
   return shortDocumentId;
 };
 
-const saveStoredFields = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+const saveStoredFields = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   documentId: number,
   doc: Document,
 ): void => {
@@ -44,10 +56,11 @@ const saveStoredFields = <Document, ID>(
 
   if (storeFields == null || storeFields.length === 0) return;
 
-  let documentFields = searchIndex._storedFields.get(documentId);
+  let documentFields: Record<string, unknown> | undefined =
+    searchIndex._storedFields.get(documentId);
 
-  if (documentFields == null)
-    searchIndex._storedFields.set(documentId, (documentFields = {}));
+  if (documentFields === undefined)
+    searchIndex._storedFields.set(documentId, <Index>(documentFields = {}));
 
   for (const fieldName of storeFields) {
     const fieldValue = extractField(doc, fieldName);
@@ -62,18 +75,23 @@ const saveStoredFields = <Document, ID>(
  * @param searchIndex  The search index
  * @param document  The document to be indexed
  */
-export const add = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const add = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
   const { extractField, tokenize, processTerm, fields, idField } =
     searchIndex._options;
-  const id = extractField(document, idField);
+  const id = <ID>extractField(document, idField);
 
   if (id == null)
     throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
-  if (has(searchIndex, id)) throw new Error(`SlimSearch: duplicate ID ${id}`);
+  if (has(searchIndex, id))
+    throw new Error(`SlimSearch: duplicate ID ${<string>id}`);
 
   // @ts-ignore
   const shortDocumentId = addDocumentId(searchIndex, id);
@@ -116,8 +134,12 @@ export const add = <Document, ID>(
  * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  */
-export const addAll = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const addAll = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
 ): void => {
   for (const document of documents) add(searchIndex, document);
@@ -135,8 +157,12 @@ export const addAll = <Document, ID>(
  * @param options  Configuration options
  * @return A promise resolving to `undefined` when the indexing is done
  */
-export const addAllAsync = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const addAllAsync = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
   options: { chunkSize?: number } = {},
 ): Promise<void> => {

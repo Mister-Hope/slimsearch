@@ -18,9 +18,13 @@ import { discard } from "./remove.js";
  * @param updatedDocument  The updated document to replace the old version
  * with
  */
-export const replace = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
-  updatedDocument: Document
+export const replace = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  updatedDocument: Document,
 ): void => {
   const { idField, extractField } = searchIndex._options;
   const id = <ID>extractField(updatedDocument, idField);

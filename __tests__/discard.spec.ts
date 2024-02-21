@@ -15,7 +15,7 @@ import {
 describe("discard()", () => {
   type Document = { id: number; text: string };
   it("prevents a document from appearing in search results", () => {
-    const index = createIndex<Document, number>({ fields: ["text"] });
+    const index = createIndex<number, Document>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Some interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
@@ -43,7 +43,7 @@ describe("discard()", () => {
   });
 
   it("adjusts internal data to account for the document being discarded", () => {
-    const index = createIndex<Document, number>({ fields: ["text"] });
+    const index = createIndex<number, Document>({ fields: ["text"] });
     const documents = [
       { id: 1, text: "Some interesting stuff" },
       { id: 2, text: "Some more interesting stuff" },
@@ -67,7 +67,7 @@ describe("discard()", () => {
   });
 
   it("allows adding a new version of the document afterwards", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       storeFields: ["text"],
     });
@@ -94,7 +94,7 @@ describe("discard()", () => {
   });
 
   it("leaves the index in the same state as removal when all terms are searched at least once", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       storeFields: ["text"],
     });
@@ -120,7 +120,7 @@ describe("discard()", () => {
   });
 
   it("triggers auto vacuum by default", () => {
-    const index = createIndex<Document, number>({ fields: ["text"] });
+    const index = createIndex<number, Document>({ fields: ["text"] });
 
     add(index, { id: 1, text: "Some stuff" });
     index._dirtCount = 1000;
@@ -130,7 +130,7 @@ describe("discard()", () => {
   });
 
   it("triggers auto vacuum when the threshold is met", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount: 2,
@@ -157,7 +157,7 @@ describe("discard()", () => {
   });
 
   it("does not trigger auto vacuum if disabled", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: false,
     });
@@ -174,7 +174,7 @@ describe("discard()", () => {
   });
 
   it("applies default settings if autoVacuum is set to true", () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: true,
     });
@@ -191,7 +191,7 @@ describe("discard()", () => {
   });
 
   it("applies default settings if options are set to null", async () => {
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: {
         // @ts-ignore
@@ -221,7 +221,7 @@ describe("discard()", () => {
 
   it("vacuums until under the dirt thresholds when called multiple times", async () => {
     const minDirtCount = 2;
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount,
@@ -251,7 +251,7 @@ describe("discard()", () => {
 
   it("does not perform unnecessary vacuuming when called multiple times", async () => {
     const minDirtCount = 2;
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount,
@@ -281,7 +281,7 @@ describe("discard()", () => {
 
   it("enqueued vacuum runs without conditions if a manual vacuum was called while enqueued", async () => {
     const minDirtCount = 2;
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: {
         minDirtCount,

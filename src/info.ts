@@ -7,8 +7,12 @@ import { type SearchIndex } from "./SearchIndex.js";
  * @param searchIndex The search Index
  * @param id  The document ID
  */
-export const has = <Document, ID>(
-  searchIndex: SearchIndex<Document>,
+export const has = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
 ): boolean => searchIndex._idToShortId.has(id);
 
@@ -20,10 +24,14 @@ export const has = <Document, ID>(
  * @param searchIndex The search Index
  * @param id  The document ID
  */
-export const getStoredFields = <Document, ID>(
-  searchIndex: SearchIndex<Document>,
+export const getStoredFields = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
-): Record<string, unknown> | undefined => {
+): Index | undefined => {
   const shortId = searchIndex._idToShortId.get(id);
 
   if (shortId == null) return undefined;

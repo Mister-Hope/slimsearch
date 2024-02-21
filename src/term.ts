@@ -5,8 +5,12 @@ import { warnDocumentChanged } from "./warning.js";
 /**
  * @ignore
  */
-export const addTerm = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const addTerm = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   documentId: number,
   term: string,
@@ -26,8 +30,12 @@ export const addTerm = <Document, ID>(
   }
 };
 
-export const removeTerm = <Document, ID>(
-  searchIndex: SearchIndex<Document, ID>,
+export const removeTerm = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   documentId: number,
   term: string,

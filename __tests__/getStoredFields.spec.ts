@@ -17,7 +17,7 @@ describe("getStoredFields()", () => {
         text: "Quel ramo del lago di Como",
       },
     ];
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "text"],
       storeFields: ["title", "text"],
     });

@@ -9,7 +9,7 @@ interface Index {
 
 describe("add()", () => {
   it("adds the document to the index", () => {
-    const index = createIndex<Index>({
+    const index = createIndex<number, Index>({
       fields: ["text"],
     });
 
@@ -18,7 +18,7 @@ describe("add()", () => {
   });
 
   it("does not throw error if a field is missing", () => {
-    const index = createIndex<Index>({ fields: ["title", "text"] });
+    const index = createIndex<number, Index>({ fields: ["title", "text"] });
 
     add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
     expect(index.documentCount).toEqual(1);
@@ -27,7 +27,7 @@ describe("add()", () => {
   it("throws error if the document does not have the ID field", () => {
     type Document = { foo: string; text: string; title?: string };
 
-    const index = createIndex<Document, string>({
+    const index = createIndex<string, Document>({
       idField: "foo",
       fields: ["title", "text"],
     });
@@ -41,7 +41,7 @@ describe("add()", () => {
   it("throws error on duplicate ID", () => {
     type Document = { foo: string; text: string; title?: string };
 
-    const index = createIndex<Document, string>({
+    const index = createIndex<string, Document>({
       idField: "foo",
       fields: ["title", "text"],
     });
@@ -85,7 +85,7 @@ describe("add()", () => {
   it("rejects falsy terms", () => {
     const processTerm = (term: string): string | null =>
       term === "foo" ? null : term;
-    const index = createIndex<{ id: number; text: string }, number>({
+    const index = createIndex<number, { id: number; text: string }>({
       fields: ["title", "text"],
       processTerm,
     });
@@ -99,7 +99,7 @@ describe("add()", () => {
     type Document = { id: number; tags?: string[]; isBlinky: boolean };
 
     const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["id", "tags", "isBlinky"],
       tokenize,
     });
@@ -143,7 +143,7 @@ describe("add()", () => {
       },
     );
     const tokenize = vi.fn((token: string): string[] => token.split(/\W+/));
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["title", "pubDate", "author.name"],
       storeFields: ["category"],
       extractField,
@@ -175,7 +175,7 @@ describe("add()", () => {
       text: string;
     };
     const tokenize = vi.fn((content: string): string[] => content.split(/\W+/));
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text", "title"],
       tokenize,
     });
@@ -197,7 +197,7 @@ describe("add()", () => {
       text: string;
     };
     const processTerm = vi.fn((term: string): string => term.toLowerCase());
-    const index = createIndex<Document, number>({
+    const index = createIndex<number, Document>({
       fields: ["text", "title"],
       processTerm,
     });
@@ -219,7 +219,7 @@ describe("add()", () => {
   it("allows processTerm to expand a single term into several terms", () => {
     const processTerm = (term: string): string[] | string =>
       term === "foobar" ? ["foo", "bar"] : term;
-    const index = createIndex<{ id: number; text: string }, number>({
+    const index = createIndex<number, { id: number; text: string }>({
       fields: ["title", "text"],
       processTerm,
     });

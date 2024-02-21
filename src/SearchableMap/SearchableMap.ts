@@ -76,7 +76,7 @@ export class SearchableMap<T = any> {
 
     const [node, path] = trackDown(
       this._tree,
-      prefix.slice(this._prefix.length)
+      prefix.slice(this._prefix.length),
     );
 
     if (node === undefined) {
@@ -307,7 +307,7 @@ export class SearchableMap<T = any> {
    * @return A new {@link SearchableMap} with the given entries
    */
   static from<T = any>(
-    entries: Iterable<Entry<T>> | Entry<T>[]
+    entries: Iterable<Entry<T>> | Entry<T>[],
   ): SearchableMap<T> {
     const tree = new SearchableMap<T>();
 
@@ -330,7 +330,7 @@ export class SearchableMap<T = any> {
 const trackDown = <T = any>(
   tree: RadixTree<T> | undefined,
   key: string,
-  path: Path<T> = []
+  path: Path<T> = [],
 ): [RadixTree<T> | undefined, Path<T>] => {
   if (key.length === 0 || tree == null) return [tree, path];
 
@@ -348,7 +348,7 @@ const trackDown = <T = any>(
 
 const lookup = <T = any>(
   tree: RadixTree<T>,
-  key: string
+  key: string,
 ): RadixTree<T> | undefined => {
   if (key.length === 0 || tree == null) return tree;
 
@@ -444,7 +444,7 @@ const cleanup = <T = any>(path: Path<T>): void => {
 const merge = <T = any>(
   path: Path<T>,
   key: string,
-  value: RadixTree<T>
+  value: RadixTree<T>,
 ): void => {
   if (path.length === 0) return;
 

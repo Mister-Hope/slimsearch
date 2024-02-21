@@ -172,15 +172,15 @@ import { byScore } from "./utils.js";
 export const search = <
   Document,
   ID,
-  Field extends Record<string, any> = Partial<Document>,
+  Index extends Record<string, any> = Partial<Document>,
 >(
-  searchIndex: SearchIndex<Document, ID>,
+  searchIndex: SearchIndex<ID, Document, Index>,
   query: Query,
-  searchOptions: SearchOptions<ID> = {}
-): SearchResult<ID, Field>[] => {
+  searchOptions: SearchOptions<ID, Index> = {},
+): SearchResult<ID, Index>[] => {
   const rawResults = executeQuery(searchIndex, query, searchOptions);
 
-  const results: SearchResult<ID, Field>[] = [];
+  const results: SearchResult<ID, Index>[] = [];
 
   for (const [docId, { score, terms, match }] of rawResults) {
     // terms are the matched query terms, which will be returned to the user
@@ -189,7 +189,7 @@ export const search = <
     // prefix and fuzzy match)
     const quality = terms.length || 1;
 
-    const result = {
+    const result = <SearchResult<ID, Index>>{
       id: searchIndex._documentIds.get(docId)!,
       score: score * quality,
       terms: Object.keys(match),
@@ -199,7 +199,7 @@ export const search = <
 
     Object.assign(result, searchIndex._storedFields.get(docId));
     if (searchOptions.filter == null || searchOptions.filter(result))
-      results.push(<SearchResult<ID, Field>>result);
+      results.push(result);
   }
 
   // If it's a wildcard query, and no document boost is applied, skip sorting
