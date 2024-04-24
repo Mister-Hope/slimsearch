@@ -1,4 +1,4 @@
-import { WILDCARD } from "./symbols.js";
+import type { WILDCARD } from "./symbols.js";
 
 export type LowercaseCombinationOperator = "or" | "and" | "and_not";
 
@@ -7,9 +7,7 @@ export type CombinationOperator =
   | Uppercase<LowercaseCombinationOperator>
   | Capitalize<LowercaseCombinationOperator>;
 
-export interface SerializedIndexEntry {
-  [key: string]: number;
-}
+export type SerializedIndexEntry = Record<string, number>;
 
 /**
  * Parameters of the BM25+ scoring algorithm. Customizing these is almost never
@@ -57,9 +55,7 @@ export interface BM25Params {
  * are terms that matched, and values are the list of fields that the term was
  * found in.
  */
-export interface MatchInfo {
-  [term: string]: string[];
-}
+export type MatchInfo = Record<string, string[]>;
 
 /**
  * Type of the search results. Each search result indicates the document ID, the
@@ -129,13 +125,13 @@ export interface SearchOptions<
    * twice as high as a result matching the query in another field, all else
    * being equal.
    */
-  boost?: { [fieldName: string]: number };
+  boost?: Record<string, number>;
 
   /**
    * Relative weights to assign to prefix search results and fuzzy search
    * results. Exact matches are assigned a weight of 1.
    */
-  weights?: { fuzzy: number; prefix: number };
+  weights?: { fuzzy?: number; prefix?: number };
 
   /**
    * Function to calculate a boost factor for documents. It takes as arguments
@@ -356,13 +352,13 @@ export interface IndexObject<
 > {
   documentCount: number;
   nextId: number;
-  documentIds: { [shortId: string]: any };
-  fieldIds: { [fieldName: string]: number };
-  fieldLength: { [shortId: string]: number[] };
+  documentIds: Record<string, any>;
+  fieldIds: Record<string, number>;
+  fieldLength: Record<string, number[]>;
   averageFieldLength: number[];
-  storedFields: { [shortId: string]: Index };
+  storedFields: Record<string, Index>;
   dirtCount?: number;
-  index: [string, { [fieldId: string]: SerializedIndexEntry }][];
+  index: [string, Record<string, SerializedIndexEntry>][];
   serializationVersion: number;
 }
 

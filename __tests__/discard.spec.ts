@@ -13,7 +13,10 @@ import {
 } from "../src/index.js";
 
 describe("discard()", () => {
-  type Document = { id: number; text: string };
+  interface Document {
+    id: number;
+    text: string;
+  }
   it("prevents a document from appearing in search results", () => {
     const index = createIndex<number, Document>({ fields: ["text"] });
     const documents = [
@@ -190,18 +193,14 @@ describe("discard()", () => {
     expect(index.isVacuuming).toEqual(true);
   });
 
-  it("applies default settings if options are set to null", async () => {
+  it("applies default settings if options are set to undefined", () => {
     const index = createIndex<number, Document>({
       fields: ["text"],
       autoVacuum: {
-        // @ts-ignore
-        minDirtCount: null,
-        // @ts-ignore
-        minDirtFactor: null,
-        // @ts-ignore
-        batchWait: null,
-        // @ts-ignore
-        batchSize: null,
+        minDirtCount: undefined,
+        minDirtFactor: undefined,
+        batchWait: undefined,
+        batchSize: undefined,
       },
     });
     const documents = [
@@ -212,11 +211,9 @@ describe("discard()", () => {
     addAll(index, documents);
     index._dirtCount = 1000;
 
-    const x = discard(index, 1);
+    discard(index, 1);
 
     expect(index.isVacuuming).toEqual(true);
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    await x;
   });
 
   it("vacuums until under the dirt thresholds when called multiple times", async () => {

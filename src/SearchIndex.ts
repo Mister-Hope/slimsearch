@@ -6,18 +6,18 @@ import {
   defaultSearchOptions,
   defaultVacuumConditions,
 } from "./defaults.js";
-import {
-  type DocumentTermFrequencies,
-  type SearchOptionsWithDefaults,
+import type {
+  DocumentTermFrequencies,
+  SearchOptionsWithDefaults,
 } from "./results.js";
-import {
-  type AutoVacuumOptions,
-  type IndexObject,
-  type LogLevel,
-  type SearchIndexOptions,
-  type SearchOptions,
-  type SerializedIndexEntry,
-  type VacuumConditions,
+import type {
+  AutoVacuumOptions,
+  IndexObject,
+  LogLevel,
+  SearchIndexOptions,
+  SearchOptions,
+  SerializedIndexEntry,
+  VacuumConditions,
 } from "./typings.js";
 
 interface OptionsWithDefaults<
@@ -118,7 +118,7 @@ export class SearchIndex<
   _documentCount: number;
   _documentIds: Map<number, ID>;
   _idToShortId: Map<ID, number>;
-  _fieldIds: { [key: string]: number };
+  _fieldIds: Record<string, number>;
   _fieldLength: Map<number, number[]>;
   _avgFieldLength: number[];
   _nextId: number;
@@ -137,18 +137,18 @@ export class SearchIndex<
         ? defaultAutoVacuumOptions
         : options.autoVacuum;
 
-    // @ts-ignore
     this._options = {
       ...defaultOptions,
       ...options,
       autoVacuum,
+      // @ts-expect-error: some option is optional
       searchOptions: {
         ...defaultSearchOptions,
-        ...(options.searchOptions || {}),
+        ...options.searchOptions,
       },
       autoSuggestOptions: {
         ...defaultAutoSuggestOptions,
-        ...(options.autoSuggestOptions || {}),
+        ...options.autoSuggestOptions,
       },
     };
 
@@ -248,10 +248,10 @@ export class SearchIndex<
    * @return A plain-object serializable representation of the search index.
    */
   toJSON(): IndexObject<Index> {
-    const index: [string, { [key: string]: SerializedIndexEntry }][] = [];
+    const index: [string, Record<string, SerializedIndexEntry>][] = [];
 
     for (const [term, fieldIndex] of this._index) {
-      const data: { [key: string]: SerializedIndexEntry } = {};
+      const data: Record<string, SerializedIndexEntry> = {};
 
       for (const [fieldId, frequencies] of fieldIndex)
         data[fieldId] = Object.fromEntries(frequencies);

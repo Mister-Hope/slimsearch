@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { SearchIndex } from "../src/index.js";
 import {
-  type SearchIndex,
   addAll,
   createIndex,
   loadJSONIndex,
@@ -10,7 +10,11 @@ import {
 } from "../src/index.js";
 
 describe("removeAll()", () => {
-  type Document = { id: number; text: string; title: string };
+  interface Document {
+    id: number;
+    text: string;
+    title: string;
+  }
   const documents = [
     {
       id: 1,
@@ -64,14 +68,14 @@ describe("removeAll()", () => {
 
   it("raises an error if called with a falsey argument", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: Wrong param
       removeAll(index, null);
     }).toThrowError();
     expect(() => {
       removeAll(index, undefined);
     }).toThrowError();
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: Wrong param
       removeAll(index, false);
     }).toThrowError();
     expect(() => {

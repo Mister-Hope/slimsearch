@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  type Suggestion,
-  addAll,
-  autoSuggest,
-  createIndex,
-} from "../src/index.js";
+import type { Suggestion } from "../src/index.js";
+import { addAll, autoSuggest, createIndex } from "../src/index.js";
 
 describe("autoSuggest", () => {
-  type Document = { id: number; text: string; title: string; category: string };
+  interface Document {
+    id: number;
+    text: string;
+    title: string;
+    category: string;
+  }
 
   const documents = [
     {

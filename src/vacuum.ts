@@ -1,10 +1,10 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import {
   defaultAutoVacuumOptions,
   defaultVacuumConditions,
   defaultVacuumOptions,
 } from "./defaults.js";
-import { type VacuumConditions, type VacuumOptions } from "./typings.js";
+import type { VacuumConditions, VacuumOptions } from "./typings.js";
 
 const shouldVacuum = <
   ID,
@@ -39,8 +39,8 @@ const doVacuum = async <
   const initialDirtCount = searchIndex._dirtCount;
 
   if (shouldVacuum(searchIndex, conditions)) {
-    const batchSize = options.batchSize || defaultVacuumOptions.batchSize;
-    const batchWait = options.batchWait || defaultVacuumOptions.batchWait;
+    const batchSize = options.batchSize ?? defaultVacuumOptions.batchSize;
+    const batchWait = options.batchWait ?? defaultVacuumOptions.batchWait;
     let i = 1;
 
     for (const [term, fieldsData] of searchIndex._index) {

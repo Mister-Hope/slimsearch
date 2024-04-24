@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { SearchResult } from "../src/index.js";
 import {
-  type SearchResult,
   WILDCARD,
   add,
   addAll,
@@ -220,7 +220,6 @@ describe("search()", () => {
     const prefixLast = search(index, "cammino quel", {
       fuzzy: true,
       prefix: true,
-      // @ts-ignore
       weights: { prefix: 0.1 },
     });
 
@@ -230,7 +229,6 @@ describe("search()", () => {
     const fuzzyLast = search(index, "cammino quel", {
       fuzzy: true,
       prefix: true,
-      // @ts-ignore
       weights: { fuzzy: 0.1 },
     });
 
@@ -261,8 +259,8 @@ describe("search()", () => {
   });
 
   it("accepts a function to compute fuzzy and prefix options from term", () => {
-    const fuzzy = vi.fn((term) => (term.length > 4 ? 2 : false));
-    const prefix = vi.fn((term) => term.length > 4);
+    const fuzzy = vi.fn((term: string) => (term.length > 4 ? 2 : false));
+    const prefix = vi.fn((term: string) => term.length > 4);
     const results = search(index, "quel comedia", { fuzzy, prefix });
 
     expect(fuzzy).toHaveBeenNthCalledWith(1, "quel", 0, ["quel", "comedia"]);
@@ -297,7 +295,7 @@ describe("search()", () => {
     const query = "vita";
     const boostDocument = vi.fn((id: any) => (id === 3 ? null : 1));
     const resultsWithoutBoost = search(index, query);
-    // @ts-ignore
+    // @ts-expect-error: boostDocument type issue
     const results = search(index, query, { boostDocument });
 
     expect(resultsWithoutBoost.map(({ id }) => id)).toContain(3);
@@ -349,10 +347,10 @@ describe("search()", () => {
   });
 
   it("allows customizing BM25+ parameters", () => {
-    type Document = {
+    interface Document {
       id: number;
       text: string;
-    };
+    }
     const index = createIndex<number, Document>({
       fields: ["text"],
       searchOptions: { bm25: { k: 1.2, b: 0.7, d: 0.5 } },
@@ -388,11 +386,11 @@ describe("search()", () => {
   });
 
   it("allows searching for the special value `WILDCARD` to match all terms", () => {
-    type Document = {
+    interface Document {
       id: number;
       text: string | null;
       cool: boolean;
-    };
+    }
     const index = createIndex<number, Document, { cool: boolean }>({
       fields: ["text"],
       storeFields: ["cool"],
@@ -536,11 +534,11 @@ describe("search()", () => {
   });
 
   describe("match data", () => {
-    type Document = {
+    interface Document {
       id: number;
       title: string;
       text: string;
-    };
+    }
     const documents = [
       {
         id: 1,
@@ -650,15 +648,15 @@ describe("search()", () => {
     });
 
     it("does not break when special properties of object are used as a term", () => {
-      type Document = {
+      interface Document {
         id: number;
         text: string;
-      };
+      }
       const specialWords = ["constructor", "hasOwnProperty", "isPrototypeOf"];
       const index = createIndex<number, Document>({ fields: ["text"] });
-      const processTerm = <(term: string) => string>(
-        getDefaultValue("processTerm")
-      );
+      const processTerm = getDefaultValue("processTerm") as (
+        term: string,
+      ) => string;
 
       add(index, { id: 1, text: specialWords.join(" ") });
 
@@ -843,7 +841,11 @@ describe("search()", () => {
   });
 
   describe("song ranking set", () => {
-    type Document = { id: string; song: string; artist: string };
+    interface Document {
+      id: string;
+      song: string;
+      artist: string;
+    }
     const index = createIndex<string, Document, { song: string }>({
       fields: ["song", "artist"],
       storeFields: ["song"],

@@ -1,4 +1,4 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/SearchableMap.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
@@ -81,24 +81,20 @@ export const discard = <
 
   if (shortId == null)
     throw new Error(
-      `SlimSearch: cannot discard document with ID ${<string>(
-        id
-      )}: it is not in the index`,
+      `SlimSearch: cannot discard document with ID ${id as string}: it is not in the index`,
     );
 
   searchIndex._idToShortId.delete(id);
   searchIndex._documentIds.delete(shortId);
   searchIndex._storedFields.delete(shortId);
-  (searchIndex._fieldLength.get(shortId) || []).forEach(
-    (fieldLength, fieldId) => {
-      removeFieldLength(
-        searchIndex,
-        fieldId,
-        searchIndex._documentCount,
-        fieldLength,
-      );
-    },
-  );
+  searchIndex._fieldLength.get(shortId)?.forEach((fieldLength, fieldId) => {
+    removeFieldLength(
+      searchIndex,
+      fieldId,
+      searchIndex._documentCount,
+      fieldLength,
+    );
+  });
 
   searchIndex._fieldLength.delete(shortId);
 
@@ -166,7 +162,7 @@ export const remove = <
 ): void => {
   const { tokenize, processTerm, extractField, fields, idField } =
     searchIndex._options;
-  const id = <ID>extractField(document, idField);
+  const id = extractField(document, idField) as ID;
 
   if (id == null)
     throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
@@ -175,9 +171,7 @@ export const remove = <
 
   if (shortId == null)
     throw new Error(
-      `SlimSearch: cannot remove document with ID ${<string>(
-        id
-      )}: it is not in the index`,
+      `SlimSearch: cannot remove document with ID ${id as string}: it is not in the index`,
     );
 
   for (const field of fields) {

@@ -1,4 +1,4 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 
 /**
  * Returns `true` if a document with the given ID is present in the index and

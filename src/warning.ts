@@ -1,4 +1,4 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 
 export const warnDocumentChanged = <
   ID,

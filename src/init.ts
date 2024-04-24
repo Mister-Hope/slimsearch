@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type FieldTermData, SearchIndex } from "./SearchIndex.js";
+import type { FieldTermData } from "./SearchIndex.js";
+import { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/SearchableMap.js";
-import { type DocumentTermFrequencies } from "./results.js";
-import {
-  type IndexObject,
-  type SearchIndexOptions,
-  type SerializedIndexEntry,
+import type { DocumentTermFrequencies } from "./results.js";
+import type {
+  IndexObject,
+  SearchIndexOptions,
+  SerializedIndexEntry,
 } from "./typings.js";
 import { objectToNumericMap } from "./utils.js";
 
@@ -112,7 +113,7 @@ export const loadIndex = <
   searchIndex._fieldLength = objectToNumericMap(fieldLength);
   searchIndex._avgFieldLength = averageFieldLength;
   searchIndex._storedFields = objectToNumericMap(storedFields);
-  searchIndex._dirtCount = dirtCount || 0;
+  searchIndex._dirtCount = dirtCount ?? 0;
   searchIndex._index = new SearchableMap();
 
   for (const [shortId, id] of searchIndex._documentIds)
@@ -175,5 +176,5 @@ export const loadJSONIndex = <
       "SlimSearch: loadJSON should be given the same options used when serializing the index",
     );
 
-  return loadIndex(<IndexObject<Index>>JSON.parse(json), options);
+  return loadIndex(JSON.parse(json) as IndexObject<Index>, options);
 };

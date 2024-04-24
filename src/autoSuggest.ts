@@ -1,6 +1,6 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { search } from "./search.js";
-import { type SearchOptions, type Suggestion } from "./typings.js";
+import type { SearchOptions, Suggestion } from "./typings.js";
 import { byScore } from "./utils.js";
 
 /**
@@ -75,10 +75,10 @@ export const autoSuggest = <
 ): Suggestion[] => {
   options = { ...searchIndex._options.autoSuggestOptions, ...options };
 
-  const suggestions: Map<
+  const suggestions = new Map<
     string,
     Omit<Suggestion, "suggestion"> & { count: number }
-  > = new Map();
+  >();
 
   for (const { score, terms } of search(searchIndex, queryString, options)) {
     const phrase = terms.join(" ");

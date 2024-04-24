@@ -210,7 +210,7 @@ describe("SearchableMap", () => {
     it("throws error if the given key is not a string", () => {
       const map = new SearchableMap();
 
-      // @ts-expect-error
+      // @ts-expect-error: key should be string
       expect(() => map.set(123, "foo")).toThrow("key must be a string");
     });
   });
@@ -247,7 +247,7 @@ describe("SearchableMap", () => {
       const map = new SearchableMap();
 
       expect(() =>
-        // @ts-expect-error
+        // @ts-expect-error: key must be string
         map.update(123, () => {
           // do nothing
         }),

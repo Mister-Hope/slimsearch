@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { SearchIndex } from "../src/index.js";
 import {
-  type SearchIndex,
   add,
   addAll,
   createIndex,
@@ -11,7 +11,11 @@ import {
 } from "../src/index.js";
 
 describe("remove()", () => {
-  type Document = { id: number; text: string; title: string };
+  interface Document {
+    id: number;
+    text: string;
+    title: string;
+  }
   const documents = [
     {
       id: 1,
@@ -78,13 +82,16 @@ describe("remove()", () => {
   });
 
   it("removes documents when using a custom extractField", () => {
-    type Document = { id: number; text: { value: string } };
+    interface Document {
+      id: number;
+      text: { value: string };
+    }
     const extractField = (document: Document, fieldName: string): string => {
       const path = fieldName.split(".");
 
       return path.reduce(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        (doc, key) => doc && doc[key],
+        (doc, key) => doc?.[key],
         document,
       ) as unknown as string;
     };
@@ -125,21 +132,27 @@ describe("remove()", () => {
     >({ idField: "foo", fields: ["title", "text"] });
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: document does not have ID field
       remove(index, { text: "I do not have an ID" });
     }).toThrowError('SlimSearch: document does not have ID field "foo"');
   });
 
   it("extracts the ID field using extractField", () => {
-    type Document = { id: { value: number }; text: string };
+    interface Document {
+      id: { value: number };
+      text: string;
+    }
 
     const extractField = (document: Document, fieldName: string): string => {
-      // @ts-ignore
+      // @ts-expect-error: id could be number
       if (fieldName === "id") return document.id.value;
 
-      return (<(document: Document, fieldName: string) => string>(
-        getDefaultValue("extractField")
-      ))(document, fieldName);
+      return (
+        getDefaultValue("extractField") as (
+          document: Document,
+          fieldName: string,
+        ) => string
+      )(document, fieldName);
     };
     const index = createIndex<number, Document>({
       fields: ["text"],
@@ -184,7 +197,10 @@ describe("remove()", () => {
   });
 
   it("rejects falsy terms", () => {
-    type Document = { id: number; title: string };
+    interface Document {
+      id: number;
+      title: string;
+    }
     const processTerm = (term: string): string | null =>
       term === "foo" ? null : term;
     const index = createIndex<number, Document>({
@@ -200,7 +216,10 @@ describe("remove()", () => {
   });
 
   it("allows processTerm to expand a single term into several terms", () => {
-    type Document = { id: number; title: string };
+    interface Document {
+      id: number;
+      title: string;
+    }
     const processTerm = (term: string): string[] | string =>
       term === "foobar" ? ["foo", "bar"] : term;
     const index = createIndex<number, Document>({
@@ -218,14 +237,14 @@ describe("remove()", () => {
   });
 
   describe("when using custom per-field extraction/tokenizer/processing", () => {
-    type Document = {
+    interface Document {
       id: number;
       title: string;
       tags?: string;
       author: {
         name: string;
       };
-    };
+    }
     const documents: Document[] = [
       {
         id: 1,
@@ -282,7 +301,7 @@ describe("remove()", () => {
 
   describe("when the document was not in the index", () => {
     it("throws an error", () => {
-      // @ts-expect-errorF
+      // @ts-expect-errorF: id could be number
       expect(() => remove(index, { id: 99 })).toThrow(
         "SlimSearch: cannot remove document with ID 99: it is not in the index",
       );
@@ -313,7 +332,7 @@ describe("remove()", () => {
     });
 
     it("does not throw error if console.warn is undefined", () => {
-      // @ts-expect-error
+      // @ts-expect-error: force overriding console.warn
       console.warn = undefined;
       expect(() =>
         remove(index, {

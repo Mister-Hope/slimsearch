@@ -1,7 +1,8 @@
 /* eslint-disable no-labels */
 import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
-import { type FuzzyResults, fuzzySearch } from "./fuzzySearch.js";
-import { type Entry, type Path, type RadixTree } from "./types.js";
+import type { FuzzyResults } from "./fuzzySearch.js";
+import { fuzzySearch } from "./fuzzySearch.js";
+import type { Entry, Path, RadixTree } from "./types.js";
 
 /**
  * A class implementing the same interface as a standard JavaScript
@@ -181,7 +182,7 @@ export class SearchableMap<T = any> {
   has(key: string): boolean {
     const node = lookup(this._tree, key);
 
-    return node !== undefined && node.has(LEAF);
+    return node?.has(LEAF) ?? false;
   }
 
   /**
@@ -322,7 +323,7 @@ export class SearchableMap<T = any> {
    * @param object  Object of entries for the {@link SearchableMap}
    * @return A new {@link SearchableMap} with the given entries
    */
-  static fromObject<T = any>(object: { [key: string]: T }): SearchableMap<T> {
+  static fromObject<T = any>(object: Record<string, T>): SearchableMap<T> {
     return SearchableMap.from<T>(Object.entries(object));
   }
 }
@@ -415,9 +416,12 @@ const remove = <T = any>(tree: RadixTree<T>, key: string): void => {
   if (node.size === 0) {
     cleanup(path);
   } else if (node.size === 1) {
-    const [key, value] = (<
-      IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
-    >node.entries().next()).value;
+    const [key, value] = (
+      node.entries().next() as IteratorResult<
+        [string, RadixTree<T>],
+        [string, RadixTree<T>]
+      >
+    ).value;
 
     merge(path, key, value);
   }
@@ -433,9 +437,12 @@ const cleanup = <T = any>(path: Path<T>): void => {
   if (node!.size === 0) {
     cleanup(path.slice(0, -1));
   } else if (node!.size === 1) {
-    const [key, value] = (<
-      IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
-    >node!.entries().next()).value;
+    const [key, value] = (
+      node!.entries().next() as IteratorResult<
+        [string, RadixTree<T>],
+        [string, RadixTree<T>]
+      >
+    ).value;
 
     if (key !== LEAF) merge(path.slice(0, -1), key, value);
   }

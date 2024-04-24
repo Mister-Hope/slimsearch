@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import { addAll, createIndex, replace, search } from "../src/index.js";
 
 describe("replace()", () => {
-  type Document = { id: number; text: string };
+  interface Document {
+    id: number;
+    text: string;
+  }
 
   it("replaces an existing document with a new version", () => {
     const index = createIndex<number, Document>({ fields: ["text"] });

@@ -1,4 +1,4 @@
-import { type Entry, type LeafType, type RadixTree } from "./types.js";
+import type { Entry, LeafType, RadixTree } from "./types.js";
 
 const ENTRIES = "ENTRIES";
 
@@ -22,10 +22,10 @@ type IteratorPath<T> = {
   keys: string[];
 }[];
 
-export type IterableSet<T> = {
+export interface IterableSet<T> {
   _tree: RadixTree<T>;
   _prefix: string;
-};
+}
 
 /**
  * @private

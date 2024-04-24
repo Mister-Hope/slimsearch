@@ -4,7 +4,11 @@ import { addAll, createIndex, discard, has, remove } from "../src/index.js";
 
 describe("has()", () => {
   it("returns true if a document with the given ID was added to the index, false otherwise", () => {
-    type Document = { id: number; text: string; title: string };
+    interface Document {
+      id: number;
+      text: string;
+      title: string;
+    }
     const documents = [
       {
         id: 1,
@@ -37,7 +41,11 @@ describe("has()", () => {
   });
 
   it("works well with custom ID fields", () => {
-    type Document = { uid: number; text: string; title: string };
+    interface Document {
+      uid: number;
+      text: string;
+      title: string;
+    }
     const documents = [
       {
         uid: 1,

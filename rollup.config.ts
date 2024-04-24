@@ -1,4 +1,4 @@
-import { type RollupOptions } from "rollup";
+import type { RollupOptions } from "rollup";
 import dts from "rollup-plugin-dts";
 import esbuild from "rollup-plugin-esbuild";
 
@@ -66,7 +66,7 @@ const bundle = ({
   } as RollupOptions,
 ];
 
-export default process.env["BENCHMARK"]
+export default process.env.BENCHMARK
   ? bundle({
       input: "../benchmarks/index",
       output: "../benchmarks/dist/index",

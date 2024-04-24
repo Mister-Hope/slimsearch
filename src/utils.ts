@@ -1,9 +1,9 @@
 import { AND, AND_NOT, OR } from "./constant.js";
-import {
-  type BM25Params,
-  type LowercaseCombinationOperator,
-  type MatchInfo,
-  type SearchOptions,
+import type {
+  BM25Params,
+  LowercaseCombinationOperator,
+  MatchInfo,
+  SearchOptions,
 } from "./typings.js";
 
 export const assignUniqueTerm = (target: string[], term: string): void => {
@@ -28,9 +28,9 @@ export const byScore = ({ score: a }: Scored, { score: b }: Scored): number =>
 
 export const createMap = <K, V>(): Map<K, V> => new Map<K, V>();
 
-export const objectToNumericMap = <Value>(object: {
-  [key: string]: Value;
-}): Map<number, Value> => {
+export const objectToNumericMap = <Value>(
+  object: Record<string, Value>,
+): Map<number, Value> => {
   const map = new Map<number, Value>();
 
   for (const key of Object.keys(object))
@@ -135,11 +135,11 @@ export const calcBM25Score = (
   );
 };
 
-export type QuerySpec = {
+export interface QuerySpec {
   prefix: boolean;
   fuzzy: number | boolean;
   term: string;
-};
+}
 
 export const termToQuerySpec =
   (options: SearchOptions) =>
@@ -147,7 +147,7 @@ export const termToQuerySpec =
     const fuzzy =
       typeof options.fuzzy === "function"
         ? options.fuzzy(term, i, terms)
-        : options.fuzzy || false;
+        : options.fuzzy ?? false;
     const prefix =
       typeof options.prefix === "function"
         ? options.prefix(term, i, terms)

@@ -1,11 +1,7 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { executeQuery } from "./results.js";
 import { WILDCARD } from "./symbols.js";
-import {
-  type Query,
-  type SearchOptions,
-  type SearchResult,
-} from "./typings.js";
+import type { Query, SearchOptions, SearchResult } from "./typings.js";
 import { byScore } from "./utils.js";
 
 /**
@@ -189,13 +185,13 @@ export const search = <
     // prefix and fuzzy match)
     const quality = terms.length || 1;
 
-    const result = <SearchResult<ID, Index>>{
+    const result = {
       id: searchIndex._documentIds.get(docId)!,
       score: score * quality,
       terms: Object.keys(match),
       queryTerms: terms,
       match,
-    };
+    } as SearchResult<ID, Index>;
 
     Object.assign(result, searchIndex._storedFields.get(docId));
     if (searchOptions.filter == null || searchOptions.filter(result))

@@ -1,4 +1,4 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { createMap } from "./utils.js";
 import { warnDocumentChanged } from "./warning.js";
 
@@ -26,7 +26,7 @@ export const addTerm = <
   } else {
     const docs = fieldIndex.get(documentId);
 
-    fieldIndex.set(documentId, (docs || 0) + 1);
+    fieldIndex.set(documentId, (docs ?? 0) + 1);
   }
 };
 
@@ -50,7 +50,7 @@ export const removeTerm = <
 
   const fieldIndex = indexData.get(fieldId);
 
-  if (fieldIndex == null || fieldIndex.get(documentId) == null)
+  if (fieldIndex?.get(documentId) == null)
     warnDocumentChanged(searchIndex, documentId, fieldId, term);
   else if (fieldIndex.get(documentId)! <= 1)
     if (fieldIndex.size <= 1) indexData.delete(fieldId);

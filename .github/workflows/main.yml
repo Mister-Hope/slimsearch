@@ -32,11 +32,11 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
 
-      - name: Linter
-        run: pnpm lint
-
       - name: Unit Tests
         run: pnpm coverage
+
+      - name: Linter
+        run: pnpm lint
 
       - name: Upload coverage
         if: github.ref == 'refs/heads/main'

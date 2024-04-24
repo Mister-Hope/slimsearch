@@ -25,7 +25,11 @@ describe("add()", () => {
   });
 
   it("throws error if the document does not have the ID field", () => {
-    type Document = { foo: string; text: string; title?: string };
+    interface Document {
+      foo: string;
+      text: string;
+      title?: string;
+    }
 
     const index = createIndex<string, Document>({
       idField: "foo",
@@ -33,13 +37,17 @@ describe("add()", () => {
     });
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: document does not have ID field
       add(index, { text: "I do not have an ID" });
     }).toThrowError('SlimSearch: document does not have ID field "foo"');
   });
 
   it("throws error on duplicate ID", () => {
-    type Document = { foo: string; text: string; title?: string };
+    interface Document {
+      foo: string;
+      text: string;
+      title?: string;
+    }
 
     const index = createIndex<string, Document>({
       idField: "foo",
@@ -54,7 +62,10 @@ describe("add()", () => {
   });
 
   it("extracts the ID field using extractField", () => {
-    type Document = { id: { value: number }; text: string };
+    interface Document {
+      id: { value: number };
+      text: string;
+    }
 
     const extractField = (
       document: Document,
@@ -62,13 +73,16 @@ describe("add()", () => {
     ): string | number => {
       if (fieldName === "id") return document.id.value;
 
-      return (<(document: any, fieldName: string) => string>(
-        getDefaultValue("extractField")
-      ))(document, fieldName);
+      return (
+        getDefaultValue("extractField") as (
+          document: any,
+          fieldName: string,
+        ) => string
+      )(document, fieldName);
     };
     const index = createIndex({
       fields: ["text"],
-      // @ts-ignore
+      // @ts-expect-error: id field can be number
       extractField,
     });
 
@@ -96,7 +110,11 @@ describe("add()", () => {
   });
 
   it("turns the field to string before tokenization", () => {
-    type Document = { id: number; tags?: string[]; isBlinky: boolean };
+    interface Document {
+      id: number;
+      tags?: string[];
+      isBlinky: boolean;
+    }
 
     const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
     const index = createIndex<number, Document>({
@@ -118,7 +136,7 @@ describe("add()", () => {
   });
 
   it("passes document and field name to the field extractor", () => {
-    type Document = {
+    interface Document {
       id: number;
       title: string;
       pubDate: Date;
@@ -126,18 +144,15 @@ describe("add()", () => {
         name: string;
       };
       category: string;
-    };
+    }
     const extractField = vi.fn(
       (document: Document, fieldName: string): string => {
         if (fieldName === "pubDate")
-          return (
-            document[fieldName] &&
-            document[fieldName].toLocaleDateString("it-IT")
-          );
+          return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
 
         return fieldName.split(".").reduce(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          (doc, key) => doc && doc[key],
+          (doc, key) => doc?.[key],
           document,
         ) as unknown as string;
       },
@@ -163,17 +178,17 @@ describe("add()", () => {
     expect(extractField).toHaveBeenCalledWith(document, "author.name");
     expect(extractField).toHaveBeenCalledWith(document, "category");
     expect(tokenize).toHaveBeenCalledWith(document.title, "title");
-    expect(tokenize).toHaveBeenCalledWith("1/1/1320", "pubDate");
+    expect(tokenize).toHaveBeenCalledWith("1320/1/1", "pubDate");
     expect(tokenize).toHaveBeenCalledWith(document.author.name, "author.name");
     expect(tokenize).not.toHaveBeenCalledWith(document.category, "category");
   });
 
   it("passes field value and name to tokenizer", () => {
-    type Document = {
+    interface Document {
       id: number;
       title: string;
       text: string;
-    };
+    }
     const tokenize = vi.fn((content: string): string[] => content.split(/\W+/));
     const index = createIndex<number, Document>({
       fields: ["text", "title"],
@@ -191,11 +206,11 @@ describe("add()", () => {
   });
 
   it("passes field value and name to term processor", () => {
-    type Document = {
+    interface Document {
       id: number;
       title: string;
       text: string;
-    };
+    }
     const processTerm = vi.fn((term: string): string => term.toLowerCase());
     const index = createIndex<number, Document>({
       fields: ["text", "title"],

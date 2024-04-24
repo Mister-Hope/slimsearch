@@ -1,4 +1,4 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { has } from "./info.js";
 import { addTerm } from "./term.js";
 
@@ -60,7 +60,7 @@ const saveStoredFields = <
     searchIndex._storedFields.get(documentId);
 
   if (documentFields === undefined)
-    searchIndex._storedFields.set(documentId, <Index>(documentFields = {}));
+    searchIndex._storedFields.set(documentId, (documentFields = {} as Index));
 
   for (const fieldName of storeFields) {
     const fieldValue = extractField(doc, fieldName);
@@ -85,15 +85,14 @@ export const add = <
 ): void => {
   const { extractField, tokenize, processTerm, fields, idField } =
     searchIndex._options;
-  const id = <ID>extractField(document, idField);
+  const id = extractField(document, idField) as ID;
 
   if (id == null)
     throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
   if (has(searchIndex, id))
-    throw new Error(`SlimSearch: duplicate ID ${<string>id}`);
+    throw new Error(`SlimSearch: duplicate ID ${id as string}`);
 
-  // @ts-ignore
   const shortDocumentId = addDocumentId(searchIndex, id);
 
   saveStoredFields(searchIndex, shortDocumentId, document);

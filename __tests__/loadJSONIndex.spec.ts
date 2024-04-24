@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { addAll, createIndex, loadJSONIndex, search } from "../src/index.js";
 
 describe("loadJSONIndex()", () => {
-  type Document = { id: number; text: string; title: string; category: string };
+  interface Document {
+    id: number;
+    text: string;
+    title: string;
+    category: string;
+  }
   const documents = [
     {
       id: 1,
@@ -54,7 +59,7 @@ describe("loadJSONIndex()", () => {
     const json = JSON.stringify(index);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: options is missing
       loadJSONIndex(json);
     }).toThrowError(
       "SlimSearch: loadJSON should be given the same options used when serializing the index",

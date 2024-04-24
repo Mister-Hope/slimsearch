@@ -1,4 +1,4 @@
-import { type SearchIndex } from "./SearchIndex.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { add } from "./add.js";
 import { discard } from "./remove.js";
 
@@ -27,7 +27,7 @@ export const replace = <
   updatedDocument: Document,
 ): void => {
   const { idField, extractField } = searchIndex._options;
-  const id = <ID>extractField(updatedDocument, idField);
+  const id = extractField(updatedDocument, idField) as ID;
 
   discard(searchIndex, id);
   add(searchIndex, updatedDocument);

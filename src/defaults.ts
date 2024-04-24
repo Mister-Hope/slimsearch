@@ -1,5 +1,5 @@
 import { AND, OR, SPACE_OR_PUNCTUATION } from "./constant.js";
-import { type BM25Params, type LogLevel } from "./typings.js";
+import type { BM25Params, LogLevel } from "./typings.js";
 import { getOwnProperty } from "./utils.js";
 
 export const defaultBM25params: BM25Params = { k: 1.2, b: 0.7, d: 0.5 };
@@ -18,7 +18,7 @@ export const defaultOptions = {
     if (typeof console?.[level] === "function") console[level](message);
   },
   autoVacuum: true,
-};
+} as const;
 
 export const defaultSearchOptions = {
   combineWith: OR,
@@ -28,13 +28,13 @@ export const defaultSearchOptions = {
   boost: {},
   weights: { fuzzy: 0.45, prefix: 0.375 },
   bm25: defaultBM25params,
-};
+} as const;
 
 export const defaultAutoSuggestOptions = {
   combineWith: AND,
   prefix: (_term: string, index: number, terms: string[]): boolean =>
     index === terms.length - 1,
-};
+} as const;
 
 export const defaultVacuumOptions = { batchSize: 1000, batchWait: 10 };
 export const defaultVacuumConditions = { minDirtFactor: 0.1, minDirtCount: 20 };

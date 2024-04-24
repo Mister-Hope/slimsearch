@@ -1,7 +1,7 @@
 import { bench, describe } from "vitest";
 
+import type { Index } from "./__fixtures__/store.js";
 import {
-  type Index,
   add,
   addAll,
   addAllAsync,

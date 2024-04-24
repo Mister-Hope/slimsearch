@@ -1,18 +1,17 @@
-import { FieldTermData, type SearchIndex } from "./SearchIndex.js";
+import type { FieldTermData, SearchIndex } from "./SearchIndex.js";
 import { OR } from "./constant.js";
 import { defaultSearchOptions } from "./defaults.js";
 import { WILDCARD } from "./symbols.js";
 import { removeTerm } from "./term.js";
-import {
-  type BM25Params,
-  type CombinationOperator,
-  type LowercaseCombinationOperator,
-  type Query,
-  type SearchOptions,
+import type {
+  BM25Params,
+  CombinationOperator,
+  LowercaseCombinationOperator,
+  Query,
+  SearchOptions,
 } from "./typings.js";
+import type { QuerySpec, RawResult } from "./utils.js";
 import {
-  type QuerySpec,
-  type RawResult,
   assignUniqueTerm,
   calcBM25Score,
   combinators,
@@ -24,7 +23,7 @@ export interface SearchOptionsWithDefaults<
   ID = any,
   Index extends Record<string, any> = Record<string, never>,
 > extends SearchOptions<ID, Index> {
-  boost: { [fieldName: string]: number };
+  boost: Record<string, number>;
 
   weights: { fuzzy: number; prefix: number };
 
@@ -53,6 +52,7 @@ const executeWildcardQuery = <
   searchOptions: SearchOptions<ID, Index>,
 ): RawResult => {
   const results = new Map() as RawResult;
+  // @ts-expect-error: some option is optional
   const options: SearchOptionsWithDefaults<ID, Index> = {
     ...searchIndex._options.searchOptions,
     ...searchOptions,
@@ -79,9 +79,9 @@ const combineResults = (
 ): RawResult => {
   if (results.length === 0) return new Map();
 
-  const operator = <LowercaseCombinationOperator>combineWith.toLowerCase();
+  const operator = combineWith.toLowerCase() as LowercaseCombinationOperator;
 
-  const combinator = combinators[<LowercaseCombinationOperator>operator];
+  const combinator = combinators[operator];
 
   if (!combinator)
     throw new Error(`Invalid combination operator: ${combineWith}`);
@@ -99,7 +99,7 @@ const termResults = <
   derivedTerm: string,
   termWeight: number,
   fieldTermData: FieldTermData | undefined,
-  fieldBoosts: { [field: string]: number },
+  fieldBoosts: Record<string, number>,
   boostDocumentFn:
     | ((id: ID, term: string, storedFields?: Index) => number)
     | undefined,
@@ -160,7 +160,7 @@ const termResults = <
       if (result) {
         result.score += weightedScore;
         assignUniqueTerm(result.terms, sourceTerm);
-        const match = <string[]>getOwnProperty(result.match, derivedTerm);
+        const match = getOwnProperty(result.match, derivedTerm) as string[];
 
         if (match) match.push(field);
         else result.match[derivedTerm] = [field];
@@ -186,12 +186,13 @@ const executeQuerySpec = <
   query: QuerySpec,
   searchOptions: SearchOptions<ID, Index>,
 ): RawResult => {
+  // @ts-expect-error: some option is optional
   const options: SearchOptionsWithDefaults<ID, Index> = {
     ...searchIndex._options.searchOptions,
     ...searchOptions,
   };
 
-  const boosts = (options.fields || searchIndex._options.fields).reduce(
+  const boosts = (options.fields ?? searchIndex._options.fields).reduce(
     (boosts, field) => ({
       ...boosts,
       [field]: getOwnProperty(options.boost, field) || 1,
@@ -326,15 +327,15 @@ export const executeQuery = <
     ...searchOptions,
   };
   const { tokenize: searchTokenize, processTerm: searchProcessTerm } = options;
-  // @ts-ignore
+  // @ts-expect-error: type is not the same
   const terms = searchTokenize(query)
-    // @ts-ignore
+    // @ts-expect-error: type is not the same
     .flatMap((term: string) => searchProcessTerm(term))
     .filter((term) => !!term) as string[];
-  // @ts-ignore
+  // @ts-expect-error: type is not the same
   const queries: QuerySpec[] = terms.map(termToQuerySpec(options));
   const results = queries.map((query) =>
-    // @ts-ignore
+    // @ts-expect-error: type is not the same
     executeQuerySpec(searchIndex, query, options),
   );
 

@@ -1,6 +1,7 @@
 import Benchmark from "benchmark";
 
-import { type Index, addAll, createIndex, lines } from "./divinaCommedia.js";
+import type { Index } from "./divinaCommedia.js";
+import { addAll, createIndex, lines } from "./divinaCommedia.js";
 
 const suite = new Benchmark.Suite("Indexing");
 

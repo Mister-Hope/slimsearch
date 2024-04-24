@@ -1,4 +1,5 @@
-import { type SearchIndex, addAll, createIndex } from "./divinaCommedia.js";
+import type { SearchIndex } from "./divinaCommedia.js";
+import { addAll, createIndex } from "./divinaCommedia.js";
 
 const heapSize = (): number => {
   if (global.gc) global.gc();
