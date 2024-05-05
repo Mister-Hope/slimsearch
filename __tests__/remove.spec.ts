@@ -90,6 +90,7 @@ describe("remove()", () => {
       const path = fieldName.split(".");
 
       return path.reduce(
+        // @ts-expect-error: untyped property
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         (doc, key) => doc?.[key],
         document,
@@ -268,16 +269,20 @@ describe("remove()", () => {
         fields: ["title", "tags", "authorName"],
         extractField: (doc, fieldName) => {
           if (fieldName === "authorName") return doc.author.name;
+
+          // @ts-expect-error: untyped property
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          else return doc[fieldName];
+          return doc[fieldName];
         },
         tokenize: (field, fieldName) => {
           if (fieldName === "tags") return field.split(",");
-          else return field.split(/\s+/);
+
+          return field.split(/\s+/);
         },
         processTerm: (term, fieldName) => {
           if (fieldName === "tags") return term.toUpperCase();
-          else return term.toLowerCase();
+
+          return term.toLowerCase();
         },
       });
       addAll(index, documents);

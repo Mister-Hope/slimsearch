@@ -181,7 +181,8 @@ export const addAllAsync = <
             .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
             .then(() => addAll(searchIndex, chunk)),
         };
-      else return { chunk, promise };
+
+      return { chunk, promise };
     },
     acc,
   );

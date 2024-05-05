@@ -31,9 +31,8 @@ console.log(
       console.log(`${suite.name!}:`);
       console.log("=".repeat(suite.name!.length + 1));
     })
-    .on("cycle", ({ target: benchmark }) => {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      console.log(`  * ${benchmark}`);
+    .on("cycle", (event: { target: string }) => {
+      console.log(`  * ${event.target}`);
     })
     .on("complete", () => {
       console.log("");

@@ -53,7 +53,7 @@ describe("discard()", () => {
     ];
 
     addAll(index, documents);
-    const clone = loadJSONIndex<Document, number>(JSON.stringify(index), {
+    const clone = loadJSONIndex<number, Document>(JSON.stringify(index), {
       fields: ["text"],
     });
 
@@ -104,7 +104,7 @@ describe("discard()", () => {
     const document = { id: 1, text: "Some stuff" };
 
     add(index, document);
-    const clone = loadJSONIndex<Document, number>(JSON.stringify(index), {
+    const clone = loadJSONIndex<number, Document>(JSON.stringify(index), {
       fields: ["text"],
       storeFields: ["text"],
     });
