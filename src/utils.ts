@@ -147,7 +147,7 @@ export const termToQuerySpec =
     const fuzzy =
       typeof options.fuzzy === "function"
         ? options.fuzzy(term, i, terms)
-        : options.fuzzy ?? false;
+        : (options.fuzzy ?? false);
     const prefix =
       typeof options.prefix === "function"
         ? options.prefix(term, i, terms)
