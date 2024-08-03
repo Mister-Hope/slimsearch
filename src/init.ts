@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { FieldTermData } from "./SearchIndex.js";
 import { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/SearchableMap.js";

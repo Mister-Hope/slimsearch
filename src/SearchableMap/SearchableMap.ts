@@ -1,4 +1,3 @@
-/* eslint-disable no-labels */
 import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
 import type { FuzzyResults } from "./fuzzySearch.js";
 import { fuzzySearch } from "./fuzzySearch.js";

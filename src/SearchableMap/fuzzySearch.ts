@@ -1,4 +1,3 @@
-/* eslint-disable no-labels */
 import { LEAF } from "./TreeIterator.js";
 import type { RadixTree } from "./types.js";
 

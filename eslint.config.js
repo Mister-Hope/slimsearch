@@ -1,4 +1,4 @@
-// @ts-check
+// eslint-disable-next-line import-x/no-unresolved
 import hopeConfig, { config, tsParser } from "eslint-config-mister-hope";
 
 export default config(
@@ -13,9 +13,11 @@ export default config(
       ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: {
+        projectService: {
+          allowDefaultProject: ["eslint.config.js"],
+        },
         parser: tsParser,
         tsconfigDirName: import.meta.dirname,
-        project: ["./tsconfig.json"],
       },
     },
   },
