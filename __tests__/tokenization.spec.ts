@@ -1,11 +1,17 @@
 import { expect, it } from "vitest";
 
-import { addAll, createIndex, search } from "../src/index.js";
+import { addAll, createIndex, getDefaultValue, search } from "../src/index.js";
 
 interface Document {
   id: number;
   text: string;
 }
+
+it("splits on multiple contiguous spaces or punctuation characters correctly", () => {
+  const tokenize = getDefaultValue("tokenize") as (text: string) => string[];
+
+  expect(tokenize("a  b...c ? d")).toEqual(["a", "b", "c", "d"]);
+});
 
 it("splits on non-alphanumeric taking diacritics into account", () => {
   const documents: Document[] = [
