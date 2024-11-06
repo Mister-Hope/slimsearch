@@ -220,7 +220,7 @@ export const loadJSONIndex = <
 };
 
 /**
- * Async equivalent of {@link loadJSON}
+ * Async equivalent of {@link loadJSONIndex}
  *
  * This function is an alternative to {@link loadJSONIndex} that returns
  * a promise, and loads the index in batches, leaving pauses between them to avoid
