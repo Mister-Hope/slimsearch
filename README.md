@@ -11,7 +11,7 @@
 JavaScript. It is respectful of resources, and it can comfortably run both in
 Node and in the browser.
 
-## SlimSearch is based on [MiniSearch](https://lucaong.github.io/minisearch/), sharing the SAME index structure.
+## SlimSearch is based on [MiniSearch](https://lucaong.github.io/minisearch/), sharing the SAME index structure
 
 ## Use case
 

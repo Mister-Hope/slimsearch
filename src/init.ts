@@ -2,12 +2,11 @@ import type { FieldTermData } from "./SearchIndex.js";
 import { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/index.js";
 import type { DocumentTermFrequencies } from "./results.js";
-import type {
-  IndexObject,
-  SearchIndexOptions,
-  SerializedIndexEntry,
-} from "./typings.js";
-import { objectToNumericMap } from "./utils.js";
+import type { IndexObject, SearchIndexOptions } from "./typings.js";
+import { objectToNumericMap, objectToNumericMapAsync, wait } from "./utils.js";
+
+const getMsg = (method: string): string =>
+  `SlimSearch: ${method} should be given the same options used when serializing the index`;
 
 /**
  * @param options  Configuration options
@@ -78,42 +77,55 @@ export const createIndex = <
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => new SearchIndex(options);
 
-export const loadIndex = <
+const instantiateIndex = <
   ID,
   Document,
   Index extends Record<string, any> = Record<never, never>,
 >(
   {
-    index,
     documentCount,
     nextId,
-    documentIds,
     fieldIds,
-    fieldLength,
     averageFieldLength,
-    storedFields,
     dirtCount,
     serializationVersion,
   }: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
-  if (serializationVersion !== 1 && serializationVersion !== 2)
+  if (serializationVersion !== 2) {
     throw new Error(
       "SlimSearch: cannot deserialize an index created with an incompatible version",
     );
+  }
 
-  const searchIndex = new SearchIndex(options);
+  const searchIndex = createIndex(options);
 
   searchIndex._documentCount = documentCount;
   searchIndex._nextId = nextId;
-  searchIndex._documentIds = objectToNumericMap<ID>(documentIds);
   searchIndex._idToShortId = new Map<ID, number>();
   searchIndex._fieldIds = fieldIds;
-  searchIndex._fieldLength = objectToNumericMap(fieldLength);
   searchIndex._avgFieldLength = averageFieldLength;
-  searchIndex._storedFields = objectToNumericMap(storedFields);
   searchIndex._dirtCount = dirtCount ?? 0;
   searchIndex._index = new SearchableMap();
+
+  return searchIndex;
+};
+
+export const loadIndex = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  indexObject: IndexObject<Index>,
+  options: SearchIndexOptions<ID, Document, Index>,
+): SearchIndex<ID, Document, Index> => {
+  const { index, documentIds, fieldLength, storedFields } = indexObject;
+
+  const searchIndex = instantiateIndex(indexObject, options);
+
+  searchIndex._documentIds = objectToNumericMap<ID>(documentIds);
+  searchIndex._fieldLength = objectToNumericMap(fieldLength);
+  searchIndex._storedFields = objectToNumericMap(storedFields);
 
   for (const [shortId, id] of searchIndex._documentIds)
     searchIndex._idToShortId.set(id, shortId);
@@ -121,18 +133,50 @@ export const loadIndex = <
   for (const [term, data] of index) {
     const dataMap = new Map() as FieldTermData;
 
-    for (const fieldId of Object.keys(data)) {
-      let indexEntry = data[fieldId];
-
-      // Version 1 used to nest the index entry inside a field called ds
-      if (serializationVersion === 1)
-        indexEntry = indexEntry.ds as unknown as SerializedIndexEntry;
-
+    for (const fieldId of Object.keys(data))
       dataMap.set(
         parseInt(fieldId, 10),
-        objectToNumericMap(indexEntry) as DocumentTermFrequencies,
+        objectToNumericMap(data[fieldId]) as DocumentTermFrequencies,
       );
-    }
+
+    searchIndex._index.set(term, dataMap);
+  }
+
+  return searchIndex;
+};
+
+export const loadIndexAsync = async <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  indexObject: IndexObject<Index>,
+  options: SearchIndexOptions<ID, Document, Index>,
+): Promise<SearchIndex<ID, Document, Index>> => {
+  const { index, documentIds, fieldLength, storedFields } = indexObject;
+  const searchIndex = instantiateIndex(indexObject, options);
+
+  searchIndex._documentIds = await objectToNumericMapAsync<ID>(documentIds);
+  searchIndex._fieldLength = await objectToNumericMapAsync(fieldLength);
+  searchIndex._storedFields = await objectToNumericMapAsync(storedFields);
+
+  for (const [shortId, id] of searchIndex._documentIds)
+    searchIndex._idToShortId.set(id, shortId);
+
+  let count = 0;
+
+  for (const [term, data] of index) {
+    const dataMap = new Map() as FieldTermData;
+
+    for (const fieldId of Object.keys(data))
+      dataMap.set(
+        parseInt(fieldId, 10),
+        (await objectToNumericMapAsync(
+          data[fieldId],
+        )) as DocumentTermFrequencies,
+      );
+
+    if (++count % 1000 === 0) await wait(0);
 
     searchIndex._index.set(term, dataMap);
   }
@@ -170,10 +214,33 @@ export const loadJSONIndex = <
   json: string,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
-  if (options == null)
-    throw new Error(
-      "SlimSearch: loadJSON should be given the same options used when serializing the index",
-    );
+  if (options == null) throw new Error(getMsg("loadJSONIndex"));
 
   return loadIndex(JSON.parse(json) as IndexObject<Index>, options);
+};
+
+/**
+ * Async equivalent of {@link loadJSON}
+ *
+ * This function is an alternative to {@link loadJSONIndex} that returns
+ * a promise, and loads the index in batches, leaving pauses between them to avoid
+ * blocking the main thread. It tends to be slower than the synchronous
+ * version, but does not block the main thread, so it can be a better choice
+ * when deserializing very large indexes.
+ *
+ * @param json  JSON-serialized index
+ * @param options  configuration options, same as the constructor
+ * @return A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+ */
+export const loadJSONIndexAsync = <
+  ID,
+  Document,
+  Index extends Record<string, any> = Record<never, never>,
+>(
+  json: string,
+  options: SearchIndexOptions<ID, Document, Index>,
+): Promise<SearchIndex<ID, Document, Index>> => {
+  if (options == null) throw new Error(getMsg("loadJSONIndexAsync"));
+
+  return loadIndexAsync(JSON.parse(json) as IndexObject<Index>, options);
 };

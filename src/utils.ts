@@ -6,6 +6,9 @@ import type {
   SearchOptions,
 } from "./typings.js";
 
+export const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 export const assignUniqueTerm = (target: string[], term: string): void => {
   // Avoid adding duplicate terms.
   if (!target.includes(term)) target.push(term);
@@ -35,6 +38,22 @@ export const objectToNumericMap = <Value>(
 
   for (const key of Object.keys(object))
     map.set(parseInt(key, 10), object[key]);
+
+  return map;
+};
+
+export const objectToNumericMapAsync = async <Value>(
+  object: Record<string, Value>,
+): Promise<Map<number, Value>> => {
+  const map = new Map();
+  let count = 0;
+
+  for (const key of Object.keys(object)) {
+    map.set(parseInt(key, 10), object[key]);
+    if (++count % 1000 === 0) {
+      await wait(0);
+    }
+  }
 
   return map;
 };
