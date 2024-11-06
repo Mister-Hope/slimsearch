@@ -161,6 +161,10 @@ import { byScore } from "./utils.js";
  * deeply nested queries, it provides a formalized expression tree API for
  * external libraries that implement a parser for custom query languages.
  *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  * @param searchIndex Search Index
  * @param query Search query
  * @param searchOptions Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.

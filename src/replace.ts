@@ -14,7 +14,11 @@ import { discard } from "./remove.js";
  * vacuuming to clean up obsolete document references from the index, allowing
  * memory to be released (see {@link discard}).
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param updatedDocument  The updated document to replace the old version
  * with
  */

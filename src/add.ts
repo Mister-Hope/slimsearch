@@ -72,6 +72,10 @@ const saveStoredFields = <
 /**
  * Adds a document to the index
  *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  * @param searchIndex  The search index
  * @param document  The document to be indexed
  */
@@ -130,6 +134,10 @@ export const add = <
 /**
  * Adds all the given documents to the index
  *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  */
@@ -151,10 +159,14 @@ export const addAll = <
  * This method is useful when index many documents, to avoid blocking the main
  * thread. The indexing is performed asynchronously and in chunks.
  *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  * @param options  Configuration options
- * @return A promise resolving to `undefined` when the indexing is done
+ * @return A promise resolving when the indexing is done
  */
 export const addAllAsync = <
   ID,

@@ -14,16 +14,16 @@ import type { Entry, FuzzyResults, Path, RadixTree } from "./typings.js";
  * exported by the `slimsearch` package and can be imported (or required) as
  * `slimsearch/SearchableMap`.
  *
- * @typeParam T  The type of the values stored in the map.
+ * @typeParam Value The type of the values stored in the map.
  */
-export class SearchableMap<T = any> {
+export class SearchableMap<Value = any> {
   /**
-   * @internal
+   * @ignore
    */
-  _tree: RadixTree<T>;
+  _tree: RadixTree<Value>;
 
   /**
-   * @internal
+   * @ignore
    */
   _prefix: string;
 
@@ -37,7 +37,7 @@ export class SearchableMap<T = any> {
    * The constructor arguments are for internal use, when creating derived
    * mutable views of a map at a prefix.
    */
-  constructor(tree: RadixTree<T> = new Map(), prefix = "") {
+  constructor(tree: RadixTree<Value> = new Map(), prefix = "") {
     this._tree = tree;
     this._prefix = prefix;
   }
@@ -70,7 +70,7 @@ export class SearchableMap<T = any> {
    * @param prefix  The prefix
    * @return A {@link SearchableMap} representing a mutable view of the original Map at the given prefix
    */
-  atPrefix(prefix: string): SearchableMap<T> {
+  atPrefix(prefix: string): SearchableMap<Value> {
     if (!prefix.startsWith(this._prefix)) throw new Error("Mismatched prefix");
 
     const [node, path] = trackDown(
@@ -87,11 +87,11 @@ export class SearchableMap<T = any> {
 
           node.set(k.slice(key.length), parentNode!.get(k)!);
 
-          return new SearchableMap<T>(node, prefix);
+          return new SearchableMap<Value>(node, prefix);
         }
     }
 
-    return new SearchableMap<T>(node, prefix);
+    return new SearchableMap<Value>(node, prefix);
   }
 
   /**
@@ -116,7 +116,7 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
    * @return An iterator iterating through `[key, value]` entries.
    */
-  entries(): TreeIterator<T, "ENTRIES"> {
+  entries(): TreeIterator<Value, "ENTRIES"> {
     return new TreeIterator(this, ENTRIES);
   }
 
@@ -124,7 +124,7 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
    * @param fn  Iteration function
    */
-  forEach(fn: (key: string, value: T, map: SearchableMap) => void): void {
+  forEach(fn: (key: string, value: Value, map: SearchableMap) => void): void {
     for (const [key, value] of this) fn(key, value, this);
   }
 
@@ -156,8 +156,8 @@ export class SearchableMap<T = any> {
    * @param maxEditDistance  The maximum edit distance (Levenshtein)
    * @return A Map of the matching keys to their value and edit distance
    */
-  fuzzyGet(key: string, maxEditDistance: number): FuzzyResults<T> {
-    return fuzzySearch<T>(this._tree, key, maxEditDistance);
+  fuzzyGet(key: string, maxEditDistance: number): FuzzyResults<Value> {
+    return fuzzySearch<Value>(this._tree, key, maxEditDistance);
   }
 
   /**
@@ -166,8 +166,8 @@ export class SearchableMap<T = any> {
    * @return Value associated to the key, or `undefined` if the key is not
    * found.
    */
-  get(key: string): T | undefined {
-    const node = lookup<T>(this._tree, key);
+  get(key: string): Value | undefined {
+    const node = lookup<Value>(this._tree, key);
 
     return node !== undefined ? node.get(LEAF) : undefined;
   }
@@ -187,7 +187,7 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
    * @return An `Iterable` iterating through keys
    */
-  keys(): TreeIterator<T, "KEYS"> {
+  keys(): TreeIterator<Value, "KEYS"> {
     return new TreeIterator(this, KEYS);
   }
 
@@ -197,7 +197,7 @@ export class SearchableMap<T = any> {
    * @param value  Value to associate to the key
    * @return The {@link SearchableMap} itself, to allow chaining
    */
-  set(key: string, value: T): SearchableMap<T> {
+  set(key: string, value: Value): SearchableMap<Value> {
     if (typeof key !== "string") throw new Error("key must be a string");
 
     this._size = undefined;
@@ -244,7 +244,10 @@ export class SearchableMap<T = any> {
    * @param fn  The function used to compute the new value from the current one
    * @return The {@link SearchableMap} itself, to allow chaining
    */
-  update(key: string, fn: (value: T | undefined) => T): SearchableMap<T> {
+  update(
+    key: string,
+    fn: (value: Value | undefined) => Value,
+  ): SearchableMap<Value> {
     if (typeof key !== "string") throw new Error("key must be a string");
 
     this._size = undefined;
@@ -271,7 +274,7 @@ export class SearchableMap<T = any> {
    * @param initial  A function that creates a new value if the key does not exist
    * @return The existing or new value at the given key
    */
-  fetch(key: string, initial: () => T): T {
+  fetch(key: string, initial: () => Value): Value {
     if (typeof key !== "string") throw new Error("key must be a string");
 
     this._size = undefined;
@@ -288,14 +291,14 @@ export class SearchableMap<T = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
    * @return An `Iterable` iterating through values.
    */
-  values(): TreeIterator<T, "VALUES"> {
+  values(): TreeIterator<Value, "VALUES"> {
     return new TreeIterator(this, VALUES);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@iterator
    */
-  [Symbol.iterator](): TreeIterator<T, "ENTRIES"> {
+  [Symbol.iterator](): TreeIterator<Value, "ENTRIES"> {
     return this.entries();
   }
 

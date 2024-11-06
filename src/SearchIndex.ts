@@ -53,10 +53,7 @@ interface OptionsWithDefaults<
 export type FieldTermData = Map<number, DocumentTermFrequencies>;
 
 /**
- *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
- * @typeParam Index The type of the documents being indexed.
+ * A class to represent search index
  *
  * ### Basic example:
  *
@@ -107,27 +104,77 @@ export type FieldTermData = Map<number, DocumentTermFrequencies>;
  * //   { id: 4, title: 'Zen and the Art of Archery', category: 'non-fiction', score: 1.38629 }
  * // ]
  * ```
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  */
 export class SearchIndex<
   ID = any,
   Document = any,
   Index extends Record<string, any> = Record<never, never>,
 > {
+  /**
+   * @ignore
+   */
   _options: OptionsWithDefaults<ID, Document, Index>;
+  /**
+   * @ignore
+   */
   _index: SearchableMap<FieldTermData>;
+  /**
+   * @ignore
+   */
   _documentCount: number;
+  /**
+   * @ignore
+   */
   _documentIds: Map<number, ID>;
+  /**
+   * @ignore
+   */
   _idToShortId: Map<ID, number>;
+  /**
+   * @ignore
+   */
   _fieldIds: Record<string, number>;
+  /**
+   * @ignore
+   */
   _fieldLength: Map<number, number[]>;
+  /**
+   * @ignore
+   */
   _avgFieldLength: number[];
+  /**
+   * @ignore
+   */
   _nextId: number;
+  /**
+   * @ignore
+   */
   _storedFields: Map<number, Index>;
+  /**
+   * @ignore
+   */
   _dirtCount: number;
+  /**
+   * @ignore
+   */
   _currentVacuum: Promise<void> | null;
+  /**
+   * @ignore
+   */
   _enqueuedVacuum: Promise<void> | null;
+  /**
+   * @ignore
+   */
   _enqueuedVacuumConditions: VacuumConditions | undefined;
 
+  /**
+   * @param options The options for the search index
+   */
   constructor(options: SearchIndexOptions<ID, Document, Index>) {
     if (options?.fields == null)
       throw new Error('SlimSearch: option "fields" must be provided');
@@ -225,12 +272,12 @@ export class SearchIndex<
 
   /**
    * Allows serialization of the index to JSON, to possibly store it and later
-   * deserialize it with `loadJSONIndex`.
+   * deserialize it with {@link loadJSONIndex} or {@link loadJSONIndexAsync}.
    *
    * Normally one does not directly call this method, but rather call the
-   * standard JavaScript `JSON.stringify()` passing the `SearchIndex` instance,
+   * standard JavaScript `JSON.stringify()` passing the {@link SearchIndex} instance,
    * and JavaScript will internally call this method. Upon deserialization, one
-   * must pass to `loadJSONIndex` the same options used to create the original
+   * must pass to {@link loadJSONIndex} or {@link loadJSONIndexAsync} the same options used to create the original
    * instance that was serialized.
    *
    * ### Usage:
@@ -269,7 +316,7 @@ export class SearchIndex<
       storedFields: Object.fromEntries(this._storedFields),
       dirtCount: this._dirtCount,
       index,
-      serializationVersion: 2,
+      version: 2,
     };
   }
 

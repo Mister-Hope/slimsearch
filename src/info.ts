@@ -4,7 +4,11 @@ import type { SearchIndex } from "./SearchIndex.js";
  * Returns `true` if a document with the given ID is present in the index and
  * available for search, `false` otherwise
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param id  The document ID
  */
 export const has = <
@@ -21,8 +25,13 @@ export const has = <
  * option) for the given document ID. Returns `undefined` if the document is
  * not present in the index.
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param id  The document ID
+ * @returns The stored document index
  */
 export const getStoredFields = <
   ID,

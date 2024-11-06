@@ -66,7 +66,11 @@ const removeFieldLength = <
  *   all references to discarded documents. Vacuuming can also be triggered
  *   manually by calling {@link vacuum}.
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param id  The ID of the document to be discarded
  */
 export const discard = <
@@ -115,6 +119,13 @@ export const discard = <
  * Note: to remove all documents from the index, it is faster and more
  * convenient to call {@link removeAll} with no argument, instead of
  * passing all IDs to this method.
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
+ * @param ids The IDs of the document to be discarded
  */
 export const discardAll = <
   ID,
@@ -149,7 +160,11 @@ export const discardAll = <
  * which needs only the document ID, and has the same visible effect, but
  * delays cleaning up the index until the next vacuuming.
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param document  The document to be removed
  */
 export const remove = <
@@ -213,7 +228,11 @@ export const remove = <
  * Removes all the given documents from the index. If called with no arguments,
  * it removes _all_ documents from the index.
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param documents  The documents to be removed. If this argument is omitted,
  * all documents are removed. Note that, for removing all documents, it is
  * more efficient to call this method with no arguments than to pass all

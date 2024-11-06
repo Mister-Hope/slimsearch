@@ -16,8 +16,8 @@ export type SerializedIndexEntry = Record<string, number>;
  *
  * Some information about BM25 (and BM25+) can be found at these links:
  *
- *   - https://en.wikipedia.org/wiki/Okapi_BM25
- *   - https://opensourceconnections.com/blog/2015/10/16/bm25-the-next-generation-of-lucene-relevation/
+ * - https://en.wikipedia.org/wiki/Okapi_BM25
+ * - https://opensourceconnections.com/blog/2015/10/16/bm25-the-next-generation-of-lucene-relevation/
  */
 export interface BM25Params {
   /** Term frequency saturation point.
@@ -101,6 +101,7 @@ export type SearchResult<
  * Search options to customize the search behavior.
  *
  * @typeParam ID  The type of id being indexed.
+ * @typeParam Index The type of the documents being indexed.
  */
 export interface SearchOptions<
   ID = any,
@@ -203,9 +204,11 @@ export interface SearchOptions<
     | ((term: string, index: number, terms: string[]) => boolean | number);
 
   /**
-   * Controls the maximum fuzziness when using a fractional fuzzy value. This is
-   * set to 6 by default. Very high edit distances usually don't produce
-   * meaningful results, but can excessively impact search performance.
+   * Controls the maximum fuzziness when using a fractional fuzzy value.
+   * Very high edit distances usually don't produce meaningful results,
+   * but can excessively impact search performance.
+   *
+   * @default 6
    */
   maxFuzzy?: number;
 
@@ -360,6 +363,11 @@ export interface Suggestion {
   score: number;
 }
 
+/**
+ * Object format of search index when serialized
+ *
+ * @typeParam Index The type of the documents being indexed.
+ */
 export interface IndexObject<
   Index extends Record<string, any> = Record<never, never>,
 > {
@@ -372,7 +380,7 @@ export interface IndexObject<
   storedFields: Record<string, Index>;
   dirtCount?: number;
   index: [string, Record<string, SerializedIndexEntry>][];
-  serializationVersion: number;
+  version: number;
 }
 
 /**
@@ -411,12 +419,16 @@ export type Query = QueryCombination | string | Wildcard;
 export interface VacuumOptions {
   /**
    * Size of each vacuuming batch (the number of terms in the index that will be
-   * traversed in each batch). Defaults to 1000.
+   * traversed in each batch).
+   *
+   * @default 1000
    */
   batchSize?: number;
 
   /**
-   * Wait time between each vacuuming batch in milliseconds. Defaults to 10.
+   * Wait time between each vacuuming batch in milliseconds.
+   *
+   * @default 10
    */
   batchWait?: number;
 }
@@ -428,13 +440,17 @@ export interface VacuumOptions {
 export interface VacuumConditions {
   /**
    * Minimum `dirtCount` (number of discarded documents since the last vacuuming)
-   * under which auto vacuum is not triggered. It defaults to 20.
+   * under which auto vacuum is not triggered.
+   *
+   * @default 20
    */
   minDirtCount?: number;
 
   /**
    * Minimum `dirtFactor` (proportion of discarded documents over the total)
-   * under which auto vacuum is not triggered. It defaults to 0.1.
+   * under which auto vacuum is not triggered.
+   *
+   * @default 0.1
    */
   minDirtFactor?: number;
 }

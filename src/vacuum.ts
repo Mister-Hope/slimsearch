@@ -163,6 +163,10 @@ export const maybeAutoVacuum = <
  * enqueued on top of the ongoing one, even if this method is called more
  * times (enqueuing multiple ones would be useless).
  *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  * @param searchIndex Search Index
  * @param options  Configuration options for the batch size and delay. See
  * {@link VacuumOptions}.

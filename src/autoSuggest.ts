@@ -56,7 +56,11 @@ import { byScore } from "./utils.js";
  * // ]
  * ```
  *
- * @param searchIndex The search Index
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
  * @param queryString  Query string to be expanded into suggestions
  * @param options  Search options. The supported options and default values
  * are the same as for the `search` method, except that by default prefix

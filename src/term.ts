@@ -3,7 +3,7 @@ import { createMap } from "./utils.js";
 import { warnDocumentChanged } from "./warning.js";
 
 /**
- * @ignore
+ * @private
  */
 export const addTerm = <
   ID,
@@ -30,6 +30,9 @@ export const addTerm = <
   }
 };
 
+/**
+ * @private
+ */
 export const removeTerm = <
   ID,
   Document,

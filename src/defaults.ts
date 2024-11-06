@@ -48,9 +48,6 @@ export const defaultAutoVacuumOptions = {
  * Returns the default value of an option. It will throw an error if no option
  * with the given name exists.
  *
- * @param optionName  Name of the option
- * @return The default value of the given option
- *
  * ### Usage:
  *
  * ```js
@@ -64,6 +61,13 @@ export const defaultAutoVacuumOptions = {
  * getDefaultValue('notExisting')
  * // => throws 'SlimSearch: unknown option "notExisting"'
  * ```
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param optionName  Name of the option
+ * @return The default value of the given option
  */
 export const getDefaultValue = (optionName: string): unknown => {
   // eslint-disable-next-line no-prototype-builtins

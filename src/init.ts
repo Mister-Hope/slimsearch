@@ -9,7 +9,14 @@ const getMsg = (method: string): string =>
   `SlimSearch: ${method} should be given the same options used when serializing the index`;
 
 /**
- * @param options  Configuration options
+ * Create search index with given options
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param options Configuration options
+ * @returns A instance of SearchIndex with given options
  *
  * ### Examples:
  *
@@ -88,11 +95,11 @@ const instantiateIndex = <
     fieldIds,
     averageFieldLength,
     dirtCount,
-    serializationVersion,
+    version,
   }: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
-  if (serializationVersion !== 2) {
+  if (version !== 2) {
     throw new Error(
       "SlimSearch: cannot deserialize an index created with an incompatible version",
     );
@@ -111,6 +118,31 @@ const instantiateIndex = <
   return searchIndex;
 };
 
+/**
+ * Instantiates a SearchIndex instance from a JS Object.
+ * It should be given the same options originally used when serializing the index.
+ *
+ * ### Usage:
+ *
+ * ```js
+ * // If the index was serialized with:
+ * let index = createIndex({ fields: ['title', 'text'] })
+ *
+ * addAll(index, documents)
+ *
+ * const json = index.toJSON()
+ * // It can later be loaded like this:
+ * index = loadJSON(json, { fields: ['title', 'text'] })
+ * ```
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param indexObject index object
+ * @param options  configuration options, same as the constructor
+ * @return An instance of SearchIndex deserialized from the given JS object.
+ */
 export const loadIndex = <
   ID,
   Document,
@@ -145,6 +177,23 @@ export const loadIndex = <
   return searchIndex;
 };
 
+/**
+ * Async equivalent of {@link loadIndex}
+ *
+ * This function is an alternative to {@link loadIndex} that returns
+ * a promise, and loads the index in batches, leaving pauses between them to avoid
+ * blocking the main thread. It tends to be slower than the synchronous
+ * version, but does not block the main thread, so it can be a better choice
+ * when deserializing very large indexes.
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param indexObject index object
+ * @param options  configuration options, same as the constructor
+ * @return A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+ */
 export const loadIndexAsync = async <
   ID,
   Document,
@@ -202,6 +251,10 @@ export const loadIndexAsync = async <
  * index = loadJSONIndex(json, { fields: ['title', 'text'] })
  * ```
  *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
  * @param json  JSON-serialized index
  * @param options  configuration options, same as the constructor
  * @return An instance of SearchIndex deserialized from the given JSON.
@@ -227,6 +280,10 @@ export const loadJSONIndex = <
  * blocking the main thread. It tends to be slower than the synchronous
  * version, but does not block the main thread, so it can be a better choice
  * when deserializing very large indexes.
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
  *
  * @param json  JSON-serialized index
  * @param options  configuration options, same as the constructor
