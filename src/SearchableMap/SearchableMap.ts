@@ -1,7 +1,6 @@
 import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
-import type { FuzzyResults } from "./fuzzySearch.js";
 import { fuzzySearch } from "./fuzzySearch.js";
-import type { Entry, Path, RadixTree } from "./types.js";
+import type { Entry, FuzzyResults, Path, RadixTree } from "./typings.js";
 
 /**
  * A class implementing the same interface as a standard JavaScript

@@ -1,4 +1,4 @@
-export * from "./SearchableMap/SearchableMap.js";
+export * from "./SearchableMap/index.js";
 export { type SearchIndex } from "./SearchIndex.js";
 export * from "./add.js";
 export * from "./autoSuggest.js";

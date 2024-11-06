@@ -1,4 +1,4 @@
-import { SearchableMap } from "./SearchableMap/SearchableMap.js";
+import { SearchableMap } from "./SearchableMap/index.js";
 import {
   defaultAutoSuggestOptions,
   defaultAutoVacuumOptions,

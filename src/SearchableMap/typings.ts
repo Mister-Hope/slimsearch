@@ -17,3 +17,7 @@ export interface RadixTree<T> extends Map<string, T | RadixTree<T>> {
 export type Entry<T> = [string, T];
 
 export type Path<T> = [RadixTree<T> | undefined, string][];
+
+export type FuzzyResult<T> = [T, number];
+
+export type FuzzyResults<T> = Map<string, FuzzyResult<T>>;

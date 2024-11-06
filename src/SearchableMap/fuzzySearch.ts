@@ -1,9 +1,5 @@
 import { LEAF } from "./TreeIterator.js";
-import type { RadixTree } from "./types.js";
-
-export type FuzzyResult<T> = [T, number];
-
-export type FuzzyResults<T> = Map<string, FuzzyResult<T>>;
+import type { FuzzyResults, RadixTree } from "./typings.js";
 
 export const fuzzySearch = <Value = any>(
   node: RadixTree<Value>,

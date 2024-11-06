@@ -1,5 +1,5 @@
 import type { SearchIndex } from "./SearchIndex.js";
-import { SearchableMap } from "./SearchableMap/SearchableMap.js";
+import { SearchableMap } from "./SearchableMap/index.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
 

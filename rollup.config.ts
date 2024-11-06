@@ -74,7 +74,7 @@ export default process.env.BENCHMARK
   : [
       ...bundle({ input: "index" }),
       ...bundle({
-        input: "SearchableMap/SearchableMap",
+        input: "SearchableMap/index",
         output: "SearchableMap",
       }),
     ];

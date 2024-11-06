@@ -1,6 +1,6 @@
 import type { FieldTermData } from "./SearchIndex.js";
 import { SearchIndex } from "./SearchIndex.js";
-import { SearchableMap } from "./SearchableMap/SearchableMap.js";
+import { SearchableMap } from "./SearchableMap/index.js";
 import type { DocumentTermFrequencies } from "./results.js";
 import type {
   IndexObject,

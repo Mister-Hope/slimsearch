@@ -162,8 +162,8 @@ import { byScore } from "./utils.js";
  * external libraries that implement a parser for custom query languages.
  *
  * @param searchIndex Search Index
- * @param query  Search query
- * @param options  Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
+ * @param query Search query
+ * @param searchOptions Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
  */
 export const search = <
   ID,

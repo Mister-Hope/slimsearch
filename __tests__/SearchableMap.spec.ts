@@ -1,7 +1,7 @@
 import * as fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
-import { SearchableMap } from "../src/SearchableMap/SearchableMap.js";
+import { SearchableMap } from "../src/SearchableMap/index.js";
 
 describe("SearchableMap", () => {
   const strings = [

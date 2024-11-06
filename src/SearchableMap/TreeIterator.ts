@@ -1,12 +1,12 @@
-import type { Entry, LeafType, RadixTree } from "./types.js";
+import type { Entry, LeafType, RadixTree } from "./typings.js";
 
-const ENTRIES = "ENTRIES";
+export const ENTRIES = "ENTRIES";
 
-const KEYS = "KEYS";
+export const KEYS = "KEYS";
 
-const VALUES = "VALUES";
+export const VALUES = "VALUES";
 
-const LEAF = "" as LeafType;
+export const LEAF = "" as LeafType;
 
 interface Iterators<T> {
   ENTRIES: Entry<T>;
@@ -30,7 +30,9 @@ export interface IterableSet<T> {
 /**
  * @private
  */
-class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>> {
+export class TreeIterator<T, K extends Kind<T>>
+  implements Iterator<Result<T, K>>
+{
   set: IterableSet<T>;
   _type: K;
   _path: IteratorPath<T>;
@@ -111,5 +113,3 @@ class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>> {
 const last = <T>(array: T[]): T | undefined => {
   return array[array.length - 1];
 };
-
-export { TreeIterator, ENTRIES, KEYS, VALUES, LEAF };
