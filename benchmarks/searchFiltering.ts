@@ -1,8 +1,8 @@
-import Benchmark from "benchmark";
+import { Suite } from "benchmark";
 
 import { index, search } from "./divinaCommedia.js";
 
-const suite = new Benchmark.Suite("Search filtering");
+const suite = new Suite("Search filtering");
 
 suite.add('SlimSearch#search("virtu", { filter: ... })', () => {
   search(index, "virtu", {

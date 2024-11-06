@@ -1,5 +1,5 @@
 import type { RollupOptions } from "rollup";
-import dts from "rollup-plugin-dts";
+import { dts } from "rollup-plugin-dts";
 import esbuild from "rollup-plugin-esbuild";
 
 interface BundleOptions {

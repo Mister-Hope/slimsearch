@@ -1,8 +1,8 @@
-import Benchmark from "benchmark";
+import { Suite } from "benchmark";
 
 import { _index } from "./divinaCommedia.js";
 
-const suite = new Benchmark.Suite("Prefix search");
+const suite = new Suite("Prefix search");
 
 suite
   .add('Array.from(SearchableMap#atPrefix("vir"))', () => {

@@ -1,8 +1,8 @@
-import Benchmark from "benchmark";
+import { Suite } from "benchmark";
 
 import { index, search } from "./divinaCommedia.js";
 
-const suite = new Benchmark.Suite("Combined search");
+const suite = new Suite("Combined search");
 
 suite
   .add(

@@ -1,8 +1,8 @@
-import Benchmark from "benchmark";
+import { Suite } from "benchmark";
 
 import { autoSuggest, index } from "./divinaCommedia.js";
 
-const suite = new Benchmark.Suite("Auto suggestion");
+const suite = new Suite("Auto suggestion");
 
 suite
   .add('SlimSearch#autoSuggest("virtute cano")', () => {

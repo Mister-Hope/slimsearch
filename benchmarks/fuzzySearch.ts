@@ -1,8 +1,8 @@
-import Benchmark from "benchmark";
+import { Suite } from "benchmark";
 
 import { _index } from "./divinaCommedia.js";
 
-const suite = new Benchmark.Suite("Fuzzy search");
+const suite = new Suite("Fuzzy search");
 
 suite
   .add('SearchableMap#fuzzyGet("virtute", 1)', () => {
