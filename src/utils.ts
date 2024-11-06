@@ -158,19 +158,23 @@ export interface QuerySpec {
   prefix: boolean;
   fuzzy: number | boolean;
   term: string;
+  termBoost: number;
 }
 
 export const termToQuerySpec =
   (options: SearchOptions) =>
-  (term: string, i: number, terms: string[]): QuerySpec => {
-    const fuzzy =
+  (term: string, index: number, terms: string[]): QuerySpec => ({
+    term,
+    fuzzy:
       typeof options.fuzzy === "function"
-        ? options.fuzzy(term, i, terms)
-        : (options.fuzzy ?? false);
-    const prefix =
+        ? options.fuzzy(term, index, terms)
+        : (options.fuzzy ?? false),
+    prefix:
       typeof options.prefix === "function"
-        ? options.prefix(term, i, terms)
-        : options.prefix === true;
-
-    return { term, fuzzy, prefix };
-  };
+        ? options.prefix(term, index, terms)
+        : options.prefix === true,
+    termBoost:
+      typeof options.boostTerm === "function"
+        ? options.boostTerm(term, index, terms)
+        : 1,
+  });

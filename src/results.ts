@@ -98,6 +98,7 @@ const termResults = <
   sourceTerm: string,
   derivedTerm: string,
   termWeight: number,
+  termBoost: number,
   fieldTermData: FieldTermData | undefined,
   fieldBoosts: Record<string, number>,
   boostDocumentFn:
@@ -153,7 +154,8 @@ const termResults = <
         avgFieldLength,
         bm25params,
       );
-      const weightedScore = termWeight * fieldBoost * docBoost * rawScore;
+      const weightedScore =
+        termWeight * termBoost * fieldBoost * docBoost * rawScore;
 
       const result = results.get(docId);
 
@@ -213,6 +215,7 @@ const executeQuerySpec = <
     query.term,
     query.term,
     1,
+    query.termBoost,
     data,
     boosts,
     boostDocument,
@@ -259,6 +262,7 @@ const executeQuerySpec = <
         query.term,
         term,
         weight,
+        query.termBoost,
         data,
         boosts,
         boostDocument,
@@ -283,6 +287,7 @@ const executeQuerySpec = <
         query.term,
         term,
         weight,
+        query.termBoost,
         data,
         boosts,
         boostDocument,

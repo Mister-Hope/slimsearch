@@ -128,6 +128,19 @@ export interface SearchOptions<
   boost?: Record<string, number>;
 
   /**
+   * Function to calculate a boost factor for each term.
+   *
+   * This function, if provided, is called for each query term (as split by
+   * `tokenize` and processed by `processTerm`). The arguments passed to the
+   * function are the query term, the positional index of the term in the query,
+   * and the array of all query terms. It is expected to return a numeric boost
+   * factor for the term. A factor lower than 1 reduces the importance of the
+   * term, a factor greater than 1 increases it. A factor of exactly 1 is
+   * neutral, and does not affect the term's importance.
+   */
+  boostTerm?: (term: string, i: number, terms: string[]) => number;
+
+  /**
    * Relative weights to assign to prefix search results and fuzzy search
    * results. Exact matches are assigned a weight of 1.
    */
