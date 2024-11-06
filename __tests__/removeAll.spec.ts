@@ -66,6 +66,8 @@ it("removes the given documents from the index", () => {
 });
 
 it("raises an error if called with a falsey argument", () => {
+  addAll(index, documents);
+
   expect(() => {
     // @ts-expect-error: Wrong param
     removeAll(index, null);
@@ -78,6 +80,12 @@ it("raises an error if called with a falsey argument", () => {
     removeAll(index, false);
   }).toThrowError();
   expect(() => {
+    // @ts-expect-error: Wrong param
+    removeAll(index, "");
+  }).toThrowError();
+  expect(() => {
     removeAll(index, []);
   }).not.toThrowError();
+
+  expect(index.documentCount).toEqual(documents.length);
 });
