@@ -1,4 +1,5 @@
-import type { RollupOptions } from "rollup";
+import { codecovRollupPlugin } from "@codecov/rollup-plugin";
+import { defineConfig, type RollupOptions } from "rollup";
 import { dts } from "rollup-plugin-dts";
 import esbuild from "rollup-plugin-esbuild";
 
@@ -12,59 +13,65 @@ const bundle = ({
   input,
   output = input,
   target = "node18",
-}: BundleOptions): RollupOptions[] => [
-  {
-    input: `./src/${input}.ts`,
-    output: [
-      {
-        file: `./dist/${output}.mjs`,
-        format: "esm",
-        sourcemap: true,
-        exports: "named",
-      },
-      {
-        file: `./dist/${output}.cjs`,
-        format: "cjs",
-        sourcemap: true,
-        exports: "named",
-      },
-    ],
-
-    plugins: [
-      esbuild({
-        charset: "utf8",
-        minify: true,
-        target,
-      }),
-    ],
-
-    treeshake: "smallest",
-  },
-  {
-    input: `./src/${input}.ts`,
-    output: [
-      {
-        file: `./dist/${output}.d.ts`,
-        format: "esm",
-      },
-      {
-        file: `./dist/${output}.d.cts`,
-        format: "esm",
-      },
-      {
-        file: `./dist/${output}.d.mts`,
-        format: "esm",
-      },
-    ],
-    plugins: [
-      dts({
-        compilerOptions: {
-          preserveSymlinks: false,
+}: BundleOptions): RollupOptions[] =>
+  defineConfig([
+    {
+      input: `./src/${input}.ts`,
+      output: [
+        {
+          file: `./dist/${output}.mjs`,
+          format: "esm",
+          sourcemap: true,
+          exports: "named",
         },
-      }),
-    ],
-  } as RollupOptions,
-];
+        {
+          file: `./dist/${output}.cjs`,
+          format: "cjs",
+          sourcemap: true,
+          exports: "named",
+        },
+      ],
+
+      plugins: [
+        esbuild({
+          charset: "utf8",
+          minify: true,
+          target,
+        }),
+        codecovRollupPlugin({
+          enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
+          bundleName: "slimsearch",
+          uploadToken: process.env.CODECOV_TOKEN!,
+        }),
+      ],
+
+      treeshake: "smallest",
+    },
+    defineConfig({
+      input: `./src/${input}.ts`,
+      output: [
+        {
+          file: `./dist/${output}.d.ts`,
+          format: "esm",
+        },
+        {
+          file: `./dist/${output}.d.cts`,
+          format: "esm",
+        },
+        {
+          file: `./dist/${output}.d.mts`,
+          format: "esm",
+        },
+      ],
+      plugins: [
+        dts({
+          compilerOptions: {
+            preserveSymlinks: false,
+          },
+        }),
+      ],
+    }),
+  ]);
 
 export default process.env.BENCHMARK
   ? bundle({
