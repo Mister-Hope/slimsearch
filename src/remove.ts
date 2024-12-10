@@ -192,6 +192,7 @@ export const remove = <
   for (const field of fields) {
     const fieldValue = extractField(document, field);
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (fieldValue == null) continue;
 
     const tokens = tokenize(fieldValue.toString(), field);

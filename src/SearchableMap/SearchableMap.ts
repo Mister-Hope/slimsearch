@@ -81,11 +81,12 @@ export class SearchableMap<Value = any> {
     if (node === undefined) {
       const [parentNode, key] = last(path);
 
-      for (const k of parentNode!.keys())
+      for (const k of parentNode.keys())
         if (k !== LEAF && k.startsWith(key)) {
           const node = new Map();
 
-          node.set(k.slice(key.length), parentNode!.get(k)!);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          node.set(k.slice(key.length), parentNode.get(k)!);
 
           return new SearchableMap<Value>(node, prefix);
         }
@@ -197,7 +198,7 @@ export class SearchableMap<Value = any> {
    * @param value  Value to associate to the key
    * @return The {@link SearchableMap} itself, to allow chaining
    */
-  set(key: string, value: Value): SearchableMap<Value> {
+  set(key: string, value: Value): this {
     if (typeof key !== "string") throw new Error("key must be a string");
 
     this._size = undefined;
@@ -244,10 +245,7 @@ export class SearchableMap<Value = any> {
    * @param fn  The function used to compute the new value from the current one
    * @return The {@link SearchableMap} itself, to allow chaining
    */
-  update(
-    key: string,
-    fn: (value: Value | undefined) => Value,
-  ): SearchableMap<Value> {
+  update(key: string, fn: (value: Value | undefined) => Value): this {
     if (typeof key !== "string") throw new Error("key must be a string");
 
     this._size = undefined;
@@ -352,10 +350,12 @@ const lookup = <T = any>(
   tree: RadixTree<T>,
   key: string,
 ): RadixTree<T> | undefined => {
-  if (key.length === 0 || tree == null) return tree;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (key.length === 0 || !tree) return tree;
 
   for (const treeKey of tree.keys())
     if (treeKey !== LEAF && key.startsWith(treeKey))
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return lookup(tree.get(treeKey)!, key.slice(treeKey.length));
 };
 
@@ -365,6 +365,7 @@ const lookup = <T = any>(
 const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
   const keyLength = key.length;
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   outer: for (let pos = 0; node && pos < keyLength; ) {
     // Check whether this key is a candidate: the first characters must match.
     for (const k of node.keys())
@@ -376,6 +377,7 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
 
         while (offset < len && key[pos + offset] === k[offset]) ++offset;
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const child = node.get(k)!;
 
         if (offset === k.length) {
@@ -433,13 +435,13 @@ const cleanup = <T = any>(path: Path<T>): void => {
 
   const [node, key] = last(path);
 
-  node!.delete(key);
+  node.delete(key);
 
-  if (node!.size === 0) {
+  if (node.size === 0) {
     cleanup(path.slice(0, -1));
-  } else if (node!.size === 1) {
+  } else if (node.size === 1) {
     const [key, value] = (
-      node!.entries().next() as IteratorResult<
+      node.entries().next() as IteratorResult<
         [string, RadixTree<T>],
         [string, RadixTree<T>]
       >
@@ -458,8 +460,8 @@ const merge = <T = any>(
 
   const [node, nodeKey] = last(path);
 
-  node!.set(nodeKey + key, value);
-  node!.delete(nodeKey);
+  node.set(nodeKey + key, value);
+  node.delete(nodeKey);
 };
 
 const last = <T = any>(array: T[]): T => {

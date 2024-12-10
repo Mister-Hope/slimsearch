@@ -267,7 +267,8 @@ export const loadJSONIndex = <
   json: string,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
-  if (options == null) throw new Error(getMsg("loadJSONIndex"));
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!options) throw new Error(getMsg("loadJSONIndex"));
 
   return loadIndex(JSON.parse(json) as IndexObject<Index>, options);
 };
@@ -297,7 +298,8 @@ export const loadJSONIndexAsync = <
   json: string,
   options: SearchIndexOptions<ID, Document, Index>,
 ): Promise<SearchIndex<ID, Document, Index>> => {
-  if (options == null) throw new Error(getMsg("loadJSONIndexAsync"));
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!options) throw new Error(getMsg("loadJSONIndexAsync"));
 
   return loadIndexAsync(JSON.parse(json) as IndexObject<Index>, options);
 };

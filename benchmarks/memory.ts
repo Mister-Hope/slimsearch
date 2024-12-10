@@ -16,7 +16,7 @@ const memory = (
   documents: number;
   memSize: string;
   serializedSize: string;
-  index: SearchIndex<any, any>;
+  index: SearchIndex;
 } => {
   const index = createIndex({ fields: ["txt"], storeFields: ["txt"] });
 

@@ -53,12 +53,15 @@ export const removeTerm = <
 
   const fieldIndex = indexData.get(fieldId);
 
-  if (fieldIndex?.get(documentId) == null)
+  const amount = fieldIndex?.get(documentId);
+
+  if (!fieldIndex || typeof amount === "undefined")
     warnDocumentChanged(searchIndex, documentId, fieldId, term);
-  else if (fieldIndex.get(documentId)! <= 1)
+  else if (amount <= 1)
     if (fieldIndex.size <= 1) indexData.delete(fieldId);
     else fieldIndex.delete(documentId);
-  else fieldIndex.set(documentId, fieldIndex.get(documentId)! - 1);
+  else fieldIndex.set(documentId, amount - 1);
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   if (searchIndex._index.get(term)!.size === 0) searchIndex._index.delete(term);
 };

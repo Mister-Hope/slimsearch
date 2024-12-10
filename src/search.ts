@@ -190,6 +190,7 @@ export const search = <
     const quality = terms.length || 1;
 
     const result = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       id: searchIndex._documentIds.get(docId)!,
       score: score * quality,
       terms: Object.keys(match),

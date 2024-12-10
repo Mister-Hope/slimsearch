@@ -52,6 +52,7 @@ const doVacuum = async <
           else fieldIndex.delete(shortId);
         }
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (searchIndex._index.get(term)!.size === 0)
         searchIndex._index.delete(term);
 
@@ -101,7 +102,7 @@ const conditionalVacuum = <
     return searchIndex._enqueuedVacuum;
   }
 
-  if (shouldVacuum(searchIndex, conditions) === false) return Promise.resolve();
+  if (!shouldVacuum(searchIndex, conditions)) return Promise.resolve();
 
   searchIndex._currentVacuum = doVacuum(searchIndex, options);
 

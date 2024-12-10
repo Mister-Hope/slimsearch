@@ -57,10 +57,12 @@ export class TreeIterator<T, K extends Kind<T>>
   dive(): IteratorResult<Result<T, K>> {
     if (this._path.length === 0) return { done: true, value: undefined };
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const { node, keys } = last(this._path)!;
 
     if (last(keys) === LEAF) return { done: false, value: this.result() };
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const child = node.get(last(keys)!)!;
 
     this._path.push({ node: child, keys: Array.from(child.keys()) });
@@ -71,6 +73,7 @@ export class TreeIterator<T, K extends Kind<T>>
   backtrack(): void {
     if (this._path.length === 0) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const keys = last(this._path)!.keys;
 
     keys.pop();
@@ -91,6 +94,7 @@ export class TreeIterator<T, K extends Kind<T>>
   }
 
   value(): T {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return last(this._path)!.node.get(LEAF)!;
   }
 
@@ -105,7 +109,7 @@ export class TreeIterator<T, K extends Kind<T>>
     }
   }
 
-  [Symbol.iterator](): TreeIterator<T, K> {
+  [Symbol.iterator](): this {
     return this;
   }
 }

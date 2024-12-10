@@ -53,31 +53,30 @@
     "test": "vitest --coverage"
   },
   "devDependencies": {
-    "@codecov/rollup-plugin": "1.4.0",
+    "@codecov/rollup-plugin": "1.6.0",
     "@commitlint/cli": "19.6.0",
     "@commitlint/config-conventional": "19.6.0",
     "@types/benchmark": "2.1.5",
     "@types/node": "22.10.1",
-    "@vitest/coverage-v8": "2.1.6",
+    "@vitest/coverage-v8": "2.1.8",
     "benchmark": "2.1.4",
     "cz-git": "1.11.0",
-    "esbuild": "0.24.0",
-    "eslint": "9.15.0",
-    "eslint-config-mister-hope": "0.3.0",
+    "eslint": "9.16.0",
+    "eslint-config-mister-hope": "0.4.0-beta.7",
     "fast-check": "3.23.1",
     "husky": "9.1.7",
     "nano-staged": "0.8.0",
-    "prettier": "3.4.1",
-    "rollup": "4.27.4",
+    "prettier": "3.4.2",
+    "rollup": "4.28.1",
     "rollup-plugin-dts": "6.1.1",
     "rollup-plugin-esbuild": "6.1.1",
     "tslib": "2.8.1",
-    "typedoc": "0.27.1",
+    "typedoc": "0.27.4",
     "typescript": "5.7.2",
-    "typescript-eslint": "8.16.0",
-    "vitest": "2.1.6"
+    "typescript-eslint": "8.18.0",
+    "vitest": "2.1.8"
   },
-  "packageManager": "pnpm@9.14.2",
+  "packageManager": "pnpm@9.15.0",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-git"

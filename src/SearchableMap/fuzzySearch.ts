@@ -8,7 +8,7 @@ export const fuzzySearch = <Value = any>(
 ): FuzzyResults<Value> => {
   const results: FuzzyResults<Value> = new Map();
 
-  if (query === undefined) return results;
+  if (typeof query !== "string") return results;
 
   // Number of columns in the Levenshtein matrix.
   const n = query.length + 1;
@@ -61,6 +61,7 @@ const recurse = <Value = any>(
       const distance = matrix[offset - 1];
 
       if (distance <= maxDistance)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         results.set(prefix, [node.get(key)!, distance]);
     } else {
       // Iterate over all characters in the key. Update the Levenshtein matrix
@@ -106,6 +107,7 @@ const recurse = <Value = any>(
       }
 
       recurse(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         node.get(key)!,
         query,
         maxDistance,

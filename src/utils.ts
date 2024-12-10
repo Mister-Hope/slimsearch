@@ -94,8 +94,10 @@ export const combinators: Record<
       const existing = a.get(docId);
 
       if (existing == null) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         a.set(docId, b.get(docId)!);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const { score, terms, match } = b.get(docId)!;
 
         existing.score = existing.score + score;
@@ -114,6 +116,7 @@ export const combinators: Record<
 
       if (existing == null) continue;
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { score, terms, match } = b.get(docId)!;
 
       assignUniqueTerms(existing.terms, terms);

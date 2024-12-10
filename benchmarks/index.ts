@@ -28,7 +28,9 @@ console.log(
 ].forEach((suite) => {
   suite
     .on("start", () => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       console.log(`${suite.name!}:`);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       console.log("=".repeat(suite.name!.length + 1));
     })
     .on("cycle", (event: { target: string }) => {

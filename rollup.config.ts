@@ -1,5 +1,6 @@
 import { codecovRollupPlugin } from "@codecov/rollup-plugin";
-import { defineConfig, type RollupOptions } from "rollup";
+import type { RollupOptions } from "rollup";
+import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
 import esbuild from "rollup-plugin-esbuild";
 
@@ -41,7 +42,7 @@ const bundle = ({
         codecovRollupPlugin({
           enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
           bundleName: "slimsearch",
-          uploadToken: process.env.CODECOV_TOKEN!,
+          uploadToken: process.env.CODECOV_TOKEN,
         }),
       ],
 

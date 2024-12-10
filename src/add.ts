@@ -54,7 +54,8 @@ const saveStoredFields = <
 ): void => {
   const { storeFields, extractField } = searchIndex._options;
 
-  if (storeFields == null || storeFields.length === 0) return;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (storeFields?.length === 0) return;
 
   let documentFields: Record<string, unknown> | undefined =
     searchIndex._storedFields.get(documentId);
@@ -65,7 +66,8 @@ const saveStoredFields = <
   for (const fieldName of storeFields) {
     const fieldValue = extractField(doc, fieldName);
 
-    if (fieldValue !== undefined) documentFields[fieldName] = fieldValue;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (fieldValue != null) documentFields[fieldName] = fieldValue;
   }
 };
 
@@ -104,6 +106,7 @@ export const add = <
   for (const field of fields) {
     const fieldValue = extractField(document, field);
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (fieldValue == null) continue;
 
     const tokens = tokenize(fieldValue.toString(), field);

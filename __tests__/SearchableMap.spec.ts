@@ -29,7 +29,8 @@ describe("SearchableMap", () => {
 
   const editDistance = (a: string, b: string, mem = [[0]]): number => {
     mem[a.length] = mem[a.length] || [a.length];
-    if (mem[a.length][b.length] !== undefined) return mem[a.length][b.length];
+    if (typeof mem[a.length][b.length] === "number")
+      return mem[a.length][b.length];
 
     const d = a[a.length - 1] === b[b.length - 1] ? 0 : 1;
     const distance =
@@ -356,11 +357,11 @@ describe("SearchableMap", () => {
   describe("with generated test data", () => {
     it("adds and removes entries", () => {
       const arrayOfStrings = fc.array(
-        fc.oneof(fc.unicodeString(), fc.string()),
+        fc.oneof(fc.string({ unit: "grapheme" }), fc.string()),
         { maxLength: 70 },
       );
       const string = fc.oneof(
-        fc.unicodeString({ minLength: 0, maxLength: 4 }),
+        fc.string({ unit: "grapheme", minLength: 0, maxLength: 4 }),
         fc.string({ minLength: 0, maxLength: 4 }),
       );
       const int = fc.integer({ min: 1, max: 4 });

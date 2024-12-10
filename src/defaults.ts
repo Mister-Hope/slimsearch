@@ -15,7 +15,8 @@ export const defaultOptions = {
   searchOptions: undefined,
   storeFields: [],
   logger: (level: LogLevel, message: string): void => {
-    if (typeof console?.[level] === "function") console[level](message);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    console?.[level]?.(message);
   },
   autoVacuum: true,
 } as const;

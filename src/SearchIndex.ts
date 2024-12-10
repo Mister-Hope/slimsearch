@@ -176,7 +176,8 @@ export class SearchIndex<
    * @param options The options for the search index
    */
   constructor(options: SearchIndexOptions<ID, Document, Index>) {
-    if (options?.fields == null)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!options?.fields)
       throw new Error('SlimSearch: option "fields" must be provided');
 
     const autoVacuum =

@@ -81,12 +81,10 @@ const combineResults = (
 
   const operator = combineWith.toLowerCase() as LowercaseCombinationOperator;
 
-  const combinator = combinators[operator];
-
-  if (!combinator)
+  if (!(operator in combinators))
     throw new Error(`Invalid combination operator: ${combineWith}`);
 
-  return results.reduce(combinator) || new Map();
+  return results.reduce(combinators[operator]);
 };
 
 const termResults = <
@@ -129,6 +127,7 @@ const termResults = <
 
       const docBoost = boostDocumentFn
         ? boostDocumentFn(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             searchIndex._documentIds.get(docId)!,
             derivedTerm,
             searchIndex._storedFields.get(docId),
@@ -137,7 +136,9 @@ const termResults = <
 
       if (!docBoost) continue;
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const termFreq = fieldTermFrequencies.get(docId)!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const fieldLength = searchIndex._fieldLength.get(docId)![fieldId];
 
       // NOTE: The total number of fields is set to the number of documents
@@ -162,7 +163,9 @@ const termResults = <
       if (result) {
         result.score += weightedScore;
         assignUniqueTerm(result.terms, sourceTerm);
-        const match = getOwnProperty(result.match, derivedTerm) as string[];
+        const match = getOwnProperty(result.match, derivedTerm) as
+          | string[]
+          | undefined;
 
         if (match) match.push(field);
         else result.match[derivedTerm] = [field];
@@ -273,6 +276,7 @@ const executeQuerySpec = <
 
   if (fuzzyMatches)
     for (const term of fuzzyMatches.keys()) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const [data, distance] = fuzzyMatches.get(term)!;
 
       if (!distance) continue;

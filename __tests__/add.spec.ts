@@ -152,7 +152,7 @@ it("passes document and field name to the field extractor", () => {
       return fieldName.split(".").reduce(
         // @ts-expect-error: property untyped
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        (doc, key) => doc?.[key],
+        (doc, key) => doc[key],
         document,
       ) as unknown as string;
     },
