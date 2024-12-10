@@ -346,6 +346,22 @@ describe("search()", () => {
     expect(results.every(({ category }) => category === "poetry")).toBe(true);
   });
 
+  it("allows to define a default filter upon instantiation", () => {
+    const searchIndex = createIndex<number, Document, { category?: string }>({
+      fields: ["title", "text"],
+      storeFields: ["category"],
+      searchOptions: {
+        filter: ({ category }) => category === "poetry",
+      },
+    });
+
+    addAll(searchIndex, documents);
+    const results = search(searchIndex, "del");
+
+    expect(results.length).toBe(1);
+    expect(results.every(({ category }) => category === "poetry")).toBe(true);
+  });
+
   it("allows customizing BM25+ parameters", () => {
     interface Document {
       id: number;

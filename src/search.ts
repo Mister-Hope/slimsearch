@@ -178,6 +178,9 @@ export const search = <
   query: Query,
   searchOptions: SearchOptions<ID, Index> = {},
 ): SearchResult<ID, Index>[] => {
+  const { searchOptions: globalSearchOptions } = searchIndex._options;
+  const options = { ...globalSearchOptions, ...searchOptions };
+
   const rawResults = executeQuery(searchIndex, query, searchOptions);
 
   const results: SearchResult<ID, Index>[] = [];
@@ -199,18 +202,12 @@ export const search = <
     } as SearchResult<ID, Index>;
 
     Object.assign(result, searchIndex._storedFields.get(docId));
-    if (searchOptions.filter == null || searchOptions.filter(result))
-      results.push(result);
+    if (options.filter == null || options.filter(result)) results.push(result);
   }
 
   // If it's a wildcard query, and no document boost is applied, skip sorting
   // the results, as all results have the same score of 1
-  if (
-    query === WILDCARD &&
-    searchOptions.boostDocument == null &&
-    searchIndex._options.searchOptions.boostDocument == null
-  )
-    return results;
+  if (query === WILDCARD && options.boostDocument == null) return results;
 
   results.sort(byScore);
 
