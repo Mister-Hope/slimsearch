@@ -22,10 +22,13 @@ describe("SearchableMap", () => {
     "bo",
   ];
   const keyValues = strings.map<[string, number]>((key, i) => [key, i]);
-  const object = keyValues.reduce((obj, [key, value]) => ({
-    ...obj,
-    [key]: value,
-  }));
+  const object = keyValues.reduce(
+    (obj, [key, value]) => ({
+      ...obj,
+      [key]: value,
+    }),
+    {},
+  );
 
   const editDistance = (a: string, b: string, mem = [[0]]): number => {
     mem[a.length] = mem[a.length] || [a.length];
