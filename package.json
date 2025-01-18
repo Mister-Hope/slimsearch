@@ -70,8 +70,8 @@
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
     "@types/benchmark": "2.1.5",
-    "@types/node": "22.10.5",
-    "@vitest/coverage-istanbul": "3.0.0-beta.4",
+    "@types/node": "22.10.7",
+    "@vitest/coverage-istanbul": "3.0.2",
     "benchmark": "2.1.4",
     "cz-git": "1.11.0",
     "eslint": "9.18.0",
@@ -86,9 +86,19 @@
     "tslib": "2.8.1",
     "typedoc": "0.27.6",
     "typescript": "5.7.3",
-    "vitest": "3.0.0-beta.4"
+    "vitest": "3.0.2"
   },
   "packageManager": "pnpm@10.0.0",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "eslint-plugin-import>eslint": "9"
+      }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "engines": {
     "node": ">=18.18.0"
   }
