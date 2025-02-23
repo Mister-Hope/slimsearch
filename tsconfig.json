@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["DOM", "ESNext"],
-    "checkJs": false /* Report errors in .js files. */,
+    "checkJs": true,
 
     "sourceMap": true,
 
@@ -14,12 +14,12 @@
     "strictPropertyInitialization": true /* Enable strict checking of property initialization in classes. */,
     "noImplicitThis": true /* Raise error on 'this' expressions with an implied 'any' type. */,
     "alwaysStrict": true /* Parse in strict mode and emit "use strict" for each source file. */,
-
+    "noEmit": true,
     "skipLibCheck": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "eslint.config.js"]
 }
