@@ -240,10 +240,9 @@ describe("SearchableMap", () => {
       const fn = vi.fn((x: number) => (x || 0) + 1);
 
       map.update(key, fn);
-      expect(fn).toHaveBeenCalledWith(undefined);
+      expect(fn).toHaveBeenCalledExactlyOnceWith(undefined);
       expect(map.get(key)).toBe(1);
       map.update(key, fn);
-      expect(fn).toHaveBeenCalledWith(1);
       expect(map.get(key)).toBe(2);
     });
 

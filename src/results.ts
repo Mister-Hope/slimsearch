@@ -200,6 +200,7 @@ const executeQuerySpec = <
   const boosts = (options.fields ?? searchIndex._options.fields).reduce(
     (boosts, field) => ({
       ...boosts,
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       [field]: getOwnProperty(options.boost, field) || 1,
     }),
     {},

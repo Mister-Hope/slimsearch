@@ -195,7 +195,8 @@ export const remove = <
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (fieldValue == null) continue;
 
-    const tokens = tokenize(fieldValue.toString(), field);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
+    const tokens = tokenize(String(fieldValue), field);
     const fieldId = searchIndex._fieldIds[field];
 
     const uniqueTerms = new Set(tokens).size;
