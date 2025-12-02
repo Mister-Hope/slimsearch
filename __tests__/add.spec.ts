@@ -141,19 +141,18 @@ it("turns the field to string before tokenization using a custom stringifyField 
   }
 
   const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
-  const stringifyField = vi.fn(
-    (value: Document[keyof Document], fieldName: keyof Document) => {
-      if (fieldName === "tags") {
-        return (value as string[]).join("|");
-      }
+  const stringifyField = vi.fn((value: any, fieldName: string) => {
+    if (fieldName === "tags") {
+      return (value as string[]).join("|");
+    }
 
-      if (typeof value === "boolean") {
-        return value ? "T" : "F";
-      }
+    if (typeof value === "boolean") {
+      return value ? "T" : "F";
+    }
 
-      return value?.toString() ?? "";
-    },
-  );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return value.toString();
+  });
   const index = createIndex<number, Document>({
     fields: ["id", "tags", "isBlinky"],
     tokenize,
