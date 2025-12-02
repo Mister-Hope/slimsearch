@@ -30,9 +30,9 @@ export interface IterableSet<T> {
 /**
  * @private
  */
-export class TreeIterator<T, K extends Kind<T>>
-  implements Iterator<Result<T, K>>
-{
+export class TreeIterator<T, K extends Kind<T>> implements Iterator<
+  Result<T, K>
+> {
   set: IterableSet<T>;
   _type: K;
   _path: IteratorPath<T>;

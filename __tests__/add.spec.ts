@@ -202,7 +202,6 @@ it("passes field value and name to tokenizer", () => {
 
   add(index, document);
   expect(tokenize).toHaveBeenCalledWith(document.text, "text");
-  // eslint-disable-next-line vitest/prefer-called-exactly-once-with
   expect(tokenize).toHaveBeenCalledWith(document.title, "title");
 });
 

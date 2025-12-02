@@ -25,9 +25,9 @@ interface OptionsWithDefaults<
   Document = any,
   Index extends Record<string, any> = Record<string, never>,
 > extends Omit<
-    SearchIndexOptions<ID, Document, Index>,
-    "processTerm" | "tokenize"
-  > {
+  SearchIndexOptions<ID, Document, Index>,
+  "processTerm" | "tokenize"
+> {
   storeFields: string[];
 
   idField: string;

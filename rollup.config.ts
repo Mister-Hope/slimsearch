@@ -20,14 +20,8 @@ const bundle = ({
       input: `./src/${input}.ts`,
       output: [
         {
-          file: `./dist/${output}.mjs`,
+          file: `./dist/${output}.js`,
           format: "esm",
-          sourcemap: true,
-          exports: "named",
-        },
-        {
-          file: `./dist/${output}.cjs`,
-          format: "cjs",
           sourcemap: true,
           exports: "named",
         },
@@ -53,14 +47,6 @@ const bundle = ({
       output: [
         {
           file: `./dist/${output}.d.ts`,
-          format: "esm",
-        },
-        {
-          file: `./dist/${output}.d.cts`,
-          format: "esm",
-        },
-        {
-          file: `./dist/${output}.d.mts`,
           format: "esm",
         },
       ],
