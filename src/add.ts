@@ -64,9 +64,9 @@ const saveStoredFields = <
     searchIndex._storedFields.set(documentId, (documentFields = {} as Index));
 
   for (const fieldName of storeFields) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fieldValue = extractField(doc, fieldName);
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (fieldValue != null) documentFields[fieldName] = fieldValue;
   }
 };
@@ -89,8 +89,14 @@ export const add = <
   searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
-  const { extractField, tokenize, processTerm, fields, idField } =
-    searchIndex._options;
+  const {
+    extractField,
+    stringifyField,
+    tokenize,
+    processTerm,
+    fields,
+    idField,
+  } = searchIndex._options;
   const id = extractField(document, idField) as ID;
 
   if (id == null)
@@ -104,13 +110,12 @@ export const add = <
   saveStoredFields(searchIndex, shortDocumentId, document);
 
   for (const field of fields) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fieldValue = extractField(document, field);
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (fieldValue == null) continue;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
-    const tokens = tokenize(String(fieldValue), field);
+    const tokens = tokenize(stringifyField(fieldValue, field), field);
     const fieldId = searchIndex._fieldIds[field];
 
     const uniqueTerms = new Set(tokens).size;

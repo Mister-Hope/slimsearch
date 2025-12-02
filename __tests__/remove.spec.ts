@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SearchIndex } from "../src/index.js";
+import type { SearchIndex, SearchIndexOptions } from "../src/index.js";
 import {
   add,
   addAll,
@@ -241,50 +241,69 @@ describe("remove()", () => {
     interface Document {
       id: number;
       title: string;
-      tags?: string;
+      tags: string[];
       author: {
         name: string;
       };
+      available: boolean;
     }
     const documents: Document[] = [
       {
         id: 1,
         title: "Divina Commedia",
-        tags: "dante,virgilio",
+        tags: ["dante", "virgilio"],
         author: { name: "Dante Alighieri" },
+        available: true,
       },
       {
         id: 2,
         title: "I Promessi Sposi",
-        tags: "renzo,lucia",
+        tags: ["renzo", "lucia"],
         author: { name: "Alessandro Manzoni" },
+        available: false,
       },
-      { id: 3, title: "Vita Nova", author: { name: "Dante Alighieri" } },
+      {
+        id: 3,
+        title: "Vita Nova",
+        tags: ["dante"],
+        author: { name: "Dante Alighieri" },
+        available: true,
+      },
     ];
 
     let index: SearchIndex<number, Document>, _warn: (...args: any[]) => void;
 
+    const options: SearchIndexOptions<number, Document> = {
+      fields: ["title", "tags", "authorName", "available"],
+      extractField: (doc, fieldName) => {
+        if (fieldName === "authorName") return doc.author.name;
+
+        // @ts-expect-error: untyped property
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return doc[fieldName];
+      },
+      stringifyField: (fieldValue: any, fieldName: string) => {
+        if (fieldName === "available") {
+          return fieldValue ? "yes" : "no";
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return fieldValue.toString();
+      },
+      tokenize: (field, fieldName) => {
+        if (fieldName === "tags") return field.split(",");
+
+        return field.split(/\s+/);
+      },
+      processTerm: (term, fieldName) => {
+        if (fieldName === "tags") return term.toUpperCase();
+
+        return term.toLowerCase();
+      },
+    };
+
     beforeEach(() => {
-      index = createIndex({
-        fields: ["title", "tags", "authorName"],
-        extractField: (doc, fieldName) => {
-          if (fieldName === "authorName") return doc.author.name;
-
-          // @ts-expect-error: untyped property
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          return doc[fieldName];
-        },
-        tokenize: (field, fieldName) => {
-          if (fieldName === "tags") return field.split(",");
-
-          return field.split(/\s+/);
-        },
-        processTerm: (term, fieldName) => {
-          if (fieldName === "tags") return term.toUpperCase();
-
-          return term.toLowerCase();
-        },
-      });
+      index = createIndex(options);
       addAll(index, documents);
       _warn = console.warn;
       console.warn = vi.fn();
@@ -294,11 +313,20 @@ describe("remove()", () => {
       console.warn = _warn;
     });
 
-    it("removes the document from the index", () => {
+    it("removes the document and its terms from the index", () => {
       expect(index.documentCount).toEqual(3);
+      expect(search(index, "commedia").map(({ id }) => id)).toEqual([1]);
+      expect(search(index, "DANTE").map(({ id }) => id)).toEqual([1, 3]);
+      expect(search(index, "vita").map(({ id }) => id)).toEqual([3]);
+      expect(search(index, "yes").map(({ id }) => id)).toEqual([1, 3]);
+
       remove(index, documents[0]);
+
       expect(index.documentCount).toEqual(2);
-      expect(search(index, "commedia").length).toEqual(0);
+      expect(search(index, "commedia").map(({ id }) => id)).toEqual([]);
+      expect(search(index, "DANTE").map(({ id }) => id)).toEqual([3]);
+      expect(search(index, "vita").map(({ id }) => id)).toEqual([3]);
+      expect(search(index, "yes").map(({ id }) => id)).toEqual([3]);
       expect(search(index, "vita").map(({ id }) => id)).toEqual([3]);
       expect(console.warn).not.toHaveBeenCalled();
     });

@@ -278,7 +278,38 @@ export interface SearchIndexOptions<
    * The function takes as arguments the document, and the name of the field to
    * extract from it. It should return the field value as a string.
    */
-  extractField?: (document: Document, fieldName: string) => string;
+  extractField?: (document: Document, fieldName: string) => any;
+
+  /**
+   * Function used to turn field values into strings for indexing
+   *
+   * The function takes as arguments the field value, and the name of the field
+   * to stringify, so that its logic can be customized on specific fields. By
+   * default, it simply calls `toString()` on the field value (which in many
+   * cases is already a string).
+   *
+   * ### Example:
+   *
+   * ```javascript
+   * // Custom stringifier that formats dates as "Tuesday, September 16, 2025"
+   * const miniSearch = new MiniSearch({
+   *   fields: ['title', 'date'],
+   *   stringifyField: ((fieldValue, _fieldName) => {
+   *     if (fieldValue instanceof Date) {
+   *       return fieldValue.toLocaleDateString('en-US', {
+   *         weekday: 'long',
+   *         year: 'numeric',
+   *         month: 'long',
+   *         day: 'numeric'
+   *       })
+   *     } else {
+   *      return fieldValue.toString()
+   *     }
+   *   }
+   * })
+   * ```
+   */
+  stringifyField?: (fieldValue: any, fieldName: string) => string;
 
   /**
    * Function used to split a field value into individual terms to be indexed.

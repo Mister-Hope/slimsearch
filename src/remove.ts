@@ -175,8 +175,14 @@ export const remove = <
   searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
-  const { tokenize, processTerm, extractField, fields, idField } =
-    searchIndex._options;
+  const {
+    tokenize,
+    processTerm,
+    extractField,
+    stringifyField,
+    fields,
+    idField,
+  } = searchIndex._options;
   const id = extractField(document, idField) as ID;
 
   if (id == null)
@@ -190,13 +196,12 @@ export const remove = <
     );
 
   for (const field of fields) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fieldValue = extractField(document, field);
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (fieldValue == null) continue;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
-    const tokens = tokenize(String(fieldValue), field);
+    const tokens = tokenize(stringifyField(fieldValue, field), field);
     const fieldId = searchIndex._fieldIds[field];
 
     const uniqueTerms = new Set(tokens).size;

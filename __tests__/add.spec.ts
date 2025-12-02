@@ -81,7 +81,6 @@ it("extracts the ID field using extractField", () => {
   };
   const index = createIndex({
     fields: ["text"],
-    // @ts-expect-error: id field can be number
     extractField,
   });
 
@@ -132,6 +131,46 @@ it("turns the field to string before tokenization", () => {
 
   expect(tokenize).toHaveBeenCalledWith("321", "id");
   expect(tokenize).toHaveBeenCalledWith("true", "isBlinky");
+});
+
+it("turns the field to string before tokenization using a custom stringifyField function, if given", () => {
+  interface Document {
+    id: number;
+    tags?: string[];
+    isBlinky: boolean;
+  }
+
+  const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
+  const stringifyField = vi.fn(
+    (value: Document[keyof Document], fieldName: keyof Document) => {
+      if (fieldName === "tags") {
+        return (value as string[]).join("|");
+      }
+
+      if (typeof value === "boolean") {
+        return value ? "T" : "F";
+      }
+
+      return value?.toString() ?? "";
+    },
+  );
+  const index = createIndex<number, Document>({
+    fields: ["id", "tags", "isBlinky"],
+    tokenize,
+    stringifyField,
+  });
+
+  expect(() => {
+    add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
+    add(index, { id: 321, isBlinky: true });
+  }).not.toThrowError();
+
+  expect(tokenize).toHaveBeenCalledWith("123", "id");
+  expect(tokenize).toHaveBeenCalledWith("foo|bar", "tags");
+  expect(tokenize).toHaveBeenCalledWith("F", "isBlinky");
+
+  expect(tokenize).toHaveBeenCalledWith("321", "id");
+  expect(tokenize).toHaveBeenCalledWith("T", "isBlinky");
 });
 
 it("passes document and field name to the field extractor", () => {

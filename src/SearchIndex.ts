@@ -32,7 +32,9 @@ interface OptionsWithDefaults<
 
   idField: string;
 
-  extractField: (document: Document, fieldName: string) => string;
+  extractField: (document: Document, fieldName: string) => any;
+
+  stringifyField: (fieldValue: any, fieldName: string) => string;
 
   tokenize: (text: string, fieldName: string) => string[];
 

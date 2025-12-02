@@ -9,6 +9,8 @@ export const defaultOptions = {
   extractField: (document: any, fieldName: string): unknown =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     document[fieldName],
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  stringifyField: (fieldValue: any) => fieldValue.toString(),
   tokenize: (text: string): string[] => text.split(SPACE_OR_PUNCTUATION),
   processTerm: (term: string): string => term.toLowerCase(),
   fields: undefined,
