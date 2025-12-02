@@ -2,11 +2,12 @@ name: Test
 
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -14,19 +15,19 @@ jobs:
       fail-fast: false
       matrix:
         node-version:
-          - 18
           - 20
           - 22
+          - 24
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
@@ -46,13 +47,13 @@ jobs:
         run: pnpm lint
 
       - name: Upload coverage
-        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == '22' }}
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == 24 }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results
-        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == '22' }}
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == 24 }}
         uses: codecov/test-results-action@v1
         with:
           file: ./coverage/test-report.junit.xml
