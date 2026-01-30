@@ -6,7 +6,6 @@ export default defineConfig({
       provider: "istanbul",
       include: ["src/**/*.ts"],
     },
-    include: ["**/*.spec.ts"],
     ...(process.env.CODECOV_TOKEN
       ? {
           reporters: ["junit"],

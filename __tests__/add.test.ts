@@ -69,6 +69,7 @@ it("extracts the ID field using extractField", () => {
   const extractField = (document: Document, fieldName: string): string | number => {
     if (fieldName === "id") return document.id.value;
 
+    // oxlint-disable-next-line typescript/no-explicit-any
     return (getDefaultValue("extractField") as (document: any, fieldName: string) => string)(
       document,
       fieldName,
@@ -135,6 +136,7 @@ it("turns the field to string before tokenization using a custom stringifyField 
   }
 
   const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
+  // oxlint-disable-next-line typescript/no-explicit-any
   const stringifyField = vi.fn((value: any, fieldName: string) => {
     if (fieldName === "tags") {
       return (value as string[]).join("|");
@@ -144,7 +146,7 @@ it("turns the field to string before tokenization using a custom stringifyField 
       return value ? "T" : "F";
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return, typescript/no-unsafe-member-access
     return value.toString();
   });
   const index = createIndex<number, Document>({
@@ -180,6 +182,7 @@ it("passes document and field name to the field extractor", () => {
     if (fieldName === "pubDate")
       return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
 
+    // oxlint-disable-next-line unicorn/no-array-reduce
     return fieldName.split(".").reduce(
       // @ts-expect-error: property untyped
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return

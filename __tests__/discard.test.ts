@@ -127,7 +127,7 @@ describe("discard()", () => {
     index._dirtCount = 1000;
 
     discard(index, 1);
-    expect(index.isVacuuming).toEqual(true);
+    expect(index.isVacuuming).toBeTruthy();
   });
 
   it("triggers auto vacuum when the threshold is met", () => {
@@ -148,13 +148,13 @@ describe("discard()", () => {
 
     addAll(index, documents);
 
-    expect(index.isVacuuming).toEqual(false);
+    expect(index.isVacuuming).toBeFalsy();
 
     discard(index, 1);
-    expect(index.isVacuuming).toEqual(false);
+    expect(index.isVacuuming).toBeFalsy();
 
     discard(index, 2);
-    expect(index.isVacuuming).toEqual(true);
+    expect(index.isVacuuming).toBeTruthy();
   });
 
   it("does not trigger auto vacuum if disabled", () => {
@@ -171,7 +171,7 @@ describe("discard()", () => {
     index._dirtCount = 1000;
 
     discard(index, 1);
-    expect(index.isVacuuming).toEqual(false);
+    expect(index.isVacuuming).toBeFalsy();
   });
 
   it("applies default settings if autoVacuum is set to true", () => {
@@ -188,7 +188,7 @@ describe("discard()", () => {
     index._dirtCount = 1000;
 
     discard(index, 1);
-    expect(index.isVacuuming).toEqual(true);
+    expect(index.isVacuuming).toBeTruthy();
   });
 
   it("applies default settings if options are set to undefined", () => {
@@ -211,7 +211,7 @@ describe("discard()", () => {
 
     discard(index, 1);
 
-    expect(index.isVacuuming).toEqual(true);
+    expect(index.isVacuuming).toBeTruthy();
   });
 
   it("vacuums until under the dirt thresholds when called multiple times", async () => {
@@ -236,8 +236,11 @@ describe("discard()", () => {
     // Calling discard multiple times should start an auto-vacuum and enqueue
     // another, so that the remaining dirt count afterwards is always below
     // minDirtCount
-    documents.forEach((doc) => discard(index, doc.id));
+    documents.forEach((doc) => {
+      discard(index, doc.id);
+    });
 
+    // oxlint-disable-next-line no-await-in-loop
     while (index.isVacuuming) await index._currentVacuum;
 
     expect(index._dirtCount).toBeLessThan(minDirtCount);
@@ -266,8 +269,11 @@ describe("discard()", () => {
     // another, subject to minDirtCount/minDirtFactor conditions. The last one
     // should be a no-op, as the remaining dirt count after the first auto
     // vacuum would be 1, which is below minDirtCount
-    documents.forEach((doc) => discard(index, doc.id));
+    documents.forEach((doc) => {
+      discard(index, doc.id);
+    });
 
+    // oxlint-disable-next-line no-await-in-loop
     while (index.isVacuuming) await index._currentVacuum;
 
     expect(index._dirtCount).toBe(1);
@@ -296,13 +302,16 @@ describe("discard()", () => {
     // another, subject to minDirtCount/minDirtFactor conditions. The last one
     // would be a no-op, as the remaining dirt count after the first auto
     // vacuum would be 1, which is below minDirtCount
-    documents.forEach((doc) => discard(index, doc.id));
+    documents.forEach((doc) => {
+      discard(index, doc.id);
+    });
 
     // But before the enqueued vacuum is ran, we invoke a manual vacuum with
     // no conditions, so it should run even with a dirt count below
     // minDirtCount
     void vacuum(index);
 
+    // oxlint-disable-next-line no-await-in-loop
     while (index.isVacuuming) await index._currentVacuum;
 
     expect(index._dirtCount).toBe(0);

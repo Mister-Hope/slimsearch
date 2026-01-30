@@ -9,15 +9,16 @@ export const defaultOptions = {
   extractField: (document: any, fieldName: string): unknown =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     document[fieldName],
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  // oxlint-disable-next-line typescript/no-explicit-any, typescript/no-unsafe-return, typescript/no-unsafe-call, typescript/no-unsafe-member-access
   stringifyField: (fieldValue: any) => fieldValue.toString(),
   tokenize: (text: string): string[] => text.split(SPACE_OR_PUNCTUATION),
   processTerm: (term: string): string => term.toLowerCase(),
+  // oxlint-disable-next-line no-undefined
   fields: undefined,
+  // oxlint-disable-next-line no-undefined
   searchOptions: undefined,
   storeFields: [],
   logger: (level: LogLevel, message: string): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     console?.[level]?.(message);
   },
   autoVacuum: true,
@@ -69,10 +70,10 @@ export const defaultAutoVacuumOptions = {
  * @typeParam Index The type of the documents being indexed.
  *
  * @param optionName  Name of the option
- * @return The default value of the given option
+ * @returns The default value of the given option
  */
 export const getDefaultValue = (optionName: string): unknown => {
   // eslint-disable-next-line no-prototype-builtins
   if (defaultOptions.hasOwnProperty(optionName)) return getOwnProperty(defaultOptions, optionName);
-  else throw new Error(`SlimSearch: unknown option "${optionName}"`);
+  throw new Error(`SlimSearch: unknown option "${optionName}"`);
 };

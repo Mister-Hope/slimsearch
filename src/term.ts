@@ -1,11 +1,23 @@
 import type { SearchIndex } from "./SearchIndex.js";
 import { createMap } from "./utils.js";
 import { warnDocumentChanged } from "./warning.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 
 /**
+ * Adds the given term to the index for the given field and document
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
+ * @param fieldId The field ID
+ * @param documentId The document short ID
+ * @param term The term to be added
+ *
  * @private
  */
-export const addTerm = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const addTerm = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   documentId: number,
@@ -16,8 +28,7 @@ export const addTerm = <ID, Document, Index extends Record<string, any> = Record
   let fieldIndex = indexData.get(fieldId);
 
   if (fieldIndex == null) {
-    fieldIndex = new Map();
-    fieldIndex.set(documentId, 1);
+    fieldIndex = new Map([[documentId, 1]]);
     indexData.set(fieldId, fieldIndex);
   } else {
     const docs = fieldIndex.get(documentId);
@@ -27,9 +38,20 @@ export const addTerm = <ID, Document, Index extends Record<string, any> = Record
 };
 
 /**
+ * Removes the given term from the index for the given field and document
+ *
+ * @typeParam ID  The id type of the documents being indexed.
+ * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Index The type of the documents being indexed.
+ *
+ * @param searchIndex The search index
+ * @param fieldId The field ID
+ * @param documentId The document short ID
+ * @param term The term to be removed
+ *
  * @private
  */
-export const removeTerm = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const removeTerm = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   documentId: number,
@@ -47,8 +69,7 @@ export const removeTerm = <ID, Document, Index extends Record<string, any> = Rec
 
   const amount = fieldIndex?.get(documentId);
 
-  if (!fieldIndex || typeof amount === "undefined")
-    warnDocumentChanged(searchIndex, documentId, fieldId, term);
+  if (!fieldIndex || amount == null) warnDocumentChanged(searchIndex, documentId, fieldId, term);
   else if (amount <= 1)
     if (fieldIndex.size <= 1) indexData.delete(fieldId);
     else fieldIndex.delete(documentId);

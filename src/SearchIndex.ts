@@ -8,7 +8,9 @@ import {
 } from "./defaults.js";
 import type { DocumentTermFrequencies, SearchOptionsWithDefaults } from "./results.js";
 import type {
+  AnyObject,
   AutoVacuumOptions,
+  EmptyObject,
   IndexObject,
   LogLevel,
   SearchIndexOptions,
@@ -18,16 +20,20 @@ import type {
 } from "./typings.js";
 
 interface OptionsWithDefaults<
+  // oxlint-disable-next-line typescript/no-explicit-any
   ID = any,
+  // oxlint-disable-next-line typescript/no-explicit-any
   Document = any,
-  Index extends Record<string, any> = Record<string, never>,
+  Index extends AnyObject = Record<string, never>,
 > extends Omit<SearchIndexOptions<ID, Document, Index>, "processTerm" | "tokenize"> {
   storeFields: string[];
 
   idField: string;
 
+  // oxlint-disable-next-line typescript/no-explicit-any
   extractField: (document: Document, fieldName: string) => any;
 
+  // oxlint-disable-next-line typescript/no-explicit-any
   stringifyField: (fieldValue: any, fieldName: string) => string;
 
   tokenize: (text: string, fieldName: string) => string[];
@@ -103,11 +109,8 @@ export type FieldTermData = Map<number, DocumentTermFrequencies>;
  * @typeParam Index The type of the documents being indexed.
  *
  */
-export class SearchIndex<
-  ID = any,
-  Document = any,
-  Index extends Record<string, any> = Record<never, never>,
-> {
+// oxlint-disable-next-line typescript/no-explicit-any
+export class SearchIndex<ID = any, Document = any, Index extends AnyObject = EmptyObject> {
   /**
    * @ignore
    */
@@ -169,7 +172,7 @@ export class SearchIndex<
    * @param options The options for the search index
    */
   constructor(options: SearchIndexOptions<ID, Document, Index>) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    // oxlint-disable-next-line typescript/strict-boolean-expressions
     if (!options?.fields) throw new Error('SlimSearch: option "fields" must be provided');
 
     const autoVacuum =
@@ -285,7 +288,7 @@ export class SearchIndex<
    * searchIndex = loadJSONIndex(json, { fields: ['title', 'text'] })
    * ```
    *
-   * @return A plain-object serializable representation of the search index.
+   * @returns A plain-object serializable representation of the search index.
    */
   toJSON(): IndexObject<Index> {
     const index: [string, Record<string, SerializedIndexEntry>][] = [];

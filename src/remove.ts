@@ -2,8 +2,9 @@ import type { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/index.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 
-const removeFieldLength = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const removeFieldLength = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   count: number,
@@ -68,7 +69,7 @@ const removeFieldLength = <ID, Document, Index extends Record<string, any> = Rec
  * @param searchIndex The search index
  * @param id  The ID of the document to be discarded
  */
-export const discard = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const discard = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
 ): void => {
@@ -113,11 +114,11 @@ export const discard = <ID, Document, Index extends Record<string, any> = Record
  * @param searchIndex The search index
  * @param ids The IDs of the document to be discarded
  */
-export const discardAll = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const discardAll = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   ids: readonly ID[],
 ): void => {
-  const autoVacuum = searchIndex._options.autoVacuum;
+  const { autoVacuum } = searchIndex._options;
 
   try {
     searchIndex._options.autoVacuum = false;
@@ -149,7 +150,7 @@ export const discardAll = <ID, Document, Index extends Record<string, any> = Rec
  * @param searchIndex The search index
  * @param document  The document to be removed
  */
-export const remove = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const remove = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
@@ -183,7 +184,8 @@ export const remove = <ID, Document, Index extends Record<string, any> = Record<
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const t of processedTerm) removeTerm(searchIndex, fieldId, shortId, t);
+        for (const term of processedTerm) removeTerm(searchIndex, fieldId, shortId, term);
+      // oxlint-disable-next-line typescript/strict-boolean-expressions
       else if (processedTerm) removeTerm(searchIndex, fieldId, shortId, processedTerm);
     }
   }
@@ -209,11 +211,10 @@ export const remove = <ID, Document, Index extends Record<string, any> = Record<
  * more efficient to call this method with no arguments than to pass all
  * documents.
  */
-export const removeAll = function removeAll<
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(searchIndex: SearchIndex<ID, Document, Index>, documents?: readonly Document[]): void {
+export const removeAll = function removeAll<ID, Document, Index extends AnyObject = EmptyObject>(
+  searchIndex: SearchIndex<ID, Document, Index>,
+  documents?: readonly Document[],
+): void {
   if (documents) {
     for (const document of documents) remove(searchIndex, document);
   } else if (arguments.length > 1) {

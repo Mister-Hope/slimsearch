@@ -1,7 +1,7 @@
 import type { SearchIndex } from "./SearchIndex.js";
 import { executeQuery } from "./results.js";
 import { WILDCARD } from "./symbols.js";
-import type { Query, SearchOptions, SearchResult } from "./typings.js";
+import type { AnyObject, Query, SearchOptions, SearchResult } from "./typings.js";
 import { byScore } from "./utils.js";
 
 /**
@@ -168,8 +168,10 @@ import { byScore } from "./utils.js";
  * @param searchIndex Search Index
  * @param query Search query
  * @param searchOptions Search options. Each option, if not given, defaults to the corresponding value of `searchOptions` given to the constructor, or to the library default.
+ *
+ * @returns A sorted array of search results.
  */
-export const search = <ID, Document, Index extends Record<string, any> = Partial<Document>>(
+export const search = <ID, Document, Index extends AnyObject = Partial<Document>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   query: Query,
   searchOptions: SearchOptions<ID, Index> = {},
@@ -195,9 +197,9 @@ export const search = <ID, Document, Index extends Record<string, any> = Partial
       terms: Object.keys(match),
       queryTerms: terms,
       match,
+      ...searchIndex._storedFields.get(docId),
     } as SearchResult<ID, Index>;
 
-    Object.assign(result, searchIndex._storedFields.get(docId));
     if (options.filter == null || options.filter(result)) results.push(result);
   }
 

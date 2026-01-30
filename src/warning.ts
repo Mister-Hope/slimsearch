@@ -1,10 +1,7 @@
 import type { SearchIndex } from "./SearchIndex.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 
-export const warnDocumentChanged = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const warnDocumentChanged = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   shortDocumentId: number,
   fieldId: number,

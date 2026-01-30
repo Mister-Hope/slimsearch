@@ -2,7 +2,7 @@ import { bench, describe } from "vitest";
 
 import { autoSuggest, index } from "./__fixtures__/store.js";
 
-describe("autoSuggest", () => {
+describe(autoSuggest, () => {
   bench('autoSuggest("virtute cano")', () => {
     autoSuggest(index, "virtute cano");
   });

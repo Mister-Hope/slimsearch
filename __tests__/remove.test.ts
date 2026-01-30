@@ -23,7 +23,8 @@ describe("remove()", () => {
     },
   ];
 
-  let index: SearchIndex<number, Document>, _warn: (...args: any[]) => void;
+  let index: SearchIndex<number, Document>;
+  let _warn: (...args: unknown[]) => void;
 
   beforeEach(() => {
     index = createIndex({ fields: ["title", "text"] });
@@ -52,7 +53,7 @@ describe("remove()", () => {
       text: "Umana cosa è aver compassione degli afflitti",
     };
     const originalFieldLength = new Map(index._fieldLength);
-    const originalAverageFieldLength = index._avgFieldLength.slice();
+    const originalAverageFieldLength = [...index._avgFieldLength];
 
     add(index, otherDocument);
     remove(index, otherDocument);
@@ -82,6 +83,7 @@ describe("remove()", () => {
     const extractField = (document: Document, fieldName: string): string => {
       const path = fieldName.split(".");
 
+      // oxlint-disable-next-line unicorn/no-array-reduce
       return path.reduce(
         // @ts-expect-error: untyped property
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -112,9 +114,9 @@ describe("remove()", () => {
     const originalIdsSize = index._documentIds.size;
 
     remove(index, documents[0]);
-    expect(index._index.has("commedia")).toEqual(false);
+    expect(index._index.has("commedia")).toBeFalsy();
     expect(index._documentIds.size).toEqual(originalIdsSize - 1);
-    expect(Array.from(index._index.get("vita")!.keys())).toEqual([index._fieldIds.title]);
+    expect([...index._index.get("vita")!.keys()]).toEqual([index._fieldIds.title]);
   });
 
   it("throws error if the document does not have the ID field", () => {
@@ -257,7 +259,8 @@ describe("remove()", () => {
       },
     ];
 
-    let index: SearchIndex<number, Document>, _warn: (...args: any[]) => void;
+    let index: SearchIndex<number, Document>;
+    let _warn: (...args: unknown[]) => void;
 
     const options: SearchIndexOptions<number, Document> = {
       fields: ["title", "tags", "authorName", "available"],
@@ -268,12 +271,14 @@ describe("remove()", () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return doc[fieldName];
       },
+      // oxlint-disable-next-line typescript/no-explicit-any
       stringifyField: (fieldValue: any, fieldName: string) => {
         if (fieldName === "available") {
+          // oxlint-disable-next-line typescript/strict-boolean-expressions
           return fieldValue ? "yes" : "no";
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return, typescript/no-unsafe-member-access
         return fieldValue.toString();
       },
       tokenize: (field, fieldName) => {
@@ -320,22 +325,22 @@ describe("remove()", () => {
 
   describe("when the document was not in the index", () => {
     it("throws an error", () => {
-      // @ts-expect-errorF: id could be number
-      expect(() => remove(index, { id: 99 })).toThrow(
-        "SlimSearch: cannot remove document with ID 99: it is not in the index",
-      );
+      expect(() => {
+        // @ts-expect-errorF: id could be number
+        remove(index, { id: 99 });
+      }).toThrow("SlimSearch: cannot remove document with ID 99: it is not in the index");
     });
   });
 
   describe("when the document has changed", () => {
     it("warns of possible index corruption", () => {
-      expect(() =>
+      expect(() => {
         remove(index, {
           id: 1,
           title: "Divina Commedia cammin",
           text: "something has changed",
-        }),
-      ).not.toThrow();
+        });
+      }).not.toThrow();
       expect(console.warn).toHaveBeenCalledTimes(4);
       [
         ["cammin", "title"],
@@ -353,13 +358,13 @@ describe("remove()", () => {
     it("does not throw error if console.warn is undefined", () => {
       // @ts-expect-error: force overriding console.warn
       console.warn = undefined;
-      expect(() =>
+      expect(() => {
         remove(index, {
           id: 1,
           title: "Divina Commedia cammin",
           text: "something has changed",
-        }),
-      ).not.toThrow();
+        });
+      }).not.toThrow();
     });
 
     it("calls the custom logger if given", () => {

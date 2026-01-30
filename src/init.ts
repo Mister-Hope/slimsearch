@@ -2,7 +2,7 @@ import type { FieldTermData } from "./SearchIndex.js";
 import { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/index.js";
 import type { DocumentTermFrequencies } from "./results.js";
-import type { IndexObject, SearchIndexOptions } from "./typings.js";
+import type { AnyObject, EmptyObject, IndexObject, SearchIndexOptions } from "./typings.js";
 import { objectToNumericMap, objectToNumericMapAsync, wait } from "./utils.js";
 
 const getMsg = (method: string): string =>
@@ -76,11 +76,11 @@ const getMsg = (method: string): string =>
  * })
  * ```
  */
-export const createIndex = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const createIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => new SearchIndex(options);
 
-const instantiateIndex = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const instantiateIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   { documentCount, nextId, fieldIds, averageFieldLength, dirtCount, version }: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
@@ -124,9 +124,9 @@ const instantiateIndex = <ID, Document, Index extends Record<string, any> = Reco
  *
  * @param indexObject index object
  * @param options  configuration options, same as the constructor
- * @return An instance of SearchIndex deserialized from the given JS object.
+ * @returns An instance of SearchIndex deserialized from the given JS object.
  */
-export const loadIndex = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const loadIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   indexObject: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
@@ -145,7 +145,7 @@ export const loadIndex = <ID, Document, Index extends Record<string, any> = Reco
 
     for (const fieldId of Object.keys(data))
       dataMap.set(
-        parseInt(fieldId, 10),
+        Number.parseInt(fieldId, 10),
         objectToNumericMap(data[fieldId]) as DocumentTermFrequencies,
       );
 
@@ -170,13 +170,9 @@ export const loadIndex = <ID, Document, Index extends Record<string, any> = Reco
  *
  * @param indexObject index object
  * @param options  configuration options, same as the constructor
- * @return A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+ * @returns A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
  */
-export const loadIndexAsync = async <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const loadIndexAsync = async <ID, Document, Index extends AnyObject = EmptyObject>(
   indexObject: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): Promise<SearchIndex<ID, Document, Index>> => {
@@ -196,10 +192,12 @@ export const loadIndexAsync = async <
 
     for (const fieldId of Object.keys(data))
       dataMap.set(
-        parseInt(fieldId, 10),
+        Number.parseInt(fieldId, 10),
+        // oxlint-disable-next-line no-await-in-loop
         (await objectToNumericMapAsync(data[fieldId])) as DocumentTermFrequencies,
       );
 
+    // oxlint-disable-next-line no-await-in-loop
     if (++count % 1000 === 0) await wait(0);
 
     searchIndex._index.set(term, dataMap);
@@ -232,17 +230,13 @@ export const loadIndexAsync = async <
  *
  * @param json  JSON-serialized index
  * @param options  configuration options, same as the constructor
- * @return An instance of SearchIndex deserialized from the given JSON.
+ * @returns An instance of SearchIndex deserialized from the given JSON.
  */
-export const loadJSONIndex = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const loadJSONIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   json: string,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  // oxlint-disable-next-line typescript/strict-boolean-expressions
   if (!options) throw new Error(getMsg("loadJSONIndex"));
 
   return loadIndex(JSON.parse(json) as IndexObject<Index>, options);
@@ -263,17 +257,13 @@ export const loadJSONIndex = <
  *
  * @param json  JSON-serialized index
  * @param options  configuration options, same as the constructor
- * @return A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+ * @returns A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
  */
-export const loadJSONIndexAsync = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const loadJSONIndexAsync = <ID, Document, Index extends AnyObject = EmptyObject>(
   json: string,
   options: SearchIndexOptions<ID, Document, Index>,
 ): Promise<SearchIndex<ID, Document, Index>> => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  // oxlint-disable-next-line typescript/strict-boolean-expressions
   if (!options) throw new Error(getMsg("loadJSONIndexAsync"));
 
   return loadIndexAsync(JSON.parse(json) as IndexObject<Index>, options);
