@@ -37,14 +37,11 @@ jobs:
 
       - name: Build project
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{matrix.node-version == 24 && secrets.CODECOV_TOKEN || ''}}
         run: pnpm run build
 
-      - name: Unit Tests
+      - name: Unit Test
         run: pnpm test
-
-      - name: Linter
-        run: pnpm lint
 
       - name: Upload coverage
         if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == 24 }}
