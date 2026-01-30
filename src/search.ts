@@ -37,7 +37,7 @@ import { byScore } from "./utils.js";
  * ### Prefix search:
  *
  * ```js
- * // Search for "moto" with prefix search (it will match documents
+ * // Search for "moto" with prefix search (it will match documents)
  * // containing terms that start with "moto" or "neuro")
  * search(searchIndex, 'moto neuro', { prefix: true })
  * ```
@@ -200,6 +200,7 @@ export const search = <ID, Document, Index extends AnyObject = Partial<Document>
       ...searchIndex._storedFields.get(docId),
     } as SearchResult<ID, Index>;
 
+    // oxlint-disable-next-line unicorn/no-array-callback-reference
     if (options.filter == null || options.filter(result)) results.push(result);
   }
 

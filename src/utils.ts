@@ -141,7 +141,6 @@ export const calcBM25Score = (
   avgFieldLength: number,
   bm25params: BM25Params,
 ): number => {
-  // oxlint-disable-next-line id-length
   const { k, b, d } = bm25params;
   const invDocFreq = Math.log(1 + (totalCount - matchingCount + 0.5) / (matchingCount + 0.5));
 

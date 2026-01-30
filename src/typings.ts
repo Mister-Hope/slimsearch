@@ -31,7 +31,6 @@ export interface BM25Params {
    * frequencies. Setting this to `0` or a negative value is invalid. Defaults
    * to `1.2`
    */
-  // oxlint-disable-next-line id-length
   k: number;
 
   /**
@@ -52,7 +51,6 @@ export interface BM25Params {
    * regardless of its (possibly very long) field length. Negative values are
    * invalid. Defaults to `0.5`.
    */
-  // oxlint-disable-next-line id-length
   d: number;
 }
 

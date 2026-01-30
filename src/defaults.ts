@@ -6,6 +6,7 @@ export const defaultBM25params: BM25Params = { k: 1.2, b: 0.7, d: 0.5 };
 
 export const defaultOptions = {
   idField: "id",
+  // oxlint-disable-next-line typescript/no-explicit-any
   extractField: (document: any, fieldName: string): unknown =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     document[fieldName],

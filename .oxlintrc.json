@@ -4,12 +4,37 @@
   "ignorePatterns": ["coverage/", "dist/", "docs/"],
   "plugins": ["typescript", "oxc", "jsdoc", "import", "promise", "unicorn", "node"],
   "rules": {
+    "id-length": [
+      "warn",
+      {
+        "min": 2,
+        "exceptions": [
+          // sorting
+          "a",
+          "b",
+          // loops
+          "i",
+          "j",
+          // type generics
+          "T",
+          // parameter name for unused variables
+          "_",
+          // bm25
+          "k",
+          "d"
+        ]
+      }
+    ],
     "no-console": "off",
+    "max-depth": ["warn", 5],
     "jsdoc/check-tag-names": [
       "warn",
       {
         "definedTags": ["typeParam"]
       }
-    ]
+    ],
+    // FIXME: See https://github.com/oxc-project/oxc/issues/18574
+    "jsdoc/require-param": "off",
+    "jsdoc/require-param-description": "off"
   }
 }
