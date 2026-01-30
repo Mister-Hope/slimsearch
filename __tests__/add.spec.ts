@@ -66,18 +66,13 @@ it("extracts the ID field using extractField", () => {
     text: string;
   }
 
-  const extractField = (
-    document: Document,
-    fieldName: string,
-  ): string | number => {
+  const extractField = (document: Document, fieldName: string): string | number => {
     if (fieldName === "id") return document.id.value;
 
-    return (
-      getDefaultValue("extractField") as (
-        document: any,
-        fieldName: string,
-      ) => string
-    )(document, fieldName);
+    return (getDefaultValue("extractField") as (document: any, fieldName: string) => string)(
+      document,
+      fieldName,
+    );
   };
   const index = createIndex({
     fields: ["text"],
@@ -95,8 +90,7 @@ it("extracts the ID field using extractField", () => {
 });
 
 it("rejects falsy terms", () => {
-  const processTerm = (term: string): string | null =>
-    term === "foo" ? null : term;
+  const processTerm = (term: string): string | null => (term === "foo" ? null : term);
   const index = createIndex<number, { id: number; text: string }>({
     fields: ["title", "text"],
     processTerm,
@@ -182,19 +176,17 @@ it("passes document and field name to the field extractor", () => {
     };
     category: string;
   }
-  const extractField = vi.fn(
-    (document: Document, fieldName: string): string => {
-      if (fieldName === "pubDate")
-        return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
+  const extractField = vi.fn((document: Document, fieldName: string): string => {
+    if (fieldName === "pubDate")
+      return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
 
-      return fieldName.split(".").reduce(
-        // @ts-expect-error: property untyped
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        (doc, key) => doc[key],
-        document,
-      ) as unknown as string;
-    },
-  );
+    return fieldName.split(".").reduce(
+      // @ts-expect-error: property untyped
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      (doc, key) => doc[key],
+      document,
+    ) as unknown as string;
+  });
   const tokenize = vi.fn((token: string): string[] => token.split(/\W+/));
   const index = createIndex<number, Document>({
     fields: ["title", "pubDate", "author.name"],

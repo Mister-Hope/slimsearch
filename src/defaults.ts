@@ -35,8 +35,7 @@ export const defaultSearchOptions = {
 
 export const defaultAutoSuggestOptions = {
   combineWith: AND,
-  prefix: (_term: string, index: number, terms: string[]): boolean =>
-    index === terms.length - 1,
+  prefix: (_term: string, index: number, terms: string[]): boolean => index === terms.length - 1,
 } as const;
 
 export const defaultVacuumOptions = { batchSize: 1000, batchWait: 10 };
@@ -74,7 +73,6 @@ export const defaultAutoVacuumOptions = {
  */
 export const getDefaultValue = (optionName: string): unknown => {
   // eslint-disable-next-line no-prototype-builtins
-  if (defaultOptions.hasOwnProperty(optionName))
-    return getOwnProperty(defaultOptions, optionName);
+  if (defaultOptions.hasOwnProperty(optionName)) return getOwnProperty(defaultOptions, optionName);
   else throw new Error(`SlimSearch: unknown option "${optionName}"`);
 };

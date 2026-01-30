@@ -1,14 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { SearchResult } from "../src/index.js";
-import {
-  WILDCARD,
-  add,
-  addAll,
-  createIndex,
-  getDefaultValue,
-  search,
-} from "../src/index.js";
+import { WILDCARD, add, addAll, createIndex, getDefaultValue, search } from "../src/index.js";
 
 describe("search()", () => {
   interface Document {
@@ -39,11 +32,7 @@ describe("search()", () => {
       category: "poetry",
     },
   ];
-  const index = createIndex<
-    number,
-    Document,
-    { lang?: string; category?: string }
-  >({
+  const index = createIndex<number, Document, { lang?: string; category?: string }>({
     fields: ["title", "text"],
     storeFields: ["lang", "category"],
   });
@@ -62,11 +51,7 @@ describe("search()", () => {
     const results = search(index, "del");
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results.map(({ lang }) => lang).sort()).toEqual([
-      "it",
-      undefined,
-      undefined,
-    ]);
+    expect(results.map(({ lang }) => lang).sort()).toEqual(["it", undefined, undefined]);
     expect(results.map(({ category }) => category).sort()).toEqual([
       "fiction",
       "poetry",
@@ -146,12 +131,8 @@ describe("search()", () => {
 
     expect(results.length).toEqual(1);
     expect(results.map(({ id }) => id)).toEqual([1]);
-    expect(
-      search(index, "vita sottomarino", { combineWith: "AND" }).length,
-    ).toEqual(0);
-    expect(
-      search(index, "sottomarino vita", { combineWith: "AND" }).length,
-    ).toEqual(0);
+    expect(search(index, "vita sottomarino", { combineWith: "AND" }).length).toEqual(0);
+    expect(search(index, "sottomarino vita", { combineWith: "AND" }).length).toEqual(0);
   });
 
   it("combines results with AND_NOT if combineWith is AND_NOT", () => {
@@ -159,12 +140,8 @@ describe("search()", () => {
 
     expect(results.length).toEqual(1);
     expect(results.map(({ id }) => id)).toEqual([3]);
-    expect(
-      search(index, "vita sottomarino", { combineWith: "AND_NOT" }).length,
-    ).toEqual(2);
-    expect(
-      search(index, "sottomarino vita", { combineWith: "AND_NOT" }).length,
-    ).toEqual(0);
+    expect(search(index, "vita sottomarino", { combineWith: "AND_NOT" }).length).toEqual(2);
+    expect(search(index, "sottomarino vita", { combineWith: "AND_NOT" }).length).toEqual(0);
   });
 
   it("raises an error if combineWith is not a valid operator", () => {
@@ -266,10 +243,7 @@ describe("search()", () => {
     expect(fuzzy).toHaveBeenNthCalledWith(1, "quel", 0, ["quel", "comedia"]);
     expect(fuzzy).toHaveBeenNthCalledWith(2, "comedia", 1, ["quel", "comedia"]);
     expect(prefix).toHaveBeenNthCalledWith(1, "quel", 0, ["quel", "comedia"]);
-    expect(prefix).toHaveBeenNthCalledWith(2, "comedia", 1, [
-      "quel",
-      "comedia",
-    ]);
+    expect(prefix).toHaveBeenNthCalledWith(2, "comedia", 1, ["quel", "comedia"]);
     expect(results.length).toEqual(2);
     expect(results.map(({ id }) => id)).toEqual([2, 1]);
   });
@@ -286,9 +260,7 @@ describe("search()", () => {
     expect(boostDocument).toHaveBeenCalledWith(3, "nova", {
       category: "poetry",
     });
-    expect(results[0].score).toBeCloseTo(
-      resultsWithoutBoost[0].score * boostFactor,
-    );
+    expect(results[0].score).toBeCloseTo(resultsWithoutBoost[0].score * boostFactor);
   });
 
   it("skips document if boostDocument returns a falsy value", () => {
@@ -320,8 +292,7 @@ describe("search()", () => {
   });
 
   it("rejects falsy terms", () => {
-    const processTerm = (term: string): string | null =>
-      term === "quel" ? null : term;
+    const processTerm = (term: string): string | null => (term === "quel" ? null : term);
     const results = search(index, "quel commedia", { processTerm });
 
     expect(results.length).toBeGreaterThan(0);
@@ -584,10 +555,7 @@ describe("search()", () => {
         { vita: ["title", "text"], nova: ["title"] },
         { vita: ["text"] },
       ]);
-      expect(results.map(({ terms }) => terms)).toEqual([
-        ["vita", "nova"],
-        ["vita"],
-      ]);
+      expect(results.map(({ terms }) => terms)).toEqual([["vita", "nova"], ["vita"]]);
     });
 
     it("reports correct info when combining terms with AND", () => {
@@ -606,10 +574,7 @@ describe("search()", () => {
         { vita: ["title", "text"], nova: ["title"] },
         { vita: ["text"] },
       ]);
-      expect(results.map(({ terms }) => terms)).toEqual([
-        ["vita", "nova"],
-        ["vita"],
-      ]);
+      expect(results.map(({ terms }) => terms)).toEqual([["vita", "nova"], ["vita"]]);
     });
 
     it("reports correct info for many fuzzy and prefix queries", () => {
@@ -670,9 +635,7 @@ describe("search()", () => {
       }
       const specialWords = ["constructor", "hasOwnProperty", "isPrototypeOf"];
       const index = createIndex<number, Document>({ fields: ["text"] });
-      const processTerm = getDefaultValue("processTerm") as (
-        term: string,
-      ) => string;
+      const processTerm = getDefaultValue("processTerm") as (term: string) => string;
 
       add(index, { id: 1, text: specialWords.join(" ") });
 
@@ -814,34 +777,28 @@ describe("search()", () => {
 
     it("returns best results for shaun", () => {
       // Two movies contain the query in the title. Pick the shorter title.
-      expect(search(index, "shaun the sheep")[0].title).toEqual(
+      expect(search(index, "shaun the sheep")[0].title).toEqual("Shaun the Sheep");
+      expect(search(index, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
         "Shaun the Sheep",
       );
-      expect(
-        search(index, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title,
-      ).toEqual("Shaun the Sheep");
     });
 
     it("returns best results for chirin", () => {
       // The title contains neither 'sheep' nor the character name. Movies
       // that have 'sheep' or 'the' in the title should not outrank this.
-      expect(search(index, "chirin the sheep")[0].title).toEqual(
+      expect(search(index, "chirin the sheep")[0].title).toEqual("Ringing Bell");
+      expect(search(index, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
         "Ringing Bell",
       );
-      expect(
-        search(index, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title,
-      ).toEqual("Ringing Bell");
     });
 
     it("returns best results for judah", () => {
       // Title contains the character's name, but the word 'sheep' never
       // occurs. Other movies that do contain 'sheep' should not outrank this.
-      expect(search(index, "judah the sheep")[0].title).toEqual(
+      expect(search(index, "judah the sheep")[0].title).toEqual("The Lion of Judah");
+      expect(search(index, "judah the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
         "The Lion of Judah",
       );
-      expect(
-        search(index, "judah the sheep", { fuzzy: 1, prefix: true })[0].title,
-      ).toEqual("The Lion of Judah");
     });
 
     it("returns best results for bounding", () => {
@@ -850,9 +807,7 @@ describe("search()", () => {
       // specific. Does not contain 'sheep' at all! Because 'sheep' is a
       // slightly more common term in the dataset, that should not cause other
       // results to outrank this.
-      expect(search(index, "bounding sheep", { fuzzy: 1 })[0].title).toEqual(
-        "Boundin'",
-      );
+      expect(search(index, "bounding sheep", { fuzzy: 1 })[0].title).toEqual("Boundin'");
     });
   });
 
@@ -936,9 +891,7 @@ describe("search()", () => {
 
     it("returns best results for queen", () => {
       // The only match where both song and artist contain 'queen'.
-      expect(
-        search(index, "queen", { fuzzy: 1, prefix: true })[0].song,
-      ).toEqual("Killer Queen");
+      expect(search(index, "queen", { fuzzy: 1, prefix: true })[0].song).toEqual("Killer Queen");
     });
   });
 });

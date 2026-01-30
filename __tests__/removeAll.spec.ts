@@ -1,13 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import type { SearchIndex } from "../src/index.js";
-import {
-  addAll,
-  createIndex,
-  loadJSONIndex,
-  removeAll,
-  search,
-} from "../src/index.js";
+import { addAll, createIndex, loadJSONIndex, removeAll, search } from "../src/index.js";
 
 interface Document {
   id: number;

@@ -11,11 +11,7 @@ import type { SearchIndex } from "./SearchIndex.js";
  * @param searchIndex The search index
  * @param id  The document ID
  */
-export const has = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const has = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
 ): boolean => searchIndex._idToShortId.has(id);

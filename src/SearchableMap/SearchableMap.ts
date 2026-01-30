@@ -73,10 +73,7 @@ export class SearchableMap<Value = any> {
   atPrefix(prefix: string): SearchableMap<Value> {
     if (!prefix.startsWith(this._prefix)) throw new Error("Mismatched prefix");
 
-    const [node, path] = trackDown(
-      this._tree,
-      prefix.slice(this._prefix.length),
-    );
+    const [node, path] = trackDown(this._tree, prefix.slice(this._prefix.length));
 
     if (node === undefined) {
       const [parentNode, key] = last(path);
@@ -306,9 +303,7 @@ export class SearchableMap<Value = any> {
    * @param entries  Entries to be inserted in the {@link SearchableMap}
    * @return A new {@link SearchableMap} with the given entries
    */
-  static from<T = any>(
-    entries: Iterable<Entry<T>> | Entry<T>[],
-  ): SearchableMap<T> {
+  static from<T = any>(entries: Iterable<Entry<T>> | Entry<T>[]): SearchableMap<T> {
     const tree = new SearchableMap<T>();
 
     for (const [key, value] of entries) tree.set(key, value);
@@ -346,10 +341,7 @@ const trackDown = <T = any>(
   return trackDown(undefined, "", path);
 };
 
-const lookup = <T = any>(
-  tree: RadixTree<T>,
-  key: string,
-): RadixTree<T> | undefined => {
+const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefined => {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (key.length === 0 || !tree) return tree;
 
@@ -420,10 +412,7 @@ const remove = <T = any>(tree: RadixTree<T>, key: string): void => {
     cleanup(path);
   } else if (node.size === 1) {
     const [key, value] = (
-      node.entries().next() as IteratorResult<
-        [string, RadixTree<T>],
-        [string, RadixTree<T>]
-      >
+      node.entries().next() as IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
     ).value;
 
     merge(path, key, value);
@@ -441,21 +430,14 @@ const cleanup = <T = any>(path: Path<T>): void => {
     cleanup(path.slice(0, -1));
   } else if (node.size === 1) {
     const [key, value] = (
-      node.entries().next() as IteratorResult<
-        [string, RadixTree<T>],
-        [string, RadixTree<T>]
-      >
+      node.entries().next() as IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
     ).value;
 
     if (key !== LEAF) merge(path.slice(0, -1), key, value);
   }
 };
 
-const merge = <T = any>(
-  path: Path<T>,
-  key: string,
-  value: RadixTree<T>,
-): void => {
+const merge = <T = any>(path: Path<T>, key: string, value: RadixTree<T>): void => {
   if (path.length === 0) return;
 
   const [node, nodeKey] = last(path);

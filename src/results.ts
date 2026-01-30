@@ -29,10 +29,7 @@ export interface SearchOptionsWithDefaults<
 
   prefix: boolean | ((term: string, index: number, terms: string[]) => boolean);
 
-  fuzzy:
-    | boolean
-    | number
-    | ((term: string, index: number, terms: string[]) => boolean | number);
+  fuzzy: boolean | number | ((term: string, index: number, terms: string[]) => boolean | number);
 
   maxFuzzy: number;
 
@@ -73,25 +70,17 @@ const executeWildcardQuery = <
   return results;
 };
 
-const combineResults = (
-  results: RawResult[],
-  combineWith: CombinationOperator = OR,
-): RawResult => {
+const combineResults = (results: RawResult[], combineWith: CombinationOperator = OR): RawResult => {
   if (results.length === 0) return new Map();
 
   const operator = combineWith.toLowerCase() as LowercaseCombinationOperator;
 
-  if (!(operator in combinators))
-    throw new Error(`Invalid combination operator: ${combineWith}`);
+  if (!(operator in combinators)) throw new Error(`Invalid combination operator: ${combineWith}`);
 
   return results.reduce(combinators[operator]);
 };
 
-const termResults = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const termResults = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   sourceTerm: string,
   derivedTerm: string,
@@ -99,9 +88,7 @@ const termResults = <
   termBoost: number,
   fieldTermData: FieldTermData | undefined,
   fieldBoosts: Record<string, number>,
-  boostDocumentFn:
-    | ((id: ID, term: string, storedFields?: Index) => number)
-    | undefined,
+  boostDocumentFn: ((id: ID, term: string, storedFields?: Index) => number) | undefined,
   bm25params: BM25Params,
   results: RawResult = new Map(),
 ): RawResult => {
@@ -155,17 +142,14 @@ const termResults = <
         avgFieldLength,
         bm25params,
       );
-      const weightedScore =
-        termWeight * termBoost * fieldBoost * docBoost * rawScore;
+      const weightedScore = termWeight * termBoost * fieldBoost * docBoost * rawScore;
 
       const result = results.get(docId);
 
       if (result) {
         result.score += weightedScore;
         assignUniqueTerm(result.terms, sourceTerm);
-        const match = getOwnProperty(result.match, derivedTerm) as
-          | string[]
-          | undefined;
+        const match = getOwnProperty(result.match, derivedTerm) as string[] | undefined;
 
         if (match) match.push(field);
         else result.match[derivedTerm] = [field];
@@ -182,11 +166,7 @@ const termResults = <
   return results;
 };
 
-const executeQuerySpec = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const executeQuerySpec = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   query: QuerySpec,
   searchOptions: SearchOptions<ID, Index>,
@@ -234,12 +214,9 @@ const executeQuerySpec = <
   if (query.fuzzy) {
     const fuzzy = query.fuzzy === true ? 0.2 : query.fuzzy;
     const maxDistance =
-      fuzzy < 1
-        ? Math.min(maxFuzzy, Math.round(query.term.length * fuzzy))
-        : fuzzy;
+      fuzzy < 1 ? Math.min(maxFuzzy, Math.round(query.term.length * fuzzy)) : fuzzy;
 
-    if (maxDistance)
-      fuzzyMatches = searchIndex._index.fuzzyGet(query.term, maxDistance);
+    if (maxDistance) fuzzyMatches = searchIndex._index.fuzzyGet(query.term, maxDistance);
   }
 
   if (prefixMatches)
@@ -258,8 +235,7 @@ const executeQuerySpec = <
       // The rate of change is much lower than that of fuzzy matches to
       // account for the fact that prefix matches stay more relevant than
       // fuzzy matches for longer distances.
-      const weight =
-        (prefixWeight * term.length) / (term.length + 0.3 * distance);
+      const weight = (prefixWeight * term.length) / (term.length + 0.3 * distance);
 
       termResults(
         searchIndex,
@@ -313,23 +289,16 @@ export const executeQuery = <
   query: Query,
   searchOptions: SearchOptions<ID, Index> = {},
 ): RawResult => {
-  if (query === WILDCARD)
-    return executeWildcardQuery(searchIndex, searchOptions);
+  if (query === WILDCARD) return executeWildcardQuery(searchIndex, searchOptions);
 
   if (typeof query !== "string") {
     const options = { ...searchOptions, ...query, queries: undefined };
-    const results = query.queries.map((subQuery) =>
-      executeQuery(searchIndex, subQuery, options),
-    );
+    const results = query.queries.map((subQuery) => executeQuery(searchIndex, subQuery, options));
 
     return combineResults(results, options.combineWith);
   }
 
-  const {
-    tokenize,
-    processTerm,
-    searchOptions: globalSearchOptions,
-  } = searchIndex._options;
+  const { tokenize, processTerm, searchOptions: globalSearchOptions } = searchIndex._options;
   const options = {
     tokenize,
     processTerm,

@@ -1,13 +1,6 @@
 import { expect, it } from "vitest";
 
-import {
-  add,
-  addAll,
-  createIndex,
-  discardAll,
-  has,
-  search,
-} from "../src/index.js";
+import { add, addAll, createIndex, discardAll, has, search } from "../src/index.js";
 
 it("prevents the documents from appearing in search results", () => {
   interface Document {
@@ -48,8 +41,7 @@ it("only triggers at most a single auto vacuum at the end", () => {
   });
   const documents: Document[] = [];
 
-  for (let i = 1; i <= 10; i++)
-    documents.push({ id: i, text: `Document ${i}` });
+  for (let i = 1; i <= 10; i++) documents.push({ id: i, text: `Document ${i}` });
 
   addAll(index, documents);
   discardAll(index, [1, 2]);

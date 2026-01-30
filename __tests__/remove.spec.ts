@@ -1,14 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SearchIndex, SearchIndexOptions } from "../src/index.js";
-import {
-  add,
-  addAll,
-  createIndex,
-  getDefaultValue,
-  remove,
-  search,
-} from "../src/index.js";
+import { add, addAll, createIndex, getDefaultValue, remove, search } from "../src/index.js";
 
 describe("remove()", () => {
   interface Document {
@@ -121,16 +114,14 @@ describe("remove()", () => {
     remove(index, documents[0]);
     expect(index._index.has("commedia")).toEqual(false);
     expect(index._documentIds.size).toEqual(originalIdsSize - 1);
-    expect(Array.from(index._index.get("vita")!.keys())).toEqual([
-      index._fieldIds.title,
-    ]);
+    expect(Array.from(index._index.get("vita")!.keys())).toEqual([index._fieldIds.title]);
   });
 
   it("throws error if the document does not have the ID field", () => {
-    const index = createIndex<
-      { foo: string; text: string; title: string },
-      string
-    >({ idField: "foo", fields: ["title", "text"] });
+    const index = createIndex<{ foo: string; text: string; title: string }, string>({
+      idField: "foo",
+      fields: ["title", "text"],
+    });
 
     expect(() => {
       // @ts-expect-error: document does not have ID field
@@ -148,12 +139,10 @@ describe("remove()", () => {
       // @ts-expect-error: id could be number
       if (fieldName === "id") return document.id.value;
 
-      return (
-        getDefaultValue("extractField") as (
-          document: Document,
-          fieldName: string,
-        ) => string
-      )(document, fieldName);
+      return (getDefaultValue("extractField") as (document: Document, fieldName: string) => string)(
+        document,
+        fieldName,
+      );
     };
     const index = createIndex<number, Document>({
       fields: ["text"],
@@ -189,9 +178,7 @@ describe("remove()", () => {
   it("does not reassign IDs", () => {
     remove(index, documents[0]);
     add(index, documents[0]);
-    expect(search(index, "commedia").map((result) => result.id)).toEqual([
-      documents[0].id,
-    ]);
+    expect(search(index, "commedia").map((result) => result.id)).toEqual([documents[0].id]);
     expect(search(index, "nova").map((result) => result.id)).toEqual([
       documents[documents.length - 1].id,
     ]);
@@ -202,8 +189,7 @@ describe("remove()", () => {
       id: number;
       title: string;
     }
-    const processTerm = (term: string): string | null =>
-      term === "foo" ? null : term;
+    const processTerm = (term: string): string | null => (term === "foo" ? null : term);
     const index = createIndex<number, Document>({
       fields: ["title", "text"],
       processTerm,

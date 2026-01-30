@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  addAll,
-  createIndex,
-  loadJSONIndex,
-  loadJSONIndexAsync,
-  search,
-} from "../src/index.js";
+import { addAll, createIndex, loadJSONIndex, loadJSONIndexAsync, search } from "../src/index.js";
 
 interface Document {
   id: number;
@@ -78,9 +72,7 @@ describe("loadJSONIndex", () => {
 
     expect(() => {
       loadJSONIndex(json, options);
-    }).toThrowError(
-      "SlimSearch: cannot deserialize an index created with an incompatible version",
-    );
+    }).toThrowError("SlimSearch: cannot deserialize an index created with an incompatible version");
   });
 });
 

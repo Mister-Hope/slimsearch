@@ -10,11 +10,7 @@ interface BundleOptions {
   target?: string;
 }
 
-const bundle = ({
-  input,
-  output = input,
-  target = "node18",
-}: BundleOptions): RollupOptions[] =>
+const bundle = ({ input, output = input, target = "node18" }: BundleOptions): RollupOptions[] =>
   defineConfig([
     {
       input: `./src/${input}.ts`,

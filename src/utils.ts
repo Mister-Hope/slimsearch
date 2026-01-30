@@ -14,10 +14,7 @@ export const assignUniqueTerm = (target: string[], term: string): void => {
   if (!target.includes(term)) target.push(term);
 };
 
-export const assignUniqueTerms = (
-  target: string[],
-  source: readonly string[],
-): void => {
+export const assignUniqueTerms = (target: string[], source: readonly string[]): void => {
   // Avoid adding duplicate terms.
   for (const term of source) if (!target.includes(term)) target.push(term);
 };
@@ -26,18 +23,14 @@ interface Scored {
   score: number;
 }
 
-export const byScore = ({ score: a }: Scored, { score: b }: Scored): number =>
-  b - a;
+export const byScore = ({ score: a }: Scored, { score: b }: Scored): number => b - a;
 
 export const createMap = <K, V>(): Map<K, V> => new Map<K, V>();
 
-export const objectToNumericMap = <Value>(
-  object: Record<string, Value>,
-): Map<number, Value> => {
+export const objectToNumericMap = <Value>(object: Record<string, Value>): Map<number, Value> => {
   const map = new Map<number, Value>();
 
-  for (const key of Object.keys(object))
-    map.set(parseInt(key, 10), object[key]);
+  for (const key of Object.keys(object)) map.set(parseInt(key, 10), object[key]);
 
   return map;
 };
@@ -85,10 +78,7 @@ export type RawResult = Map<number, RawResultValue>;
 
 export type CombinatorFunction = (a: RawResult, b: RawResult) => RawResult;
 
-export const combinators: Record<
-  LowercaseCombinationOperator,
-  CombinatorFunction
-> = {
+export const combinators: Record<LowercaseCombinationOperator, CombinatorFunction> = {
   [OR]: (a: RawResult, b: RawResult) => {
     for (const docId of b.keys()) {
       const existing = a.get(docId);
@@ -145,15 +135,11 @@ export const calcBM25Score = (
   bm25params: BM25Params,
 ): number => {
   const { k, b, d } = bm25params;
-  const invDocFreq = Math.log(
-    1 + (totalCount - matchingCount + 0.5) / (matchingCount + 0.5),
-  );
+  const invDocFreq = Math.log(1 + (totalCount - matchingCount + 0.5) / (matchingCount + 0.5));
 
   return (
     invDocFreq *
-    (d +
-      (termFreq * (k + 1)) /
-        (termFreq + k * (1 - b + (b * fieldLength) / avgFieldLength)))
+    (d + (termFreq * (k + 1)) / (termFreq + k * (1 - b + (b * fieldLength) / avgFieldLength)))
   );
 };
 
@@ -176,8 +162,5 @@ export const termToQuerySpec =
       typeof options.prefix === "function"
         ? options.prefix(term, index, terms)
         : options.prefix === true,
-    termBoost:
-      typeof options.boostTerm === "function"
-        ? options.boostTerm(term, index, terms)
-        : 1,
+    termBoost: typeof options.boostTerm === "function" ? options.boostTerm(term, index, terms) : 1,
   });

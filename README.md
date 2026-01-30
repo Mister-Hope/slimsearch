@@ -300,20 +300,12 @@ Terms are downcased by default. No stemming is performed, and no stop-word list 
 ```ts
 import { createIndex } from "slimsearch";
 
-const stopWords = new Set([
-  "and",
-  "or",
-  "to",
-  "in",
-  "a",
-  "the" /* ...and more */,
-]);
+const stopWords = new Set(["and", "or", "to", "in", "a", "the" /* ...and more */]);
 
 // Perform custom term processing (here discarding stop words and downcasing)
 const index = createIndex({
   fields: ["title", "text"],
-  processTerm: (term, _fieldName) =>
-    stopWords.has(term) ? null : term.toLowerCase(),
+  processTerm: (term, _fieldName) => (stopWords.has(term) ? null : term.toLowerCase()),
 });
 ```
 

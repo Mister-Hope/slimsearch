@@ -4,9 +4,7 @@ import { createIndex } from "../src/index.js";
 
 it("throws error if fields option is missing", () => {
   // @ts-expect-error: without options
-  expect(() => createIndex()).toThrow(
-    'SlimSearch: option "fields" must be provided',
-  );
+  expect(() => createIndex()).toThrow('SlimSearch: option "fields" must be provided');
 });
 
 it("initializes the attributes", () => {

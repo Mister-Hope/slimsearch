@@ -32,8 +32,7 @@ describe("SearchableMap", () => {
 
   const editDistance = (a: string, b: string, mem = [[0]]): number => {
     mem[a.length] = mem[a.length] || [a.length];
-    if (typeof mem[a.length][b.length] === "number")
-      return mem[a.length][b.length];
+    if (typeof mem[a.length][b.length] === "number") return mem[a.length][b.length];
 
     const d = a[a.length - 1] === b[b.length - 1] ? 0 : 1;
     const distance =
@@ -125,8 +124,7 @@ describe("SearchableMap", () => {
   describe("forEach", () => {
     it("iterates through each entry", () => {
       const entries: [key: string, value: unknown][] = [];
-      const fn = (key: string, value: unknown): number =>
-        entries.push([key, value]);
+      const fn = (key: string, value: unknown): number => entries.push([key, value]);
       const map = SearchableMap.from(keyValues);
 
       map.forEach(fn);
@@ -308,9 +306,7 @@ describe("SearchableMap", () => {
       const map = SearchableMap.from(keyValues);
       const sum = map.atPrefix("sum");
 
-      expect(sum.size).toEqual(
-        strings.filter((string) => string.startsWith("sum")).length,
-      );
+      expect(sum.size).toEqual(strings.filter((string) => string.startsWith("sum")).length);
     });
   });
 
@@ -326,16 +322,11 @@ describe("SearchableMap", () => {
 
         expect(entries.map(([key, [, dist]]) => [key, dist]).sort()).toEqual(
           terms
-            .map<[string, number]>((term) => [
-              term,
-              editDistance("acqua", term),
-            ])
+            .map<[string, number]>((term) => [term, editDistance("acqua", term)])
             .filter(([, d]) => d <= distance)
             .sort(),
         );
-        expect(entries.every(([key, [value]]) => map.get(key) === value)).toBe(
-          true,
-        );
+        expect(entries.every(([key, [value]]) => map.get(key) === value)).toBe(true);
       });
     });
 
@@ -358,10 +349,9 @@ describe("SearchableMap", () => {
 
   describe("with generated test data", () => {
     it("adds and removes entries", () => {
-      const arrayOfStrings = fc.array(
-        fc.oneof(fc.string({ unit: "grapheme" }), fc.string()),
-        { maxLength: 70 },
-      );
+      const arrayOfStrings = fc.array(fc.oneof(fc.string({ unit: "grapheme" }), fc.string()), {
+        maxLength: 70,
+      });
       const string = fc.oneof(
         fc.string({ unit: "grapheme", minLength: 0, maxLength: 4 }),
         fc.string({ minLength: 0, maxLength: 4 }),
@@ -394,14 +384,9 @@ describe("SearchableMap", () => {
 
           const fuzzy = map.fuzzyGet(terms[0], maxDist);
 
-          expect(
-            Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort(),
-          ).toEqual(
+          expect(Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort()).toEqual(
             uniqueTerms
-              .map<[string, number]>((term) => [
-                term,
-                editDistance(terms[0], term),
-              ])
+              .map<[string, number]>((term) => [term, editDistance(terms[0], term)])
               .filter(([, dist]) => dist <= maxDist)
               .sort(),
           );

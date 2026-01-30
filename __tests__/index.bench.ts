@@ -1,13 +1,7 @@
 import { bench } from "vitest";
 
 import type { Index } from "./__fixtures__/store.js";
-import {
-  add,
-  addAll,
-  addAllAsync,
-  createIndex,
-  lines,
-} from "./__fixtures__/store.js";
+import { add, addAll, addAllAsync, createIndex, lines } from "./__fixtures__/store.js";
 
 bench("add(document)", () => {
   const index = createIndex<string, Index>({ fields: ["txt"] });

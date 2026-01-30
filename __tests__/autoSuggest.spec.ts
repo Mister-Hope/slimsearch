@@ -41,10 +41,7 @@ it("returns scored suggestions", () => {
   const results = autoSuggest(index, "com");
 
   expect(results.length).toBeGreaterThan(0);
-  expect(results.map(({ suggestion }) => suggestion)).toEqual([
-    "como",
-    "commedia",
-  ]);
+  expect(results.map(({ suggestion }) => suggestion)).toEqual(["como", "commedia"]);
   expect(results[0].score).toBeGreaterThan(results[1].score);
 });
 
@@ -64,10 +61,7 @@ it("returns scored suggestions for multi-word queries", () => {
   const results = autoSuggest(index, "vita no");
 
   expect(results.length).toBeGreaterThan(0);
-  expect(results.map(({ suggestion }) => suggestion)).toEqual([
-    "vita nova",
-    "vita nostra",
-  ]);
+  expect(results.map(({ suggestion }) => suggestion)).toEqual(["vita nova", "vita nostra"]);
   expect(results[0].score).toBeGreaterThan(results[1].score);
 });
 
@@ -117,10 +111,7 @@ it("respects the custom defaults set in the constructor", () => {
   addAll(index, documents);
   const results = autoSuggest(index, "nosta vi");
 
-  expect(results.map(({ suggestion }) => suggestion)).toEqual([
-    "nostra vita",
-    "vita",
-  ]);
+  expect(results.map(({ suggestion }) => suggestion)).toEqual(["nostra vita", "vita"]);
 });
 
 it("applies the default search options if not overridden by the auto suggest defaults", () => {

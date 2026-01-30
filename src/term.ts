@@ -5,11 +5,7 @@ import { warnDocumentChanged } from "./warning.js";
 /**
  * @private
  */
-export const addTerm = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const addTerm = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   documentId: number,
@@ -33,11 +29,7 @@ export const addTerm = <
 /**
  * @private
  */
-export const removeTerm = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const removeTerm = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   documentId: number,

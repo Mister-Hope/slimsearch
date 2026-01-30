@@ -3,11 +3,7 @@ import { SearchableMap } from "./SearchableMap/index.js";
 import { removeTerm } from "./term.js";
 import { maybeAutoVacuum } from "./vacuum.js";
 
-const removeFieldLength = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const removeFieldLength = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   fieldId: number,
   count: number,
@@ -19,8 +15,7 @@ const removeFieldLength = <
     return;
   }
 
-  const totalFieldLength =
-    searchIndex._avgFieldLength[fieldId] * count - length;
+  const totalFieldLength = searchIndex._avgFieldLength[fieldId] * count - length;
 
   searchIndex._avgFieldLength[fieldId] = totalFieldLength / (count - 1);
 };
@@ -73,11 +68,7 @@ const removeFieldLength = <
  * @param searchIndex The search index
  * @param id  The ID of the document to be discarded
  */
-export const discard = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const discard = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
 ): void => {
@@ -92,12 +83,7 @@ export const discard = <
   searchIndex._documentIds.delete(shortId);
   searchIndex._storedFields.delete(shortId);
   searchIndex._fieldLength.get(shortId)?.forEach((fieldLength, fieldId) => {
-    removeFieldLength(
-      searchIndex,
-      fieldId,
-      searchIndex._documentCount,
-      fieldLength,
-    );
+    removeFieldLength(searchIndex, fieldId, searchIndex._documentCount, fieldLength);
   });
 
   searchIndex._fieldLength.delete(shortId);
@@ -127,11 +113,7 @@ export const discard = <
  * @param searchIndex The search index
  * @param ids The IDs of the document to be discarded
  */
-export const discardAll = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const discardAll = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   ids: readonly ID[],
 ): void => {
@@ -167,26 +149,15 @@ export const discardAll = <
  * @param searchIndex The search index
  * @param document  The document to be removed
  */
-export const remove = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const remove = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
-  const {
-    tokenize,
-    processTerm,
-    extractField,
-    stringifyField,
-    fields,
-    idField,
-  } = searchIndex._options;
+  const { tokenize, processTerm, extractField, stringifyField, fields, idField } =
+    searchIndex._options;
   const id = extractField(document, idField) as ID;
 
-  if (id == null)
-    throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
+  if (id == null) throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
   const shortId = searchIndex._idToShortId.get(id);
 
@@ -206,21 +177,14 @@ export const remove = <
 
     const uniqueTerms = new Set(tokens).size;
 
-    removeFieldLength(
-      searchIndex,
-      fieldId,
-      searchIndex._documentCount,
-      uniqueTerms,
-    );
+    removeFieldLength(searchIndex, fieldId, searchIndex._documentCount, uniqueTerms);
 
     for (const term of tokens) {
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const t of processedTerm)
-          removeTerm(searchIndex, fieldId, shortId, t);
-      else if (processedTerm)
-        removeTerm(searchIndex, fieldId, shortId, processedTerm);
+        for (const t of processedTerm) removeTerm(searchIndex, fieldId, shortId, t);
+      else if (processedTerm) removeTerm(searchIndex, fieldId, shortId, processedTerm);
     }
   }
 
@@ -249,16 +213,11 @@ export const removeAll = function removeAll<
   ID,
   Document,
   Index extends Record<string, any> = Record<never, never>,
->(
-  searchIndex: SearchIndex<ID, Document, Index>,
-  documents?: readonly Document[],
-): void {
+>(searchIndex: SearchIndex<ID, Document, Index>, documents?: readonly Document[]): void {
   if (documents) {
     for (const document of documents) remove(searchIndex, document);
   } else if (arguments.length > 1) {
-    throw new Error(
-      "Expected documents to be present. Omit the argument to remove all documents.",
-    );
+    throw new Error("Expected documents to be present. Omit the argument to remove all documents.");
   } else {
     searchIndex._index = new SearchableMap();
     searchIndex._documentCount = 0;

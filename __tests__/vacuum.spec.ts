@@ -1,14 +1,6 @@
 import { expect, it } from "vitest";
 
-import {
-  add,
-  addAll,
-  createIndex,
-  discard,
-  loadJSONIndex,
-  remove,
-  vacuum,
-} from "../src/index.js";
+import { add, addAll, createIndex, discard, loadJSONIndex, remove, vacuum } from "../src/index.js";
 
 interface Document {
   id: number;

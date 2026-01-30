@@ -40,9 +40,7 @@ describe("discard()", () => {
 
     expect(() => {
       discard(index, 99);
-    }).toThrow(
-      "SlimSearch: cannot discard document with ID 99: it is not in the index",
-    );
+    }).toThrow("SlimSearch: cannot discard document with ID 99: it is not in the index");
   });
 
   it("adjusts internal data to account for the document being discarded", () => {
@@ -229,8 +227,7 @@ describe("discard()", () => {
     });
     const documents: Document[] = [];
 
-    for (let i = 0; i < 5; i++)
-      documents.push({ id: i + 1, text: `Document number ${i}` });
+    for (let i = 0; i < 5; i++) documents.push({ id: i + 1, text: `Document number ${i}` });
 
     addAll(index, documents);
 

@@ -103,10 +103,7 @@ export type SearchResult<
  * @typeParam ID  The type of id being indexed.
  * @typeParam Index The type of the documents being indexed.
  */
-export interface SearchOptions<
-  ID = any,
-  Index extends Record<string, any> = Record<never, never>,
-> {
+export interface SearchOptions<ID = any, Index extends Record<string, any> = Record<never, never>> {
   /**
    * Names of the fields to search in. If omitted, all fields are searched.
    */
@@ -155,11 +152,7 @@ export interface SearchOptions<
    * number lower than 1 decreases the score, and a falsy value skips the search
    * result completely.
    */
-  boostDocument?: (
-    documentId: ID,
-    term: string,
-    storedFields?: Index,
-  ) => number;
+  boostDocument?: (documentId: ID, term: string, storedFields?: Index) => number;
 
   /**
    * Controls whether to perform prefix search. It can be a simple boolean, or a
@@ -172,9 +165,7 @@ export interface SearchOptions<
    * tokenized search query. The function should return a boolean to indicate
    * whether to perform prefix search for that search term.
    */
-  prefix?:
-    | boolean
-    | ((term: string, index: number, terms: string[]) => boolean);
+  prefix?: boolean | ((term: string, index: number, terms: string[]) => boolean);
 
   /**
    * Controls whether to perform fuzzy search. It can be a simple boolean, or a
@@ -198,10 +189,7 @@ export interface SearchOptions<
    * the tokenized search query. It should return a boolean or a number, with
    * the meaning documented above.
    */
-  fuzzy?:
-    | boolean
-    | number
-    | ((term: string, index: number, terms: string[]) => boolean | number);
+  fuzzy?: boolean | number | ((term: string, index: number, terms: string[]) => boolean | number);
 
   /**
    * Controls the maximum fuzziness when using a fractional fuzzy value.
@@ -335,10 +323,7 @@ export interface SearchIndexOptions<
    * It can also return an array of strings, in which case each string in the
    * returned array is indexed as a separate term.
    */
-  processTerm?: (
-    term: string,
-    fieldName?: string,
-  ) => string | string[] | null | undefined | false;
+  processTerm?: (term: string, fieldName?: string) => string | string[] | null | undefined | false;
 
   /**
    * Function called to log messages. Arguments are a log level ('debug',
@@ -399,9 +384,7 @@ export interface Suggestion {
  *
  * @typeParam Index The type of the documents being indexed.
  */
-export interface IndexObject<
-  Index extends Record<string, any> = Record<never, never>,
-> {
+export interface IndexObject<Index extends Record<string, any> = Record<never, never>> {
   documentCount: number;
   nextId: number;
   documentIds: Record<string, any>;

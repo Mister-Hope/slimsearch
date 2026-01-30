@@ -3,24 +3,27 @@
   "version": "2.3.0",
   "description": "Tiny but powerful full-text search engine for browser and Node",
   "keywords": [
-    "search",
+    "auto complete",
+    "auto suggest",
     "full text",
     "fuzzy",
+    "index",
     "prefix",
-    "auto suggest",
-    "auto complete",
-    "index"
+    "search"
   ],
   "homepage": "https://mister-hope.github.io/slimsearch/",
   "bugs": "https://github.com/Mister-Hope/slimsearch/issues",
+  "license": "MIT",
+  "author": "Luca Ongaro, Mister Hope",
   "repository": {
     "type": "git",
     "url": "https://github.com/Mister-Hope/slimsearch.git"
   },
-  "license": "MIT",
-  "author": "Luca Ongaro, Mister Hope",
-  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -31,9 +34,6 @@
       "default": "./dist/SearchableMap.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "benchmark": "vitest bench",
     "benchmark:build": "BENCHMARK=true pnpm build",
@@ -42,16 +42,38 @@
     "clean": "rm -rf dist",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
     "docs:build": "typedoc --options typedoc.json",
-    "lint": "eslint . --fix && prettier --check --write .",
-    "lint:check": "eslint . && prettier --check .",
+    "lint": "eslint . --fix && oxfmt",
+    "lint:check": "eslint . && oxfmt --check",
     "prepare": "husky",
     "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest --coverage"
   },
+  "devDependencies": {
+    "@codecov/rollup-plugin": "1.9.1",
+    "@commitlint/cli": "20.3.1",
+    "@commitlint/config-conventional": "20.3.1",
+    "@types/benchmark": "2.1.5",
+    "@types/node": "25.1.0",
+    "@vitest/coverage-istanbul": "4.0.18",
+    "benchmark": "2.1.4",
+    "eslint": "9.39.2",
+    "eslint-config-mister-hope": "0.9.6",
+    "fast-check": "4.5.3",
+    "husky": "9.1.7",
+    "nano-staged": "0.9.0",
+    "oxfmt": "0.27.0",
+    "oxlint": "1.42.0",
+    "oxlint-tsgolint": "0.11.3",
+    "rollup": "4.57.0",
+    "rollup-plugin-dts": "6.3.0",
+    "rollup-plugin-esbuild": "6.2.1",
+    "tslib": "2.8.1",
+    "typedoc": "0.28.16",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
+  },
   "nano-staged": {
-    "**/*": [
-      "prettier --check --write"
-    ],
+    "**/*": "oxfmt --no-error-on-unmatched-pattern",
     ".{js,ts}": [
       "eslint --fix"
     ]
@@ -59,29 +81,10 @@
   "commitlint": {
     "extends": "@commitlint/config-conventional"
   },
-  "devDependencies": {
-    "@codecov/rollup-plugin": "1.9.1",
-    "@commitlint/cli": "20.1.0",
-    "@commitlint/config-conventional": "20.0.0",
-    "@types/benchmark": "2.1.5",
-    "@types/node": "24.10.1",
-    "@vitest/coverage-istanbul": "4.0.14",
-    "benchmark": "2.1.4",
-    "eslint": "9.39.1",
-    "eslint-config-mister-hope": "0.9.6",
-    "fast-check": "4.3.0",
-    "husky": "9.1.7",
-    "nano-staged": "0.9.0",
-    "prettier": "3.7.3",
-    "rollup": "4.53.3",
-    "rollup-plugin-dts": "6.3.0",
-    "rollup-plugin-esbuild": "6.2.1",
-    "tslib": "2.8.1",
-    "typedoc": "0.28.15",
-    "typescript": "5.9.3",
-    "vitest": "4.0.14"
+  "engines": {
+    "node": ">=18.18.0"
   },
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.28.2",
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
@@ -91,8 +94,5 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
-  },
-  "engines": {
-    "node": ">=18.18.0"
   }
 }

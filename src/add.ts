@@ -2,11 +2,7 @@ import type { SearchIndex } from "./SearchIndex.js";
 import { has } from "./info.js";
 import { addTerm } from "./term.js";
 
-const addFieldLength = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const addFieldLength = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documentId: number,
   fieldId: number,
@@ -15,8 +11,7 @@ const addFieldLength = <
 ): void => {
   let fieldLengths = searchIndex._fieldLength.get(documentId);
 
-  if (fieldLengths == null)
-    searchIndex._fieldLength.set(documentId, (fieldLengths = []));
+  if (fieldLengths == null) searchIndex._fieldLength.set(documentId, (fieldLengths = []));
   fieldLengths[fieldId] = length;
 
   const averageFieldLength = searchIndex._avgFieldLength[fieldId] || 0;
@@ -25,11 +20,7 @@ const addFieldLength = <
   searchIndex._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
 };
 
-const addDocumentId = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const addDocumentId = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documentId: ID,
 ): number => {
@@ -43,11 +34,7 @@ const addDocumentId = <
   return shortDocumentId;
 };
 
-const saveStoredFields = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const saveStoredFields = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documentId: number,
   doc: Document,
@@ -81,29 +68,17 @@ const saveStoredFields = <
  * @param searchIndex  The search index
  * @param document  The document to be indexed
  */
-export const add = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const add = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
-  const {
-    extractField,
-    stringifyField,
-    tokenize,
-    processTerm,
-    fields,
-    idField,
-  } = searchIndex._options;
+  const { extractField, stringifyField, tokenize, processTerm, fields, idField } =
+    searchIndex._options;
   const id = extractField(document, idField) as ID;
 
-  if (id == null)
-    throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
+  if (id == null) throw new Error(`SlimSearch: document does not have ID field "${idField}"`);
 
-  if (has(searchIndex, id))
-    throw new Error(`SlimSearch: duplicate ID ${id as string}`);
+  if (has(searchIndex, id)) throw new Error(`SlimSearch: duplicate ID ${id as string}`);
 
   const shortDocumentId = addDocumentId(searchIndex, id);
 
@@ -132,10 +107,8 @@ export const add = <
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const t of processedTerm)
-          addTerm(searchIndex, fieldId, shortDocumentId, t);
-      else if (processedTerm)
-        addTerm(searchIndex, fieldId, shortDocumentId, processedTerm);
+        for (const t of processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, t);
+      else if (processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, processedTerm);
     }
   }
 };
@@ -150,11 +123,7 @@ export const add = <
  * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  */
-export const addAll = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const addAll = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
 ): void => {
@@ -177,11 +146,7 @@ export const addAll = <
  * @param options  Configuration options
  * @return A promise resolving when the indexing is done
  */
-export const addAllAsync = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const addAllAsync = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
   options: { chunkSize?: number } = {},
@@ -192,21 +157,18 @@ export const addAllAsync = <
     promise: Promise.resolve(),
   };
 
-  const { chunk, promise } = documents.reduce(
-    ({ chunk, promise }, document, index) => {
-      chunk.push(document);
-      if ((index + 1) % chunkSize === 0)
-        return {
-          chunk: [],
-          promise: promise
-            .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
-            .then(() => addAll(searchIndex, chunk)),
-        };
+  const { chunk, promise } = documents.reduce(({ chunk, promise }, document, index) => {
+    chunk.push(document);
+    if ((index + 1) % chunkSize === 0)
+      return {
+        chunk: [],
+        promise: promise
+          .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
+          .then(() => addAll(searchIndex, chunk)),
+      };
 
-      return { chunk, promise };
-    },
-    acc,
-  );
+    return { chunk, promise };
+  }, acc);
 
   return promise.then(() => addAll(searchIndex, chunk));
 };

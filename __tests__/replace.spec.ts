@@ -32,7 +32,5 @@ it("raises error if a document with the given ID does not exist", () => {
 
   expect(() => {
     replace(index, { id: 1, text: "Some stuff" });
-  }).toThrow(
-    "SlimSearch: cannot discard document with ID 1: it is not in the index",
-  );
+  }).toThrow("SlimSearch: cannot discard document with ID 1: it is not in the index");
 });

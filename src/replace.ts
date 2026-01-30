@@ -22,11 +22,7 @@ import { discard } from "./remove.js";
  * @param updatedDocument  The updated document to replace the old version
  * with
  */
-export const replace = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const replace = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   searchIndex: SearchIndex<ID, Document, Index>,
   updatedDocument: Document,
 ): void => {

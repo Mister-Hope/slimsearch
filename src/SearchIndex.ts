@@ -6,10 +6,7 @@ import {
   defaultSearchOptions,
   defaultVacuumConditions,
 } from "./defaults.js";
-import type {
-  DocumentTermFrequencies,
-  SearchOptionsWithDefaults,
-} from "./results.js";
+import type { DocumentTermFrequencies, SearchOptionsWithDefaults } from "./results.js";
 import type {
   AutoVacuumOptions,
   IndexObject,
@@ -24,10 +21,7 @@ interface OptionsWithDefaults<
   ID = any,
   Document = any,
   Index extends Record<string, any> = Record<string, never>,
-> extends Omit<
-  SearchIndexOptions<ID, Document, Index>,
-  "processTerm" | "tokenize"
-> {
+> extends Omit<SearchIndexOptions<ID, Document, Index>, "processTerm" | "tokenize"> {
   storeFields: string[];
 
   idField: string;
@@ -38,10 +32,7 @@ interface OptionsWithDefaults<
 
   tokenize: (text: string, fieldName: string) => string[];
 
-  processTerm: (
-    term: string,
-    fieldName: string,
-  ) => string | string[] | null | undefined | false;
+  processTerm: (term: string, fieldName: string) => string | string[] | null | undefined | false;
 
   logger: (level: LogLevel, message: string, code?: string) => void;
 
@@ -179,8 +170,7 @@ export class SearchIndex<
    */
   constructor(options: SearchIndexOptions<ID, Document, Index>) {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!options?.fields)
-      throw new Error('SlimSearch: option "fields" must be provided');
+    if (!options?.fields) throw new Error('SlimSearch: option "fields" must be provided');
 
     const autoVacuum =
       options.autoVacuum == null || options.autoVacuum === true

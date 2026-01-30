@@ -76,33 +76,16 @@ const getMsg = (method: string): string =>
  * })
  * ```
  */
-export const createIndex = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const createIndex = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => new SearchIndex(options);
 
-const instantiateIndex = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
-  {
-    documentCount,
-    nextId,
-    fieldIds,
-    averageFieldLength,
-    dirtCount,
-    version,
-  }: IndexObject<Index>,
+const instantiateIndex = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+  { documentCount, nextId, fieldIds, averageFieldLength, dirtCount, version }: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
   if (version !== 2) {
-    throw new Error(
-      "SlimSearch: cannot deserialize an index created with an incompatible version",
-    );
+    throw new Error("SlimSearch: cannot deserialize an index created with an incompatible version");
   }
 
   const searchIndex = createIndex(options);
@@ -143,11 +126,7 @@ const instantiateIndex = <
  * @param options  configuration options, same as the constructor
  * @return An instance of SearchIndex deserialized from the given JS object.
  */
-export const loadIndex = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const loadIndex = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
   indexObject: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
@@ -159,8 +138,7 @@ export const loadIndex = <
   searchIndex._fieldLength = objectToNumericMap(fieldLength);
   searchIndex._storedFields = objectToNumericMap(storedFields);
 
-  for (const [shortId, id] of searchIndex._documentIds)
-    searchIndex._idToShortId.set(id, shortId);
+  for (const [shortId, id] of searchIndex._documentIds) searchIndex._idToShortId.set(id, shortId);
 
   for (const [term, data] of index) {
     const dataMap = new Map() as FieldTermData;
@@ -209,8 +187,7 @@ export const loadIndexAsync = async <
   searchIndex._fieldLength = await objectToNumericMapAsync(fieldLength);
   searchIndex._storedFields = await objectToNumericMapAsync(storedFields);
 
-  for (const [shortId, id] of searchIndex._documentIds)
-    searchIndex._idToShortId.set(id, shortId);
+  for (const [shortId, id] of searchIndex._documentIds) searchIndex._idToShortId.set(id, shortId);
 
   let count = 0;
 
@@ -220,9 +197,7 @@ export const loadIndexAsync = async <
     for (const fieldId of Object.keys(data))
       dataMap.set(
         parseInt(fieldId, 10),
-        (await objectToNumericMapAsync(
-          data[fieldId],
-        )) as DocumentTermFrequencies,
+        (await objectToNumericMapAsync(data[fieldId])) as DocumentTermFrequencies,
       );
 
     if (++count % 1000 === 0) await wait(0);

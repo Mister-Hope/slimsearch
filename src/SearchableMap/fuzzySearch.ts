@@ -92,11 +92,7 @@ const recurse = <Value = any>(
           const del = matrix[prevRowOffset + j + 1] + 1;
           const ins = matrix[thisRowOffset + j] + 1;
 
-          const dist = (matrix[thisRowOffset + j + 1] = Math.min(
-            rpl,
-            del,
-            ins,
-          ));
+          const dist = (matrix[thisRowOffset + j + 1] = Math.min(rpl, del, ins));
 
           if (dist < minDistance) minDistance = dist;
         }
