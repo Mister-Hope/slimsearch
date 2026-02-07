@@ -4,7 +4,6 @@
 [![npm downloads](https://img.shields.io/npm/dw/slimsearch)](https://www.npmjs.com/package/slimsearch)
 [![types](https://img.shields.io/npm/types/slimsearch)](https://mister-hope.github.io/slimsearch/)
 
-[![Test](https://github.com/Mister-Hope/slimsearch/actions/workflows/test.yml/badge.svg)](https://github.com/Mister-Hope/slimsearch/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/Mister-Hope/slimsearch/graph/badge.svg?token=YQGZxImdqj)](https://codecov.io/gh/Mister-Hope/slimsearch)
 
 `slimsearch` is a tiny but powerful in-memory full-text search engine written in
