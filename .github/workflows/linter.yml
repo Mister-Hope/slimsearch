@@ -29,10 +29,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build project
-        env:
-          BUNDLE_ANALYSIS: true
         run: pnpm run build
 
       - name: Linter test
         run: |
           pnpm run lint:check
+
+      - name: Upload bundle analyzer report
+        run: pnpm bundle:analyze
