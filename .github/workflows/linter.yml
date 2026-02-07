@@ -1,16 +1,16 @@
-name: Linter Check
+name: Build and Linter Test
 
 on:
   push:
   pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
-  linter:
+  build-and-linter:
+    name: Build and Linter test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,8 +25,14 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - name: Install deps
+      - name: Install Deps
         run: pnpm install --frozen-lockfile
 
-      - name: Linter
-        run: pnpm lint:check
+      - name: Build project
+        env:
+          BUNDLE_ANALYSIS: true
+        run: pnpm run build
+
+      - name: Linter test
+        run: |
+          pnpm run lint:check

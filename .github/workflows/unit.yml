@@ -1,17 +1,17 @@
-name: Test
+name: Unit Test
 
 on:
   push:
   pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  test:
+  linter-and-unit:
+    name: Unit test
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -19,7 +19,6 @@ jobs:
           - 20
           - 22
           - 24
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -33,20 +32,16 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
 
-      - name: Install deps
+      - name: Install Deps
         run: pnpm install --frozen-lockfile
 
       - name: Build project
-        run: pnpm run build
-
-      - name: Upload bundle analysis
-        if: ${{ !cancelled() && matrix.node-version == 24 }}
-        run: pnpm bundle:analyze
+        run: pnpm build
 
       - name: Unit test and save results
         env:
-          TEST_REPORT: true
-        run: pnpm run test:coverage
+          TEST_REPORT: ${{ matrix.node-version == 24  && 'true' || '' }}
+        run: pnpm test
 
       - name: Upload test results
         if: ${{ !cancelled() && matrix.node-version == 24 }}
