@@ -1,4 +1,3 @@
-import { codecovRollupPlugin } from "@codecov/rollup-plugin";
 import { defineConfig } from "tsdown";
 
 export default process.env.BENCHMARK
@@ -8,13 +7,6 @@ export default process.env.BENCHMARK
       target: "node20",
       format: "cjs",
       external: ["benchmark", "divinaCommedia"],
-      plugins: [
-        codecovRollupPlugin({
-          enableBundleAnalysis: Boolean(process.env.CODECOV_TOKEN),
-          bundleName: "slimsearch",
-          uploadToken: process.env.CODECOV_TOKEN,
-        }),
-      ],
       platform: "neutral",
       fixedExtension: false,
       minify: true,
@@ -27,13 +19,6 @@ export default process.env.BENCHMARK
       outDir: "./dist",
       target: "node20",
       dts: true,
-      plugins: [
-        codecovRollupPlugin({
-          enableBundleAnalysis: Boolean(process.env.CODECOV_TOKEN),
-          bundleName: "slimsearch",
-          uploadToken: process.env.CODECOV_TOKEN,
-        }),
-      ],
       platform: "neutral",
       fixedExtension: false,
       minify: true,

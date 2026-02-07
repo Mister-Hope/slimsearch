@@ -45,10 +45,10 @@ it("only triggers at most a single auto vacuum at the end", () => {
 
   addAll(index, documents);
   discardAll(index, [1, 2]);
-  expect(index.isVacuuming).toBeFalsy();
+  expect(index.isVacuuming).toBe(false);
 
   discardAll(index, [3, 4, 5, 6, 7, 8, 9, 10]);
-  expect(index.isVacuuming).toBeTruthy();
+  expect(index.isVacuuming).toBe(true);
   expect(index._enqueuedVacuum).toEqual(null);
 });
 
@@ -72,8 +72,8 @@ it("does not change auto vacuum settings in case of errors", () => {
   expect(() => {
     discardAll(index, [3]);
   }).toThrow();
-  expect(index.isVacuuming).toBeFalsy();
+  expect(index.isVacuuming).toBe(false);
 
   discardAll(index, [1]);
-  expect(index.isVacuuming).toBeTruthy();
+  expect(index.isVacuuming).toBe(true);
 });

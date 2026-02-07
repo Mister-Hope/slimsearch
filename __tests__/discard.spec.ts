@@ -127,7 +127,7 @@ describe("discard()", () => {
     index._dirtCount = 1000;
 
     discard(index, 1);
-    expect(index.isVacuuming).toBeTruthy();
+    expect(index.isVacuuming).toBe(true);
   });
 
   it("triggers auto vacuum when the threshold is met", () => {
@@ -148,13 +148,13 @@ describe("discard()", () => {
 
     addAll(index, documents);
 
-    expect(index.isVacuuming).toBeFalsy();
+    expect(index.isVacuuming).toBe(false);
 
     discard(index, 1);
-    expect(index.isVacuuming).toBeFalsy();
+    expect(index.isVacuuming).toBe(false);
 
     discard(index, 2);
-    expect(index.isVacuuming).toBeTruthy();
+    expect(index.isVacuuming).toBe(true);
   });
 
   it("does not trigger auto vacuum if disabled", () => {
@@ -171,7 +171,7 @@ describe("discard()", () => {
     index._dirtCount = 1000;
 
     discard(index, 1);
-    expect(index.isVacuuming).toBeFalsy();
+    expect(index.isVacuuming).toBe(false);
   });
 
   it("applies default settings if autoVacuum is set to true", () => {
@@ -188,7 +188,7 @@ describe("discard()", () => {
     index._dirtCount = 1000;
 
     discard(index, 1);
-    expect(index.isVacuuming).toBeTruthy();
+    expect(index.isVacuuming).toBe(true);
   });
 
   it("applies default settings if options are set to undefined", () => {
@@ -211,7 +211,7 @@ describe("discard()", () => {
 
     discard(index, 1);
 
-    expect(index.isVacuuming).toBeTruthy();
+    expect(index.isVacuuming).toBe(true);
   });
 
   it("vacuums until under the dirt thresholds when called multiple times", async () => {

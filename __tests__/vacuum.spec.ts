@@ -33,7 +33,7 @@ it("cleans up discarded documents from the index", async () => {
   await vacuum(index, { batchSize: 1 });
 
   expect(index).toEqual(clone);
-  expect(index.isVacuuming).toBeFalsy();
+  expect(index.isVacuuming).toBe(false);
 });
 
 it("schedules a second vacuum right after the current one completes, if one is ongoing", async () => {
@@ -60,7 +60,7 @@ it("schedules a second vacuum right after the current one completes, if one is o
   await vacuum(index);
 
   expect(index._index).toEqual(empty._index);
-  expect(index.isVacuuming).toBeFalsy();
+  expect(index.isVacuuming).toBe(false);
 });
 
 it("does not enqueue more than one vacuum on top of the ongoing one", async () => {
@@ -82,11 +82,11 @@ it("does not enqueue more than one vacuum on top of the ongoing one", async () =
 
   expect(a).not.toBe(b);
   expect(b).toBe(c);
-  expect(index.isVacuuming).toBeTruthy();
+  expect(index.isVacuuming).toBe(true);
 
   await c;
 
-  expect(index.isVacuuming).toBeFalsy();
+  expect(index.isVacuuming).toBe(false);
 });
 
 it("allows batch size to be bigger than the term count", async () => {
@@ -100,5 +100,5 @@ it("allows batch size to be bigger than the term count", async () => {
 
   addAll(index, documents);
   await vacuum(index, { batchSize: index.termCount + 1 });
-  expect(index.isVacuuming).toBeFalsy();
+  expect(index.isVacuuming).toBe(false);
 });

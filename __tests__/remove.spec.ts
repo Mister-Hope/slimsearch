@@ -114,7 +114,7 @@ describe("remove()", () => {
     const originalIdsSize = index._documentIds.size;
 
     remove(index, documents[0]);
-    expect(index._index.has("commedia")).toBeFalsy();
+    expect(index._index.has("commedia")).toBe(false);
     expect(index._documentIds.size).toEqual(originalIdsSize - 1);
     expect([...index._index.get("vita")!.keys()]).toEqual([index._fieldIds.title]);
   });

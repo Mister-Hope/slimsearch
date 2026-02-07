@@ -98,7 +98,7 @@ describe("search()", () => {
     const results = search(index, "something");
 
     results.forEach((result) => {
-      expect(Number.isFinite(result.score)).toBeTruthy();
+      expect(Number.isFinite(result.score)).toBe(true);
     });
   });
 
@@ -315,7 +315,7 @@ describe("search()", () => {
     });
 
     expect(results.length).toBe(1);
-    expect(results.every(({ category }) => category === "poetry")).toBeTruthy();
+    expect(results.every(({ category }) => category === "poetry")).toBe(true);
   });
 
   it("allows to define a default filter upon instantiation", () => {
@@ -331,7 +331,7 @@ describe("search()", () => {
     const results = search(searchIndex, "del");
 
     expect(results.length).toBe(1);
-    expect(results.every(({ category }) => category === "poetry")).toBeTruthy();
+    expect(results.every(({ category }) => category === "poetry")).toBe(true);
   });
 
   it("allows customizing BM25+ parameters", () => {

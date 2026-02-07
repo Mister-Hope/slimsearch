@@ -60,10 +60,10 @@ describe(SearchableMap, () => {
       const map = SearchableMap.from(keyValues);
 
       map.delete("border");
-      expect(map.has("border")).toBeFalsy();
-      expect(map.has("summer")).toBeTruthy();
-      expect(map.has("borderline")).toBeTruthy();
-      expect(map.has("bo")).toBeTruthy();
+      expect(map.has("border")).toBe(false);
+      expect(map.has("summer")).toBe(true);
+      expect(map.has("borderline")).toBe(true);
+      expect(map.has("bo")).toBe(true);
     });
 
     it("changes the size of the map", () => {
@@ -150,17 +150,17 @@ describe(SearchableMap, () => {
       const map = new SearchableMap();
 
       map.set("something", 42);
-      expect(map.has("something")).toBeTruthy();
+      expect(map.has("something")).toBe(true);
 
       map.set("something else", null);
-      expect(map.has("something else")).toBeTruthy();
+      expect(map.has("something else")).toBe(true);
     });
 
     it("returns false if the given key does not exist in the map", () => {
       const map = SearchableMap.fromObject({ something: 42 });
 
-      expect(map.has("not-existing")).toBeFalsy();
-      expect(map.has("some")).toBeFalsy();
+      expect(map.has("not-existing")).toBe(false);
+      expect(map.has("some")).toBe(false);
     });
   });
 
@@ -324,7 +324,7 @@ describe(SearchableMap, () => {
             .filter(([, d]) => d <= distance)
             .sort(),
         );
-        expect(entries.every(([key, [value]]) => map.get(key) === value)).toBeTruthy();
+        expect(entries.every(([key, [value]]) => map.get(key) === value)).toBe(true);
       });
     });
 
@@ -365,7 +365,7 @@ describe(SearchableMap, () => {
           terms.forEach((term, i) => {
             map.set(term, i);
             standardMap.set(term, i);
-            expect(map.has(term)).toBeTruthy();
+            expect(map.has(term)).toBe(true);
             expect(standardMap.get(term)).toEqual(i);
           });
 
@@ -387,7 +387,7 @@ describe(SearchableMap, () => {
 
           terms.forEach((term) => {
             map.delete(term);
-            expect(map.has(term)).toBeFalsy();
+            expect(map.has(term)).toBe(false);
             expect(map.get(term)).toEqual(undefined);
           });
 
