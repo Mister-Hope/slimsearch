@@ -1,16 +1,17 @@
-name: Test
+name: Unit Test
 
 on:
   push:
   pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
-  test:
+  linter-and-unit:
+    name: Unit test
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -18,7 +19,6 @@ jobs:
           - 20
           - 22
           - 24
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -32,26 +32,27 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
 
-      - name: Install deps
+      - name: Install Deps
         run: pnpm install --frozen-lockfile
 
       - name: Build project
-        env:
-          CODECOV_TOKEN: ${{matrix.node-version == 24 && secrets.CODECOV_TOKEN || ''}}
-        run: pnpm run build
+        run: pnpm build
 
-      - name: Unit Test
+      - name: Unit test and save results
+        env:
+          TEST_REPORT: ${{ matrix.node-version == 24  && 'true' || '' }}
         run: pnpm test
 
-      - name: Upload coverage
-        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == 24 }}
+      - name: Upload test results
+        if: ${{ !cancelled() && matrix.node-version == 24 }}
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
+          files: ./coverage/test-report.junit.xml
+          report_type: test_results
 
-      - name: Upload test results
-        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && matrix.node-version == 24 }}
-        uses: codecov/test-results-action@v1
+      - name: Upload coverage
+        if: ${{ !cancelled() && matrix.node-version == 24 }}
+        uses: codecov/codecov-action@v5
         with:
-          file: ./coverage/test-report.junit.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true

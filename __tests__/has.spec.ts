@@ -24,9 +24,9 @@ it("returns true if a document with the given ID was added to the index, false o
 
   addAll(index, documents);
 
-  expect(has(index, 1)).toEqual(true);
-  expect(has(index, 2)).toEqual(true);
-  expect(has(index, 3)).toEqual(false);
+  expect(has(index, 1)).toBe(true);
+  expect(has(index, 2)).toBe(true);
+  expect(has(index, 3)).toBe(false);
 
   remove(index, {
     id: 1,
@@ -35,8 +35,8 @@ it("returns true if a document with the given ID was added to the index, false o
   });
   discard(index, 2);
 
-  expect(has(index, 1)).toEqual(false);
-  expect(has(index, 2)).toEqual(false);
+  expect(has(index, 1)).toBe(false);
+  expect(has(index, 2)).toBe(false);
 });
 
 it("works well with custom ID fields", () => {
@@ -64,9 +64,9 @@ it("works well with custom ID fields", () => {
 
   addAll(index, documents);
 
-  expect(has(index, 1)).toEqual(true);
-  expect(has(index, 2)).toEqual(true);
-  expect(has(index, 3)).toEqual(false);
+  expect(has(index, 1)).toBe(true);
+  expect(has(index, 2)).toBe(true);
+  expect(has(index, 3)).toBe(false);
 
   remove(index, {
     uid: 1,
@@ -75,6 +75,6 @@ it("works well with custom ID fields", () => {
   });
   discard(index, 2);
 
-  expect(has(index, 1)).toEqual(false);
-  expect(has(index, 2)).toEqual(false);
+  expect(has(index, 1)).toBe(false);
+  expect(has(index, 2)).toBe(false);
 });

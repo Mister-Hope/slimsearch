@@ -1,6 +1,6 @@
 import type { SearchIndex } from "./SearchIndex.js";
 import { search } from "./search.js";
-import type { SearchOptions, Suggestion } from "./typings.js";
+import type { AnyObject, EmptyObject, SearchOptions, Suggestion } from "./typings.js";
 import { byScore } from "./utils.js";
 
 /**
@@ -57,7 +57,7 @@ import { byScore } from "./utils.js";
  * ```
  *
  * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
  *
  * @param searchIndex The search index
@@ -66,13 +66,14 @@ import { byScore } from "./utils.js";
  * are the same as for the `search` method, except that by default prefix
  * search is performed on the last term in the query, and terms are combined
  * with `'AND'`.
- * @return  A sorted array of suggestions sorted by relevance score.
+ * @returns  A sorted array of suggestions sorted by relevance score.
  */
-export const autoSuggest = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const autoSuggest = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   queryString: string,
   options: SearchOptions<ID, Index> = {},
 ): Suggestion[] => {
+  // oxlint-disable-next-line no-param-reassign
   options = { ...searchIndex._options.autoSuggestOptions, ...options };
 
   const suggestions = new Map<string, Omit<Suggestion, "suggestion"> & { count: number }>();
@@ -81,11 +82,11 @@ export const autoSuggest = <ID, Document, Index extends Record<string, any> = Re
     const phrase = terms.join(" ");
     const suggestion = suggestions.get(phrase);
 
-    if (suggestion != null) {
+    if (suggestion == null) {
+      suggestions.set(phrase, { score, terms, count: 1 });
+    } else {
       suggestion.score += score;
       suggestion.count += 1;
-    } else {
-      suggestions.set(phrase, { score, terms, count: 1 });
     }
   }
 

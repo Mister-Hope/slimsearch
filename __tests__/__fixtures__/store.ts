@@ -12,7 +12,7 @@ const index = createIndex<number, Index>({ fields: ["txt"] });
 
 addAll(index, lines);
 
-const _index = index._index;
+const { _index } = index;
 
 export * from "../../src/index.js";
 export { _index, index, lines };

@@ -1,8 +1,10 @@
 import type { SearchIndex } from "./SearchIndex.js";
 import { has } from "./info.js";
 import { addTerm } from "./term.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 
-const addFieldLength = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+// oxlint-disable-next-line max-params
+const addFieldLength = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documentId: number,
   fieldId: number,
@@ -20,7 +22,7 @@ const addFieldLength = <ID, Document, Index extends Record<string, any> = Record
   searchIndex._avgFieldLength[fieldId] = totalFieldLength / (count + 1);
 };
 
-const addDocumentId = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const addDocumentId = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documentId: ID,
 ): number => {
@@ -34,20 +36,19 @@ const addDocumentId = <ID, Document, Index extends Record<string, any> = Record<
   return shortDocumentId;
 };
 
-const saveStoredFields = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const saveStoredFields = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documentId: number,
   doc: Document,
 ): void => {
   const { storeFields, extractField } = searchIndex._options;
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (storeFields?.length === 0) return;
 
   let documentFields: Record<string, unknown> | undefined =
     searchIndex._storedFields.get(documentId);
 
-  if (documentFields === undefined)
+  if (documentFields == null)
     searchIndex._storedFields.set(documentId, (documentFields = {} as Index));
 
   for (const fieldName of storeFields) {
@@ -68,7 +69,7 @@ const saveStoredFields = <ID, Document, Index extends Record<string, any> = Reco
  * @param searchIndex  The search index
  * @param document  The document to be indexed
  */
-export const add = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const add = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   document: Document,
 ): void => {
@@ -107,7 +108,8 @@ export const add = <ID, Document, Index extends Record<string, any> = Record<nev
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const t of processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, t);
+        for (const term of processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, term);
+      // oxlint-disable-next-line typescript/strict-boolean-expressions
       else if (processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, processedTerm);
     }
   }
@@ -123,7 +125,7 @@ export const add = <ID, Document, Index extends Record<string, any> = Record<nev
  * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  */
-export const addAll = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const addAll = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
 ): void => {
@@ -144,9 +146,9 @@ export const addAll = <ID, Document, Index extends Record<string, any> = Record<
  * @param searchIndex  The search index
  * @param documents  An array of documents to be indexed
  * @param options  Configuration options
- * @return A promise resolving when the indexing is done
+ * @returns A promise resolving when the indexing is done
  */
-export const addAllAsync = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const addAllAsync = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
   options: { chunkSize?: number } = {},
@@ -157,18 +159,28 @@ export const addAllAsync = <ID, Document, Index extends Record<string, any> = Re
     promise: Promise.resolve(),
   };
 
+  // oxlint-disable-next-line unicorn/no-array-reduce
   const { chunk, promise } = documents.reduce(({ chunk, promise }, document, index) => {
     chunk.push(document);
     if ((index + 1) % chunkSize === 0)
       return {
         chunk: [],
         promise: promise
-          .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
-          .then(() => addAll(searchIndex, chunk)),
+          .then(
+            () =>
+              new Promise((resolve) => {
+                setTimeout(resolve, 0);
+              }),
+          )
+          .then(() => {
+            addAll(searchIndex, chunk);
+          }),
       };
 
     return { chunk, promise };
   }, acc);
 
-  return promise.then(() => addAll(searchIndex, chunk));
+  return promise.then(() => {
+    addAll(searchIndex, chunk);
+  });
 };

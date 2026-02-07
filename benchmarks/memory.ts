@@ -2,7 +2,7 @@ import type { SearchIndex } from "./divinaCommedia.js";
 import { addAll, createIndex } from "./divinaCommedia.js";
 
 const heapSize = (): number => {
-  if (global.gc) global.gc();
+  if (globalThis.gc) globalThis.gc();
 
   return process.memoryUsage().heapUsed;
 };

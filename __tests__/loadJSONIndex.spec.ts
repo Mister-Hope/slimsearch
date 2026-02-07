@@ -29,7 +29,7 @@ const documents = [
   },
 ];
 
-describe("loadJSONIndex", () => {
+describe(loadJSONIndex, () => {
   it("loads a JSON-serialized search index", () => {
     const options = { fields: ["title", "text"], storeFields: ["category"] };
     const index = createIndex<number, Document>(options);

@@ -4,8 +4,10 @@ import { defaultSearchOptions } from "./defaults.js";
 import { WILDCARD } from "./symbols.js";
 import { removeTerm } from "./term.js";
 import type {
+  AnyObject,
   BM25Params,
   CombinationOperator,
+  EmptyObject,
   LowercaseCombinationOperator,
   Query,
   SearchOptions,
@@ -20,8 +22,9 @@ import {
 } from "./utils.js";
 
 export interface SearchOptionsWithDefaults<
+  // oxlint-disable-next-line typescript/no-explicit-any
   ID = any,
-  Index extends Record<string, any> = Record<string, never>,
+  Index extends AnyObject = Record<string, never>,
 > extends SearchOptions<ID, Index> {
   boost: Record<string, number>;
 
@@ -40,11 +43,7 @@ export interface SearchOptionsWithDefaults<
 
 export type DocumentTermFrequencies = Map<number, number>;
 
-const executeWildcardQuery = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+const executeWildcardQuery = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   searchOptions: SearchOptions<ID, Index>,
 ): RawResult => {
@@ -77,10 +76,12 @@ const combineResults = (results: RawResult[], combineWith: CombinationOperator =
 
   if (!(operator in combinators)) throw new Error(`Invalid combination operator: ${combineWith}`);
 
+  // oxlint-disable-next-line unicorn/no-array-callback-reference, unicorn/no-array-reduce
   return results.reduce(combinators[operator]);
 };
 
-const termResults = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+// oxlint-disable-next-line max-params
+const termResults = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   sourceTerm: string,
   derivedTerm: string,
@@ -166,7 +167,7 @@ const termResults = <ID, Document, Index extends Record<string, any> = Record<ne
   return results;
 };
 
-const executeQuerySpec = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   query: QuerySpec,
   searchOptions: SearchOptions<ID, Index>,
@@ -177,12 +178,14 @@ const executeQuerySpec = <ID, Document, Index extends Record<string, any> = Reco
     ...searchOptions,
   };
 
-  const boosts = (options.fields ?? searchIndex._options.fields).reduce(
-    (boosts, field) => ({
-      ...boosts,
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      [field]: getOwnProperty(options.boost, field) || 1,
-    }),
+  // oxlint-disable-next-line unicorn/no-array-reduce
+  const boosts = (options.fields ?? searchIndex._options.fields).reduce<Record<string, number>>(
+    (boosts, field) => {
+      // oxlint-disable-next-line typescript/prefer-nullish-coalescing, typescript/strict-boolean-expressions
+      boosts[field] = (getOwnProperty(options.boost, field) as number | undefined) || 1;
+
+      return boosts;
+    },
     {},
   );
 
@@ -211,6 +214,7 @@ const executeQuerySpec = <ID, Document, Index extends Record<string, any> = Reco
 
   if (query.prefix) prefixMatches = searchIndex._index.atPrefix(query.term);
 
+  // oxlint-disable-next-line typescript/strict-boolean-expressions
   if (query.fuzzy) {
     const fuzzy = query.fuzzy === true ? 0.2 : query.fuzzy;
     const maxDistance =
@@ -280,11 +284,7 @@ const executeQuerySpec = <ID, Document, Index extends Record<string, any> = Reco
   return results;
 };
 
-export const executeQuery = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const executeQuery = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   query: Query,
   searchOptions: SearchOptions<ID, Index> = {},
@@ -292,6 +292,7 @@ export const executeQuery = <
   if (query === WILDCARD) return executeWildcardQuery(searchIndex, searchOptions);
 
   if (typeof query !== "string") {
+    // oxlint-disable-next-line no-undefined
     const options = { ...searchOptions, ...query, queries: undefined };
     const results = query.queries.map((subQuery) => executeQuery(searchIndex, subQuery, options));
 
@@ -310,8 +311,9 @@ export const executeQuery = <
   const terms = searchTokenize(query)
     // @ts-expect-error: type is not the same
     .flatMap((term: string) => searchProcessTerm(term))
-    .filter((term) => !!term) as string[];
+    .filter(Boolean) as string[];
   // @ts-expect-error: type is not the same
+  // oxlint-disable-next-line unicorn/no-array-callback-reference
   const queries: QuerySpec[] = terms.map(termToQuerySpec(options));
   const results = queries.map((query) =>
     // @ts-expect-error: type is not the same

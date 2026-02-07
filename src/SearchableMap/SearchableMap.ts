@@ -1,3 +1,5 @@
+// oxlint-disable typescript/no-explicit-any
+// oxlint-disable no-undefined
 import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
 import { fuzzySearch } from "./fuzzySearch.js";
 import type { Entry, FuzzyResults, Path, RadixTree } from "./typings.js";
@@ -68,7 +70,7 @@ export class SearchableMap<Value = any> {
    * ```
    *
    * @param prefix  The prefix
-   * @return A {@link SearchableMap} representing a mutable view of the original Map at the given prefix
+   * @returns A {@link SearchableMap} representing a mutable view of the original Map at the given prefix
    */
   atPrefix(prefix: string): SearchableMap<Value> {
     if (!prefix.startsWith(this._prefix)) throw new Error("Mismatched prefix");
@@ -78,12 +80,12 @@ export class SearchableMap<Value = any> {
     if (node === undefined) {
       const [parentNode, key] = last(path);
 
-      for (const k of parentNode.keys())
-        if (k !== LEAF && k.startsWith(key)) {
-          const node = new Map();
-
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          node.set(k.slice(key.length), parentNode.get(k)!);
+      for (const childKey of parentNode.keys())
+        if (childKey !== LEAF && childKey.startsWith(key)) {
+          const node = new Map([
+            // oxlint-disable-next-line typescript/no-non-null-assertion
+            [childKey.slice(key.length), parentNode.get(childKey)!],
+          ]) as RadixTree<Value>;
 
           return new SearchableMap<Value>(node, prefix);
         }
@@ -107,12 +109,12 @@ export class SearchableMap<Value = any> {
   delete(key: string): void {
     this._size = undefined;
 
-    return remove(this._tree, key);
+    remove(this._tree, key);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
-   * @return An iterator iterating through `[key, value]` entries.
+   * @returns An iterator iterating through `[key, value]` entries.
    */
   entries(): TreeIterator<Value, "ENTRIES"> {
     return new TreeIterator(this, ENTRIES);
@@ -120,7 +122,7 @@ export class SearchableMap<Value = any> {
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
-   * @param fn  Iteration function
+   * @param fn Iteration function
    */
   forEach(fn: (key: string, value: Value, map: SearchableMap) => void): void {
     for (const [key, value] of this) fn(key, value, this);
@@ -152,7 +154,7 @@ export class SearchableMap<Value = any> {
    *
    * @param key  The search key
    * @param maxEditDistance  The maximum edit distance (Levenshtein)
-   * @return A Map of the matching keys to their value and edit distance
+   * @returns A Map of the matching keys to their value and edit distance
    */
   fuzzyGet(key: string, maxEditDistance: number): FuzzyResults<Value> {
     return fuzzySearch<Value>(this._tree, key, maxEditDistance);
@@ -160,20 +162,21 @@ export class SearchableMap<Value = any> {
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-   * @param key  Key to get
-   * @return Value associated to the key, or `undefined` if the key is not
+   * @param key Key to get
+   * @returns Value associated to the key, or `undefined` if the key is not
    * found.
    */
   get(key: string): Value | undefined {
     const node = lookup<Value>(this._tree, key);
 
-    return node !== undefined ? node.get(LEAF) : undefined;
+    // oxlint-disable-next-line no-undefined
+    return node === undefined ? undefined : node.get(LEAF);
   }
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-   * @param key  Key
-   * @return True if the key is in the map, false otherwise
+   * @param key Key
+   * @returns True if the key is in the map, false otherwise
    */
   has(key: string): boolean {
     const node = lookup(this._tree, key);
@@ -183,7 +186,7 @@ export class SearchableMap<Value = any> {
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
-   * @return An `Iterable` iterating through keys
+   * @returns An `Iterable` iterating through keys
    */
   keys(): TreeIterator<Value, "KEYS"> {
     return new TreeIterator(this, KEYS);
@@ -193,7 +196,7 @@ export class SearchableMap<Value = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
    * @param key  Key to set
    * @param value  Value to associate to the key
-   * @return The {@link SearchableMap} itself, to allow chaining
+   * @returns The {@link SearchableMap} itself, to allow chaining
    */
   set(key: string, value: Value): this {
     if (typeof key !== "string") throw new Error("key must be a string");
@@ -210,7 +213,7 @@ export class SearchableMap<Value = any> {
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
    */
   get size(): number {
-    if (this._size) return this._size;
+    if (typeof this._size === "number") return this._size;
 
     /** @ignore */
     this._size = 0;
@@ -240,7 +243,7 @@ export class SearchableMap<Value = any> {
    *
    * @param key  The key to update
    * @param fn  The function used to compute the new value from the current one
-   * @return The {@link SearchableMap} itself, to allow chaining
+   * @returns The {@link SearchableMap} itself, to allow chaining
    */
   update(key: string, fn: (value: Value | undefined) => Value): this {
     if (typeof key !== "string") throw new Error("key must be a string");
@@ -267,7 +270,7 @@ export class SearchableMap<Value = any> {
    *
    * @param key  The key to update
    * @param initial  A function that creates a new value if the key does not exist
-   * @return The existing or new value at the given key
+   * @returns The existing or new value at the given key
    */
   fetch(key: string, initial: () => Value): Value {
     if (typeof key !== "string") throw new Error("key must be a string");
@@ -284,14 +287,16 @@ export class SearchableMap<Value = any> {
 
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
-   * @return An `Iterable` iterating through values.
+   * @returns An `Iterable` iterating through values.
    */
   values(): TreeIterator<Value, "VALUES"> {
     return new TreeIterator(this, VALUES);
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@iterator
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Symbol.iterator
+   *
+   * @returns An iterator iterating through `[key, value]` entries.
    */
   [Symbol.iterator](): TreeIterator<Value, "ENTRIES"> {
     return this.entries();
@@ -300,8 +305,8 @@ export class SearchableMap<Value = any> {
   /**
    * Creates a {@link SearchableMap} from an `Iterable` of entries
    *
-   * @param entries  Entries to be inserted in the {@link SearchableMap}
-   * @return A new {@link SearchableMap} with the given entries
+   * @param entries Entries to be inserted in the {@link SearchableMap}
+   * @returns A new {@link SearchableMap} with the given entries
    */
   static from<T = any>(entries: Iterable<Entry<T>> | Entry<T>[]): SearchableMap<T> {
     const tree = new SearchableMap<T>();
@@ -314,8 +319,8 @@ export class SearchableMap<Value = any> {
   /**
    * Creates a {@link SearchableMap} from the iterable properties of a JavaScript object
    *
-   * @param object  Object of entries for the {@link SearchableMap}
-   * @return A new {@link SearchableMap} with the given entries
+   * @param object Object of entries for the {@link SearchableMap}
+   * @returns A new {@link SearchableMap} with the given entries
    */
   static fromObject<T = any>(object: Record<string, T>): SearchableMap<T> {
     return SearchableMap.from<T>(Object.entries(object));
@@ -338,11 +343,12 @@ const trackDown = <T = any>(
 
   path.push([tree, key]); // performance: update in place
 
+  // oxlint-disable-next-line no-undefined
   return trackDown(undefined, "", path);
 };
 
 const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefined => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  // oxlint-disable-next-line typescript/strict-boolean-expressions
   if (key.length === 0 || !tree) return tree;
 
   for (const treeKey of tree.keys())
@@ -357,36 +363,38 @@ const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefi
 const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
   const keyLength = key.length;
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  // oxlint-disable-next-line no-labels, typescript/strict-boolean-expressions
   outer: for (let pos = 0; node && pos < keyLength; ) {
     // Check whether this key is a candidate: the first characters must match.
-    for (const k of node.keys())
-      if (k !== LEAF && key[pos] === k[0]) {
-        const len = Math.min(keyLength - pos, k.length);
+    for (const childKey of node.keys())
+      if (childKey !== LEAF && key[pos] === childKey[0]) {
+        const len = Math.min(keyLength - pos, childKey.length);
 
         // Advance offset to the point where key and k no longer match.
         let offset = 1;
 
-        while (offset < len && key[pos + offset] === k[offset]) ++offset;
+        while (offset < len && key[pos + offset] === childKey[offset]) ++offset;
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const child = node.get(k)!;
+        const child = node.get(childKey)!;
 
-        if (offset === k.length) {
+        if (offset === childKey.length) {
           // The existing key is shorter than the key we need to create.
+          // oxlint-disable-next-line no-param-reassign
           node = child;
         } else {
           // Partial match: we need to insert an intermediate node to contain
           // both the existing subtree and the new node.
-          const intermediate = new Map();
+          const intermediate = new Map([[childKey.slice(offset), child]]) as RadixTree<T>;
 
-          intermediate.set(k.slice(offset), child);
           node.set(key.slice(pos, pos + offset), intermediate);
-          node.delete(k);
+          node.delete(childKey);
+          // oxlint-disable-next-line no-param-reassign
           node = intermediate;
         }
 
         pos += offset;
+        // oxlint-disable-next-line no-labels
         continue outer;
       }
 
@@ -446,6 +454,4 @@ const merge = <T = any>(path: Path<T>, key: string, value: RadixTree<T>): void =
   node.delete(nodeKey);
 };
 
-const last = <T = any>(array: T[]): T => {
-  return array[array.length - 1];
-};
+const last = <T = any>(array: T[]): T => array[array.length - 1];

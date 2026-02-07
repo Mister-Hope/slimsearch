@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export type LeafType = "" & { readonly __tag: unique symbol };
 
 export interface RadixTree<T> extends Map<string, T | RadixTree<T>> {

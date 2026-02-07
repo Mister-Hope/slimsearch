@@ -1,5 +1,9 @@
 import type { WILDCARD } from "./symbols.js";
 
+// oxlint-disable-next-line typescript/no-explicit-any
+export type AnyObject = Record<string, any>;
+export type EmptyObject = Record<never, never>;
+
 export type LowercaseCombinationOperator = "or" | "and" | "and_not";
 
 export type CombinationOperator =
@@ -65,10 +69,8 @@ export type MatchInfo = Record<string, string[]>;
  * @typeParam ID  The type of id being indexed.
  * @typeParam Index The type of the documents being indexed.
  */
-export type SearchResult<
-  ID = any,
-  Index extends Record<string, any> = Record<never, never>,
-> = Index & {
+// oxlint-disable-next-line typescript/no-explicit-any
+export type SearchResult<ID = any, Index extends AnyObject = EmptyObject> = Index & {
   /**
    * The document ID
    */
@@ -103,7 +105,8 @@ export type SearchResult<
  * @typeParam ID  The type of id being indexed.
  * @typeParam Index The type of the documents being indexed.
  */
-export interface SearchOptions<ID = any, Index extends Record<string, any> = Record<never, never>> {
+// oxlint-disable-next-line typescript/no-explicit-any
+export interface SearchOptions<ID = any, Index extends AnyObject = EmptyObject> {
   /**
    * Names of the fields to search in. If omitted, all fields are searched.
    */
@@ -237,9 +240,11 @@ export interface SearchOptions<ID = any, Index extends Record<string, any> = Rec
  * @typeParam Index The type of the documents being indexed.
  */
 export interface SearchIndexOptions<
+  // oxlint-disable-next-line typescript/no-explicit-any
   ID = any,
+  // oxlint-disable-next-line typescript/no-explicit-any
   Document = any,
-  Index extends Record<string, any> = Record<never, never>,
+  Index extends AnyObject = EmptyObject,
 > {
   /**
    * Names of the document fields to be indexed.
@@ -266,6 +271,7 @@ export interface SearchIndexOptions<
    * The function takes as arguments the document, and the name of the field to
    * extract from it. It should return the field value as a string.
    */
+  // oxlint-disable-next-line typescript/no-explicit-any
   extractField?: (document: Document, fieldName: string) => any;
 
   /**
@@ -297,6 +303,7 @@ export interface SearchIndexOptions<
    * })
    * ```
    */
+  // oxlint-disable-next-line typescript/explicit-module-boundary-types, typescript/no-explicit-any
   stringifyField?: (fieldValue: any, fieldName: string) => string;
 
   /**
@@ -384,10 +391,10 @@ export interface Suggestion {
  *
  * @typeParam Index The type of the documents being indexed.
  */
-export interface IndexObject<Index extends Record<string, any> = Record<never, never>> {
+export interface IndexObject<Index extends AnyObject = EmptyObject> {
   documentCount: number;
   nextId: number;
-  documentIds: Record<string, any>;
+  documentIds: AnyObject;
   fieldIds: Record<string, number>;
   fieldLength: Record<string, number[]>;
   averageFieldLength: number[];
@@ -402,8 +409,9 @@ export interface IndexObject<Index extends Record<string, any> = Record<never, n
  * @typeParam Index The type of the documents being indexed.
  */
 export interface QueryCombination<
+  // oxlint-disable-next-line typescript/no-explicit-any
   ID = any,
-  Index extends Record<string, any> = Record<never, never>,
+  Index extends AnyObject = EmptyObject,
 > extends SearchOptions<ID, Index> {
   queries: Query[];
 }

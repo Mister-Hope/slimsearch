@@ -37,36 +37,34 @@
   "scripts": {
     "benchmark": "vitest bench",
     "benchmark:build": "BENCHMARK=true pnpm build",
-    "benchmark:legacy": "pnpm build-benchmark && NODE_ENV=production node --expose-gc benchmarks/dist/index.cjs",
-    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
-    "clean": "rm -rf dist",
-    "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
+    "benchmark:legacy": "pnpm benchmark:build && NODE_ENV=production node --expose-gc benchmarks/dist/index.cjs",
+    "build": "tsdown --config-loader unrun",
+    "bundle:analyze": "node --experimental-strip-types scripts/analyze.ts",
+    "clean": "rimraf dist",
+    "dev": "tsdown --config-loader unrun -w",
     "docs:build": "typedoc --options typedoc.json",
-    "lint": "eslint . --fix && oxfmt",
-    "lint:check": "eslint . && oxfmt --check",
+    "lint": "oxlint --fix --type-aware --type-check --report-unused-disable-directives --deny-warnings && oxfmt",
+    "lint:check": "oxlint --type-aware --type-check --report-unused-disable-directives --deny-warnings && oxfmt --check",
     "prepare": "husky",
     "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest --coverage"
   },
   "devDependencies": {
-    "@codecov/rollup-plugin": "1.9.1",
-    "@commitlint/cli": "20.3.1",
-    "@commitlint/config-conventional": "20.3.1",
+    "@codecov/bundle-analyzer": "1.9.1",
+    "@commitlint/cli": "20.4.1",
+    "@commitlint/config-conventional": "20.4.1",
     "@types/benchmark": "2.1.5",
-    "@types/node": "25.1.0",
+    "@types/node": "25.2.1",
     "@vitest/coverage-istanbul": "4.0.18",
     "benchmark": "2.1.4",
-    "eslint": "9.39.2",
-    "eslint-config-mister-hope": "0.9.6",
     "fast-check": "4.5.3",
     "husky": "9.1.7",
     "nano-staged": "0.9.0",
-    "oxfmt": "0.27.0",
-    "oxlint": "1.42.0",
-    "oxlint-tsgolint": "0.11.3",
-    "rollup": "4.57.0",
-    "rollup-plugin-dts": "6.3.0",
-    "rollup-plugin-esbuild": "6.2.1",
+    "oxfmt": "0.28.0",
+    "oxlint": "1.43.0",
+    "oxlint-tsgolint": "0.11.4",
+    "rimraf": "6.1.2",
+    "tsdown": "0.20.3",
     "tslib": "2.8.1",
     "typedoc": "0.28.16",
     "typescript": "5.9.3",
@@ -74,9 +72,7 @@
   },
   "nano-staged": {
     "**/*": "oxfmt --no-error-on-unmatched-pattern",
-    ".{js,ts}": [
-      "eslint --fix"
-    ]
+    "*.{js,ts}": "oxlint --fix --type-aware --type-check --deny-warnings --report-unused-disable-directives"
   },
   "commitlint": {
     "extends": "@commitlint/config-conventional"
@@ -84,15 +80,5 @@
   "engines": {
     "node": ">=18.18.0"
   },
-  "packageManager": "pnpm@10.28.2",
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "eslint-plugin-import>eslint": "9"
-      }
-    },
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  }
+  "packageManager": "pnpm@10.29.1"
 }

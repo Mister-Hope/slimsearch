@@ -4,9 +4,9 @@ import {
   defaultVacuumConditions,
   defaultVacuumOptions,
 } from "./defaults.js";
-import type { VacuumConditions, VacuumOptions } from "./typings.js";
+import type { AnyObject, EmptyObject, VacuumConditions, VacuumOptions } from "./typings.js";
 
-const shouldVacuum = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const shouldVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   conditions?: VacuumConditions,
 ): boolean => {
@@ -20,7 +20,7 @@ const shouldVacuum = <ID, Document, Index extends Record<string, any> = Record<n
   return searchIndex.dirtCount >= minDirtCount && searchIndex.dirtFactor >= minDirtFactor;
 };
 
-const doVacuum = async <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const doVacuum = async <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   options: VacuumOptions,
   conditions?: VacuumConditions,
@@ -44,7 +44,11 @@ const doVacuum = async <ID, Document, Index extends Record<string, any> = Record
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (searchIndex._index.get(term)!.size === 0) searchIndex._index.delete(term);
 
-      if (i % batchSize === 0) await new Promise((resolve) => setTimeout(resolve, batchWait));
+      if (i % batchSize === 0)
+        // oxlint-disable-next-line no-await-in-loop
+        await new Promise((resolve) => {
+          setTimeout(resolve, batchWait);
+        });
 
       i += 1;
     }
@@ -53,14 +57,14 @@ const doVacuum = async <ID, Document, Index extends Record<string, any> = Record
   }
 
   // Make the next lines always async, so they execute after this function returns
-  // eslint-disable-next-line @typescript-eslint/await-thenable
+  // oxlint-disable-next-line typescript/await-thenable, unicorn/no-unnecessary-await
   await null;
 
   searchIndex._currentVacuum = searchIndex._enqueuedVacuum;
   searchIndex._enqueuedVacuum = null;
 };
 
-const conditionalVacuum = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+const conditionalVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   options: VacuumOptions,
   conditions?: VacuumConditions,
@@ -91,11 +95,7 @@ const conditionalVacuum = <ID, Document, Index extends Record<string, any> = Rec
   return searchIndex._currentVacuum;
 };
 
-export const maybeAutoVacuum = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const maybeAutoVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
 ): void => {
   if (searchIndex._options.autoVacuum === false) return;
@@ -146,10 +146,11 @@ export const maybeAutoVacuum = <
  * @typeParam Index The type of the documents being indexed.
  *
  * @param searchIndex Search Index
- * @param options  Configuration options for the batch size and delay. See
- * {@link VacuumOptions}.
+ * @param options  Configuration options for the batch size and delay. See {@link VacuumOptions}.
+ *
+ * @returns A promise that resolves when vacuuming is completed.
  */
-export const vacuum = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const vacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   options: VacuumOptions = {},
 ): Promise<void> => conditionalVacuum(searchIndex, options);

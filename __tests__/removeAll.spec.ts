@@ -22,7 +22,8 @@ const documents = [
   },
 ];
 
-let index: SearchIndex<number, Document>, _warn: (...args: any[]) => void;
+let index: SearchIndex<number, Document>;
+let _warn: (...args: unknown[]) => void;
 
 beforeEach(() => {
   index = createIndex({ fields: ["title", "text"] });
@@ -67,6 +68,7 @@ it("raises an error if called with a falsey argument", () => {
     removeAll(index, null);
   }).toThrowError();
   expect(() => {
+    // oxlint-disable-next-line unicorn/no-useless-undefined
     removeAll(index, undefined);
   }).toThrowError();
   expect(() => {

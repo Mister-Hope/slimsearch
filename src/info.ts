@@ -1,8 +1,8 @@
 import type { SearchIndex } from "./SearchIndex.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 
 /**
- * Returns `true` if a document with the given ID is present in the index and
- * available for search, `false` otherwise
+ * Check if a document with the given ID is present in the index
  *
  * @typeParam ID  The id type of the documents being indexed.
  * @typeParam Document  The type of the documents being indexed.
@@ -10,8 +10,11 @@ import type { SearchIndex } from "./SearchIndex.js";
  *
  * @param searchIndex The search index
  * @param id  The document ID
+ *
+ * @returns `true` if a document with the given ID is present in the index and
+ * available for search, `false` otherwise
  */
-export const has = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const has = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
 ): boolean => searchIndex._idToShortId.has(id);
@@ -29,16 +32,13 @@ export const has = <ID, Document, Index extends Record<string, any> = Record<nev
  * @param id  The document ID
  * @returns The stored document index
  */
-export const getStoredFields = <
-  ID,
-  Document,
-  Index extends Record<string, any> = Record<never, never>,
->(
+export const getStoredFields = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   id: ID,
 ): Index | undefined => {
   const shortId = searchIndex._idToShortId.get(id);
 
+  // oxlint-disable-next-line no-undefined
   if (shortId == null) return undefined;
 
   return searchIndex._storedFields.get(shortId);

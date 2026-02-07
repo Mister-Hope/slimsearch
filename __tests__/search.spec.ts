@@ -265,6 +265,7 @@ describe("search()", () => {
 
   it("skips document if boostDocument returns a falsy value", () => {
     const query = "vita";
+    // oxlint-disable-next-line typescript/no-explicit-any
     const boostDocument = vi.fn((id: any) => (id === 3 ? null : 1));
     const resultsWithoutBoost = search(index, query);
     // @ts-expect-error: boostDocument type issue
@@ -284,11 +285,11 @@ describe("search()", () => {
 
   it("uses a specific search-time term processing function if specified", () => {
     const processTerm = (term: string): string =>
-      term.replace(/1/g, "i").replace(/4/g, "a").toLowerCase();
+      term.replaceAll("1", "i").replaceAll("4", "a").toLowerCase();
     const results = search(index, "d1v1n4", { processTerm });
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results.map(({ id }) => id).sort()).toEqual([1]);
+    expect(results.map(({ id }) => id)).toEqual([1]);
   });
 
   it("rejects falsy terms", () => {
@@ -296,7 +297,7 @@ describe("search()", () => {
     const results = search(index, "quel commedia", { processTerm });
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results.map(({ id }) => id).sort()).toEqual([1]);
+    expect(results.map(({ id }) => id)).toEqual([1]);
   });
 
   it("allows processTerm to expand a single term into several terms", () => {
@@ -305,7 +306,7 @@ describe("search()", () => {
     const results = search(index, "divinacommedia", { processTerm });
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results.map(({ id }) => id).sort()).toEqual([1]);
+    expect(results.map(({ id }) => id)).toEqual([1]);
   });
 
   it("allows custom filtering of results on the basis of stored fields", () => {

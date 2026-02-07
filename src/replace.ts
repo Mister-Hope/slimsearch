@@ -1,6 +1,7 @@
 import type { SearchIndex } from "./SearchIndex.js";
 import { add } from "./add.js";
 import { discard } from "./remove.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 
 /**
  * It replaces an existing document with the given updated version
@@ -22,7 +23,7 @@ import { discard } from "./remove.js";
  * @param updatedDocument  The updated document to replace the old version
  * with
  */
-export const replace = <ID, Document, Index extends Record<string, any> = Record<never, never>>(
+export const replace = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   updatedDocument: Document,
 ): void => {

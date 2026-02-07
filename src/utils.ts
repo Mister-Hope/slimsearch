@@ -7,7 +7,9 @@ import type {
 } from "./typings.js";
 
 export const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 export const assignUniqueTerm = (target: string[], term: string): void => {
   // Avoid adding duplicate terms.
@@ -25,12 +27,12 @@ interface Scored {
 
 export const byScore = ({ score: a }: Scored, { score: b }: Scored): number => b - a;
 
-export const createMap = <K, V>(): Map<K, V> => new Map<K, V>();
+export const createMap = <Key, Value>(): Map<Key, Value> => new Map<Key, Value>();
 
 export const objectToNumericMap = <Value>(object: Record<string, Value>): Map<number, Value> => {
   const map = new Map<number, Value>();
 
-  for (const key of Object.keys(object)) map.set(parseInt(key, 10), object[key]);
+  for (const key of Object.keys(object)) map.set(Number.parseInt(key, 10), object[key]);
 
   return map;
 };
@@ -42,8 +44,9 @@ export const objectToNumericMapAsync = async <Value>(
   let count = 0;
 
   for (const key of Object.keys(object)) {
-    map.set(parseInt(key, 10), object[key]);
+    map.set(Number.parseInt(key, 10), object[key]);
     if (++count % 1000 === 0) {
+      // oxlint-disable-next-line no-await-in-loop
       await wait(0);
     }
   }
@@ -51,11 +54,14 @@ export const objectToNumericMapAsync = async <Value>(
   return map;
 };
 
+// oxlint-disable-next-line typescript/explicit-module-boundary-types,  typescript/no-explicit-any
 export const getOwnProperty = (object: any, property: string): unknown =>
-  Object.prototype.hasOwnProperty.call(object, property)
+  // oxlint-disable-next-line typescript/no-unsafe-argument
+  Object.hasOwn(object, property)
     ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       object[property]
-    : undefined;
+    : // oxlint-disable-next-line no-undefined
+      undefined;
 
 interface RawResultValue {
   // Intermediate score, before applying the final score based on number of
@@ -90,7 +96,7 @@ export const combinators: Record<LowercaseCombinationOperator, CombinatorFunctio
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const { score, terms, match } = b.get(docId)!;
 
-        existing.score = existing.score + score;
+        existing.score += score;
         existing.match = Object.assign(existing.match, match);
         assignUniqueTerms(existing.terms, terms);
       }
@@ -126,6 +132,7 @@ export const combinators: Record<LowercaseCombinationOperator, CombinatorFunctio
   },
 };
 
+// oxlint-disable-next-line max-params
 export const calcBM25Score = (
   termFreq: number,
   matchingCount: number,

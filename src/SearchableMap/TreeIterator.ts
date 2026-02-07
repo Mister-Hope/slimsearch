@@ -15,7 +15,7 @@ interface Iterators<T> {
 }
 
 type Kind<T> = keyof Iterators<T>;
-type Result<T, K extends keyof Iterators<T>> = Iterators<T>[K];
+type Result<T, Key extends keyof Iterators<T>> = Iterators<T>[Key];
 
 type IteratorPath<T> = {
   node: RadixTree<T>;
@@ -30,21 +30,21 @@ export interface IterableSet<T> {
 /**
  * @private
  */
-export class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>> {
+export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, Key>> {
   set: IterableSet<T>;
-  _type: K;
+  _type: Key;
   _path: IteratorPath<T>;
 
-  constructor(set: IterableSet<T>, type: K) {
+  constructor(set: IterableSet<T>, type: Key) {
     const node = set._tree;
-    const keys = Array.from(node.keys());
+    const keys = [...node.keys()];
 
     this.set = set;
     this._type = type;
     this._path = keys.length > 0 ? [{ node, keys }] : [];
   }
 
-  next(): IteratorResult<Result<T, K>> {
+  next(): IteratorResult<Result<T, Key>> {
     const value = this.dive();
 
     this.backtrack();
@@ -52,7 +52,8 @@ export class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>
     return value;
   }
 
-  dive(): IteratorResult<Result<T, K>> {
+  dive(): IteratorResult<Result<T, Key>> {
+    // oxlint-disable-next-line no-undefined
     if (this._path.length === 0) return { done: true, value: undefined };
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -63,7 +64,7 @@ export class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const child = node.get(last(keys)!)!;
 
-    this._path.push({ node: child, keys: Array.from(child.keys()) });
+    this._path.push({ node: child, keys: [...child.keys()] });
 
     return this.dive();
   }
@@ -72,7 +73,7 @@ export class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>
     if (this._path.length === 0) return;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const keys = last(this._path)!.keys;
+    const { keys } = last(this._path)!;
 
     keys.pop();
     if (keys.length > 0) return;
@@ -96,14 +97,18 @@ export class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>
     return last(this._path)!.node.get(LEAF)!;
   }
 
-  result(): Result<T, K> {
+  result(): Result<T, Key> {
+    // oxlint-disable-next-line default-case
     switch (this._type) {
-      case VALUES:
-        return this.value() as Result<T, K>;
-      case KEYS:
-        return this.key() as Result<T, K>;
-      default:
-        return [this.key(), this.value()] as Result<T, K>;
+      case VALUES: {
+        return this.value() as Result<T, Key>;
+      }
+      case KEYS: {
+        return this.key() as Result<T, Key>;
+      }
+      case ENTRIES: {
+        return [this.key(), this.value()] as Result<T, Key>;
+      }
     }
   }
 
@@ -112,6 +117,4 @@ export class TreeIterator<T, K extends Kind<T>> implements Iterator<Result<T, K>
   }
 }
 
-const last = <T>(array: T[]): T | undefined => {
-  return array[array.length - 1];
-};
+const last = <T>(array: T[]): T | undefined => array[array.length - 1];
