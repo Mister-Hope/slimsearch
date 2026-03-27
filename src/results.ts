@@ -179,11 +179,11 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
   };
 
   const boosts = (options.fields ?? searchIndex._options.fields).reduce<Record<string, number>>(
-    (boosts, field) => {
+    (acc, field) => {
       // oxlint-disable-next-line typescript/prefer-nullish-coalescing, typescript/strict-boolean-expressions
-      boosts[field] = (getOwnProperty(options.boost, field) as number | undefined) || 1;
+      acc[field] = (getOwnProperty(options.boost, field) as number | undefined) || 1;
 
-      return boosts;
+      return acc;
     },
     {},
   );
@@ -223,7 +223,7 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
   }
 
   if (prefixMatches) {
-    for (const [term, data] of prefixMatches) {
+    for (const [term, termData] of prefixMatches) {
       const distance = term.length - query.term.length;
 
       if (!distance) continue;
@@ -246,7 +246,7 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
         term,
         weight,
         query.termBoost,
-        data,
+        termData,
         boosts,
         boostDocument,
         bm25params,
@@ -258,7 +258,7 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
   if (fuzzyMatches) {
     for (const term of fuzzyMatches.keys()) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const [data, distance] = fuzzyMatches.get(term)!;
+      const [termData, distance] = fuzzyMatches.get(term)!;
 
       if (!distance) continue;
       // Skip exact match.
@@ -273,7 +273,7 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
         term,
         weight,
         query.termBoost,
-        data,
+        termData,
         boosts,
         boostDocument,
         bm25params,
@@ -316,9 +316,9 @@ export const executeQuery = <ID, Document, Index extends AnyObject = EmptyObject
   // @ts-expect-error: type is not the same
   // oxlint-disable-next-line unicorn/no-array-callback-reference
   const queries: QuerySpec[] = terms.map(termToQuerySpec(options));
-  const results = queries.map((query) =>
+  const results = queries.map((querySpec) =>
     // @ts-expect-error: type is not the same
-    executeQuerySpec(searchIndex, query, options),
+    executeQuerySpec(searchIndex, querySpec, options),
   );
 
   return combineResults(results, options.combineWith);

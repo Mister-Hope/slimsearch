@@ -25,7 +25,7 @@ it("adds all the documents to the index", () => {
   ];
 
   return addAllAsync(index, documents).then(() => {
-    expect(index.documentCount).toEqual(documents.length);
+    return expect(index.documentCount).toEqual(documents.length);
   });
 });
 
@@ -52,6 +52,6 @@ it("accepts a chunkSize option", () => {
   ];
 
   return addAllAsync(index, documents, { chunkSize: 3 }).then(() => {
-    expect(index.documentCount).toEqual(documents.length);
+    return expect(index.documentCount).toEqual(documents.length);
   });
 });

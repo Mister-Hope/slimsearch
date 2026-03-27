@@ -27,6 +27,8 @@ export interface IterableSet<T> {
   _prefix: string;
 }
 
+const last = <T>(array: T[]): T | undefined => array[array.length - 1];
+
 /**
  * @private
  */
@@ -116,5 +118,3 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     return this;
   }
 }
-
-const last = <T>(array: T[]): T | undefined => array[array.length - 1];

@@ -186,7 +186,7 @@ export const remove = <ID, Document, Index extends AnyObject = EmptyObject>(
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const term of processedTerm) removeTerm(searchIndex, fieldId, shortId, term);
+        for (const processedToken of processedTerm) removeTerm(searchIndex, fieldId, shortId, processedToken);
       // oxlint-disable-next-line typescript/strict-boolean-expressions
       else if (processedTerm) removeTerm(searchIndex, fieldId, shortId, processedTerm);
     }

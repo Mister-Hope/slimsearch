@@ -38,7 +38,7 @@ it("throws error if the document does not have the ID field", () => {
   expect(() => {
     // @ts-expect-error: document does not have ID field
     add(index, { text: "I do not have an ID" });
-  }).toThrowError('SlimSearch: document does not have ID field "foo"');
+  }).toThrow('SlimSearch: document does not have ID field "foo"');
 });
 
 it("throws error on duplicate ID", () => {
@@ -57,7 +57,7 @@ it("throws error on duplicate ID", () => {
 
   expect(() => {
     add(index, { foo: "abc", text: "I have a duplicate ID" });
-  }).toThrowError("SlimSearch: duplicate ID abc");
+  }).toThrow("SlimSearch: duplicate ID abc");
 });
 
 it("extracts the ID field using extractField", () => {
@@ -99,7 +99,7 @@ it("rejects falsy terms", () => {
 
   expect(() => {
     add(index, { id: 123, text: "foo bar" });
-  }).not.toThrowError();
+  }).not.toThrow();
 });
 
 it("turns the field to string before tokenization", () => {
@@ -118,7 +118,7 @@ it("turns the field to string before tokenization", () => {
   expect(() => {
     add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
     add(index, { id: 321, isBlinky: true });
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(tokenize).toHaveBeenCalledWith("123", "id");
   expect(tokenize).toHaveBeenCalledWith("foo,bar", "tags");
@@ -154,7 +154,7 @@ it("turns the field to string before tokenization using a custom stringifyField 
   expect(() => {
     add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
     add(index, { id: 321, isBlinky: true });
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(tokenize).toHaveBeenCalledWith("123", "id");
   expect(tokenize).toHaveBeenCalledWith("foo|bar", "tags");
@@ -269,7 +269,7 @@ it("allows processTerm to expand a single term into several terms", () => {
 
   expect(() => {
     add(index, { id: 123, text: "foobar" });
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(search(index, "bar")).toHaveLength(1);
 });

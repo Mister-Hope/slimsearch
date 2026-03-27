@@ -199,7 +199,7 @@ export const loadIndexAsync = async <ID, Document, Index extends AnyObject = Emp
     }
 
     // oxlint-disable-next-line no-await-in-loop
-    if (++count % 1000 === 0) await wait(0);
+    if ((count += 1) % 1000 === 0) await wait(0);
 
     searchIndex._index.set(term, dataMap);
   }

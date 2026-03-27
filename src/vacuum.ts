@@ -46,6 +46,7 @@ const doVacuum = async <ID, Document, Index extends AnyObject = EmptyObject>(
       if (searchIndex._index.get(term)!.size === 0) searchIndex._index.delete(term);
 
       if (i % batchSize === 0) {
+        // oxlint-disable-next-line no-await-in-loop
         await new Promise((resolve) => {
           setTimeout(resolve, batchWait);
         });
@@ -79,11 +80,11 @@ const conditionalVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
     if (searchIndex._enqueuedVacuum != null) return searchIndex._enqueuedVacuum;
 
     searchIndex._enqueuedVacuum = searchIndex._currentVacuum.then(() => {
-      const conditions = searchIndex._enqueuedVacuumConditions;
+      const enqueuedConditions = searchIndex._enqueuedVacuumConditions;
 
       searchIndex._enqueuedVacuumConditions = defaultVacuumConditions;
 
-      return doVacuum(searchIndex, options, conditions);
+      return doVacuum(searchIndex, options, enqueuedConditions);
     });
 
     return searchIndex._enqueuedVacuum;

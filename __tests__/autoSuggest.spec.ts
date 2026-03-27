@@ -76,7 +76,7 @@ it("returns empty suggestions for terms that are not in the index", () => {
 
   expect(() => {
     results = autoSuggest(index, "sottomarino aeroplano");
-  }).not.toThrowError();
+  }).not.toThrow();
   expect(results!.length).toEqual(0);
 });
 
@@ -103,25 +103,25 @@ it("applies the given custom filter", () => {
 });
 
 it("respects the custom defaults set in the constructor", () => {
-  const index = createIndex<number, Document>({
+  const customIndex = createIndex<number, Document>({
     fields: ["title", "text"],
     autoSuggestOptions: { combineWith: "OR", fuzzy: true },
   });
 
-  addAll(index, documents);
-  const results = autoSuggest(index, "nosta vi");
+  addAll(customIndex, documents);
+  const results = autoSuggest(customIndex, "nosta vi");
 
   expect(results.map(({ suggestion }) => suggestion)).toEqual(["nostra vita", "vita"]);
 });
 
 it("applies the default search options if not overridden by the auto suggest defaults", () => {
-  const index = createIndex<number, Document>({
+  const customIndex = createIndex<number, Document>({
     fields: ["title", "text"],
     searchOptions: { combineWith: "OR", fuzzy: true },
   });
 
-  addAll(index, documents);
-  const results = autoSuggest(index, "nosta vi");
+  addAll(customIndex, documents);
+  const results = autoSuggest(customIndex, "nosta vi");
 
   expect(results.map(({ suggestion }) => suggestion)).toEqual(["nostra vita"]);
 });

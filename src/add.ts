@@ -108,7 +108,7 @@ export const add = <ID, Document, Index extends AnyObject = EmptyObject>(
       const processedTerm = processTerm(term, field);
 
       if (Array.isArray(processedTerm))
-        for (const term of processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, term);
+        for (const processedToken of processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, processedToken);
       // oxlint-disable-next-line typescript/strict-boolean-expressions
       else if (processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, processedTerm);
     }
@@ -159,28 +159,24 @@ export const addAllAsync = <ID, Document, Index extends AnyObject = EmptyObject>
     promise: Promise.resolve(),
   };
 
-  const { chunk, promise } = documents.reduce(({ chunk, promise }, document, index) => {
-    chunk.push(document);
+  const { chunk, promise } = documents.reduce(({ chunk: currentChunk, promise: currentPromise }, document, index) => {
+    currentChunk.push(document);
     if ((index + 1) % chunkSize === 0) {
       return {
         chunk: [],
-        promise: promise
+        promise: currentPromise
           .then(
             () =>
               new Promise((resolve) => {
                 setTimeout(resolve, 0);
               }),
           )
-          .then(() => {
-            addAll(searchIndex, chunk);
-          }),
+          .then(() => addAll(searchIndex, currentChunk)),
       };
     }
 
-    return { chunk, promise };
+    return { chunk: currentChunk, promise: currentPromise };
   }, acc);
 
-  return promise.then(() => {
-    addAll(searchIndex, chunk);
-  });
+  return promise.then(() => addAll(searchIndex, chunk));
 };

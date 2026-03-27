@@ -76,7 +76,7 @@ describe("search()", () => {
 
     expect(() => {
       results = search(index, "sottomarino aeroplano");
-    }).not.toThrowError();
+    }).not.toThrow();
     expect(results!.length).toEqual(0);
   });
 
@@ -88,14 +88,14 @@ describe("search()", () => {
   });
 
   it("computes a meaningful score when fields are named liked default properties of object", () => {
-    const index = createIndex<number, { id: number; constructor: string }>({
+    const constructorFieldIndex = createIndex<number, { id: number; constructor: string }>({
       fields: ["constructor"],
     });
 
-    add(index, { id: 1, constructor: "something" });
-    add(index, { id: 2, constructor: "something else" });
+    add(constructorFieldIndex, { id: 1, constructor: "something" });
+    add(constructorFieldIndex, { id: 2, constructor: "something else" });
 
-    const results = search(index, "something");
+    const results = search(constructorFieldIndex, "something");
 
     results.forEach((result) => {
       expect(Number.isFinite(result.score)).toBe(true);
@@ -148,7 +148,7 @@ describe("search()", () => {
     expect(() => {
       // @ts-expect-error: error checking
       search(index, "vita cammin", { combineWith: "XOR" });
-    }).toThrowError("Invalid combination operator: XOR");
+    }).toThrow("Invalid combination operator: XOR");
   });
 
   it("returns empty results for empty search", () => {
@@ -214,21 +214,21 @@ describe("search()", () => {
   });
 
   it("assigns weight lower than exact match to a match that is both a prefix and fuzzy match", () => {
-    interface Document {
+    interface PrefixFuzzyDoc {
       id: number;
       text: string;
     }
-    const index = createIndex<number, Document>({ fields: ["text"] });
-    const documents: Document[] = [
+    const prefixFuzzyIndex = createIndex<number, PrefixFuzzyDoc>({ fields: ["text"] });
+    const prefixFuzzyDocs: PrefixFuzzyDoc[] = [
       { id: 1, text: "Poi che la gente poverella crebbe" },
       { id: 2, text: "Deus, venerunt gentes" },
     ];
 
-    addAll(index, documents);
-    expect(index.documentCount).toEqual(documents.length);
+    addAll(prefixFuzzyIndex, prefixFuzzyDocs);
+    expect(prefixFuzzyIndex.documentCount).toEqual(prefixFuzzyDocs.length);
 
-    const exact = search(index, "gente");
-    const combined = search(index, "gente", { fuzzy: 0.2, prefix: true });
+    const exact = search(prefixFuzzyIndex, "gente");
+    const combined = search(prefixFuzzyIndex, "gente", { fuzzy: 0.2, prefix: true });
 
     expect(combined.map(({ id }) => id)).toEqual([1, 2]);
     expect(combined[0].score).toEqual(exact[0].score);
@@ -643,7 +643,7 @@ describe("search()", () => {
       specialWords.forEach((word) => {
         expect(() => {
           search(index, word);
-        }).not.toThrowError();
+        }).not.toThrow();
 
         const results = search(index, word);
 

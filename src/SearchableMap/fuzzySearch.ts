@@ -1,33 +1,6 @@
 import { LEAF } from "./TreeIterator.js";
 import type { FuzzyResults, RadixTree } from "./typings.js";
 
-// oxlint-disable-next-line typescript/no-explicit-any
-export const fuzzySearch = <Value = any>(
-  node: RadixTree<Value>,
-  query: string,
-  maxDistance: number,
-): FuzzyResults<Value> => {
-  const results: FuzzyResults<Value> = new Map();
-
-  if (typeof query !== "string") return results;
-
-  // Number of columns in the Levenshtein matrix.
-  const numCols = query.length + 1;
-
-  // Matching terms can never be longer than numCols + maxDistance.
-  const numRows = numCols + maxDistance;
-
-  // Fill first matrix row and column with numbers: 0 1 2 3 ...
-  const matrix = new Uint8Array(numRows * numCols).fill(maxDistance + 1);
-
-  for (let j = 0; j < numCols; ++j) matrix[j] = j;
-  for (let i = 1; i < numRows; ++i) matrix[i * numCols] = i;
-
-  recurse(node, query, maxDistance, results, matrix, 1, numCols, "");
-
-  return results;
-};
-
 // Modified version of http://stevehanov.ca/blog/?id=114
 
 // This builds a Levenshtein matrix for a given query and continuously updates
@@ -119,4 +92,31 @@ const recurse = <Value = any>(
       );
     }
   }
+};
+
+// oxlint-disable-next-line typescript/no-explicit-any
+export const fuzzySearch = <Value = any>(
+  node: RadixTree<Value>,
+  query: string,
+  maxDistance: number,
+): FuzzyResults<Value> => {
+  const results: FuzzyResults<Value> = new Map();
+
+  if (typeof query !== "string") return results;
+
+  // Number of columns in the Levenshtein matrix.
+  const numCols = query.length + 1;
+
+  // Matching terms can never be longer than numCols + maxDistance.
+  const numRows = numCols + maxDistance;
+
+  // Fill first matrix row and column with numbers: 0 1 2 3 ...
+  const matrix = new Uint8Array(numRows * numCols).fill(maxDistance + 1);
+
+  for (let j = 0; j < numCols; ++j) matrix[j] = j;
+  for (let i = 1; i < numRows; ++i) matrix[i * numCols] = i;
+
+  recurse(node, query, maxDistance, results, matrix, 1, numCols, "");
+
+  return results;
 };

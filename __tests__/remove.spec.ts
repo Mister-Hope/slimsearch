@@ -76,11 +76,11 @@ describe("remove()", () => {
   });
 
   it("removes documents when using a custom extractField", () => {
-    interface Document {
+    interface CustomExtractDoc {
       id: number;
       text: { value: string };
     }
-    const extractField = (document: Document, fieldName: string): string => {
+    const extractField = (document: CustomExtractDoc, fieldName: string): string => {
       const path = fieldName.split(".");
 
       return path.reduce(
@@ -90,7 +90,7 @@ describe("remove()", () => {
         document,
       ) as unknown as string;
     };
-    const index = createIndex<number, Document>({
+    const customExtractIndex = createIndex<number, CustomExtractDoc>({
       fields: ["text.value"],
       storeFields: ["id"],
       extractField,
@@ -100,13 +100,13 @@ describe("remove()", () => {
       text: { value: "Nel mezzo del cammin di nostra vita" },
     };
 
-    add(index, document);
+    add(customExtractIndex, document);
 
     expect(() => {
-      remove(index, document);
-    }).not.toThrowError();
+      remove(customExtractIndex, document);
+    }).not.toThrow();
 
-    expect(search(index, "vita")).toEqual([]);
+    expect(search(customExtractIndex, "vita")).toEqual([]);
   });
 
   it("cleans up the index", () => {
@@ -119,33 +119,33 @@ describe("remove()", () => {
   });
 
   it("throws error if the document does not have the ID field", () => {
-    const index = createIndex<{ foo: string; text: string; title: string }, string>({
+    const noIdFieldIndex = createIndex<{ foo: string; text: string; title: string }, string>({
       idField: "foo",
       fields: ["title", "text"],
     });
 
     expect(() => {
       // @ts-expect-error: document does not have ID field
-      remove(index, { text: "I do not have an ID" });
-    }).toThrowError('SlimSearch: document does not have ID field "foo"');
+      remove(noIdFieldIndex, { text: "I do not have an ID" });
+    }).toThrow('SlimSearch: document does not have ID field "foo"');
   });
 
   it("extracts the ID field using extractField", () => {
-    interface Document {
+    interface NestedIdDoc {
       id: { value: number };
       text: string;
     }
 
-    const extractField = (document: Document, fieldName: string): string => {
+    const extractField = (document: NestedIdDoc, fieldName: string): string => {
       // @ts-expect-error: id could be number
       if (fieldName === "id") return document.id.value;
 
-      return (getDefaultValue("extractField") as (document: Document, fieldName: string) => string)(
+      return (getDefaultValue("extractField") as (document: NestedIdDoc, fieldName: string) => string)(
         document,
         fieldName,
       );
     };
-    const index = createIndex<number, Document>({
+    const nestedIdIndex = createIndex<number, NestedIdDoc>({
       fields: ["text"],
       extractField,
     });
@@ -154,26 +154,26 @@ describe("remove()", () => {
       text: "Nel mezzo del cammin di nostra vita",
     };
 
-    add(index, document);
+    add(nestedIdIndex, document);
 
     expect(() => {
-      remove(index, document);
-    }).not.toThrowError();
+      remove(nestedIdIndex, document);
+    }).not.toThrow();
 
-    expect(search(index, "vita")).toEqual([]);
+    expect(search(nestedIdIndex, "vita")).toEqual([]);
   });
 
   it("does not crash when the document has field named like default properties of object", () => {
-    const index = createIndex<number, { id: number }>({
+    const objectPropsIndex = createIndex<number, { id: number }>({
       fields: ["constructor"],
     });
     const document = { id: 1 };
 
-    add(index, document);
+    add(objectPropsIndex, document);
 
     expect(() => {
-      remove(index, document);
-    }).not.toThrowError();
+      remove(objectPropsIndex, document);
+    }).not.toThrow();
   });
 
   it("does not reassign IDs", () => {
@@ -186,46 +186,46 @@ describe("remove()", () => {
   });
 
   it("rejects falsy terms", () => {
-    interface Document {
+    interface FalsyDoc {
       id: number;
       title: string;
     }
     const processTerm = (term: string): string | null => (term === "foo" ? null : term);
-    const index = createIndex<number, Document>({
+    const falsyTermIndex = createIndex<number, FalsyDoc>({
       fields: ["title", "text"],
       processTerm,
     });
     const document = { id: 123, title: "foo bar" };
 
-    add(index, document);
+    add(falsyTermIndex, document);
     expect(() => {
-      remove(index, document);
-    }).not.toThrowError();
+      remove(falsyTermIndex, document);
+    }).not.toThrow();
   });
 
   it("allows processTerm to expand a single term into several terms", () => {
-    interface Document {
+    interface ExpandTermDoc {
       id: number;
       title: string;
     }
     const processTerm = (term: string): string[] | string =>
       term === "foobar" ? ["foo", "bar"] : term;
-    const index = createIndex<number, Document>({
+    const expandTermIndex = createIndex<number, ExpandTermDoc>({
       fields: ["title", "text"],
       processTerm,
     });
     const document = { id: 123, title: "foobar" };
 
-    add(index, document);
+    add(expandTermIndex, document);
     expect(() => {
-      remove(index, document);
-    }).not.toThrowError();
+      remove(expandTermIndex, document);
+    }).not.toThrow();
 
-    expect(search(index, "bar")).toHaveLength(0);
+    expect(search(expandTermIndex, "bar")).toHaveLength(0);
   });
 
   describe("when using custom per-field extraction/tokenizer/processing", () => {
-    interface Document {
+    interface PerFieldDoc {
       id: number;
       title: string;
       tags: string[];
@@ -234,7 +234,7 @@ describe("remove()", () => {
       };
       available: boolean;
     }
-    const documents: Document[] = [
+    const perFieldDocuments: PerFieldDoc[] = [
       {
         id: 1,
         title: "Divina Commedia",
@@ -258,10 +258,10 @@ describe("remove()", () => {
       },
     ];
 
-    let index: SearchIndex<number, Document>;
-    let _warn: (...args: unknown[]) => void;
+    let perFieldIndex: SearchIndex<number, PerFieldDoc>;
+    let perFieldWarn: (...args: unknown[]) => void;
 
-    const options: SearchIndexOptions<number, Document> = {
+    const options: SearchIndexOptions<number, PerFieldDoc> = {
       fields: ["title", "tags", "authorName", "available"],
       extractField: (doc, fieldName) => {
         if (fieldName === "authorName") return doc.author.name;
@@ -293,31 +293,31 @@ describe("remove()", () => {
     };
 
     beforeEach(() => {
-      index = createIndex(options);
-      addAll(index, documents);
-      _warn = console.warn;
+      perFieldIndex = createIndex(options);
+      addAll(perFieldIndex, perFieldDocuments);
+      perFieldWarn = console.warn;
       console.warn = vi.fn();
     });
 
     afterEach(() => {
-      console.warn = _warn;
+      console.warn = perFieldWarn;
     });
 
     it("removes the document and its terms from the index", () => {
-      expect(index.documentCount).toEqual(3);
-      expect(search(index, "commedia").map(({ id }) => id)).toEqual([1]);
-      expect(search(index, "DANTE").map(({ id }) => id)).toEqual([1, 3]);
-      expect(search(index, "vita").map(({ id }) => id)).toEqual([3]);
-      expect(search(index, "yes").map(({ id }) => id)).toEqual([1, 3]);
+      expect(perFieldIndex.documentCount).toEqual(3);
+      expect(search(perFieldIndex, "commedia").map(({ id }) => id)).toEqual([1]);
+      expect(search(perFieldIndex, "DANTE").map(({ id }) => id)).toEqual([1, 3]);
+      expect(search(perFieldIndex, "vita").map(({ id }) => id)).toEqual([3]);
+      expect(search(perFieldIndex, "yes").map(({ id }) => id)).toEqual([1, 3]);
 
-      remove(index, documents[0]);
+      remove(perFieldIndex, perFieldDocuments[0]);
 
-      expect(index.documentCount).toEqual(2);
-      expect(search(index, "commedia").map(({ id }) => id)).toEqual([]);
-      expect(search(index, "DANTE").map(({ id }) => id)).toEqual([3]);
-      expect(search(index, "vita").map(({ id }) => id)).toEqual([3]);
-      expect(search(index, "yes").map(({ id }) => id)).toEqual([3]);
-      expect(search(index, "vita").map(({ id }) => id)).toEqual([3]);
+      expect(perFieldIndex.documentCount).toEqual(2);
+      expect(search(perFieldIndex, "commedia").map(({ id }) => id)).toEqual([]);
+      expect(search(perFieldIndex, "DANTE").map(({ id }) => id)).toEqual([3]);
+      expect(search(perFieldIndex, "vita").map(({ id }) => id)).toEqual([3]);
+      expect(search(perFieldIndex, "yes").map(({ id }) => id)).toEqual([3]);
+      expect(search(perFieldIndex, "vita").map(({ id }) => id)).toEqual([3]);
       expect(console.warn).not.toHaveBeenCalled();
     });
   });
