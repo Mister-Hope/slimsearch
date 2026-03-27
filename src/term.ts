@@ -1,7 +1,7 @@
 import type { SearchIndex } from "./SearchIndex.js";
+import type { AnyObject, EmptyObject } from "./typings.js";
 import { createMap } from "./utils.js";
 import { warnDocumentChanged } from "./warning.js";
-import type { AnyObject, EmptyObject } from "./typings.js";
 
 /**
  * Adds the given term to the index for the given field and document
@@ -69,11 +69,14 @@ export const removeTerm = <ID, Document, Index extends AnyObject = EmptyObject>(
 
   const amount = fieldIndex?.get(documentId);
 
-  if (!fieldIndex || amount == null) warnDocumentChanged(searchIndex, documentId, fieldId, term);
-  else if (amount <= 1)
+  if (!fieldIndex || amount == null) {
+    warnDocumentChanged(searchIndex, documentId, fieldId, term);
+  } else if (amount <= 1) {
     if (fieldIndex.size <= 1) indexData.delete(fieldId);
     else fieldIndex.delete(documentId);
-  else fieldIndex.set(documentId, amount - 1);
+  } else {
+    fieldIndex.set(documentId, amount - 1);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   if (searchIndex._index.get(term)!.size === 0) searchIndex._index.delete(term);

@@ -7,7 +7,7 @@ export const warnDocumentChanged = <ID, Document, Index extends AnyObject = Empt
   fieldId: number,
   term: string,
 ): void => {
-  for (const fieldName of Object.keys(searchIndex._fieldIds))
+  for (const fieldName of Object.keys(searchIndex._fieldIds)) {
     if (searchIndex._fieldIds[fieldName] === fieldId) {
       searchIndex._options.logger(
         "warn",
@@ -20,4 +20,5 @@ export const warnDocumentChanged = <ID, Document, Index extends AnyObject = Empt
 
       return;
     }
+  }
 };

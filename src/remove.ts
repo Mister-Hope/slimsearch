@@ -1,8 +1,8 @@
-import type { SearchIndex } from "./SearchIndex.js";
 import { SearchableMap } from "./SearchableMap/index.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { removeTerm } from "./term.js";
-import { maybeAutoVacuum } from "./vacuum.js";
 import type { AnyObject, EmptyObject } from "./typings.js";
+import { maybeAutoVacuum } from "./vacuum.js";
 
 const removeFieldLength = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
@@ -75,10 +75,11 @@ export const discard = <ID, Document, Index extends AnyObject = EmptyObject>(
 ): void => {
   const shortId = searchIndex._idToShortId.get(id);
 
-  if (shortId == null)
+  if (shortId == null) {
     throw new Error(
       `SlimSearch: cannot discard document with ID ${id as string}: it is not in the index`,
     );
+  }
 
   searchIndex._idToShortId.delete(id);
   searchIndex._documentIds.delete(shortId);
@@ -162,10 +163,11 @@ export const remove = <ID, Document, Index extends AnyObject = EmptyObject>(
 
   const shortId = searchIndex._idToShortId.get(id);
 
-  if (shortId == null)
+  if (shortId == null) {
     throw new Error(
       `SlimSearch: cannot remove document with ID ${id as string}: it is not in the index`,
     );
+  }
 
   for (const field of fields) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

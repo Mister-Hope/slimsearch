@@ -57,7 +57,7 @@ const recurse = <Value = any>(
   const offset = rowIndex * numCols;
 
   // oxlint-disable-next-line no-labels
-  key: for (const key of node.keys())
+  key: for (const key of node.keys()) {
     if (key === LEAF) {
       // We've reached a leaf node. Check if the edit distance acceptable and
       // store the result if it is.
@@ -118,4 +118,5 @@ const recurse = <Value = any>(
         prefix + key,
       );
     }
+  }
 };

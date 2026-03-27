@@ -1,6 +1,6 @@
-import type { SearchIndex } from "./SearchIndex.js";
 import { add } from "./add.js";
 import { discard } from "./remove.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import type { AnyObject, EmptyObject } from "./typings.js";
 
 /**

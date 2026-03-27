@@ -138,13 +138,9 @@ it("turns the field to string before tokenization using a custom stringifyField 
   const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
   // oxlint-disable-next-line typescript/no-explicit-any
   const stringifyField = vi.fn((value: any, fieldName: string) => {
-    if (fieldName === "tags") {
-      return (value as string[]).join("|");
-    }
+    if (fieldName === "tags") return (value as string[]).join("|");
 
-    if (typeof value === "boolean") {
-      return value ? "T" : "F";
-    }
+    if (typeof value === "boolean") return value ? "T" : "F";
 
     // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return, typescript/no-unsafe-member-access
     return value.toString();
@@ -182,7 +178,6 @@ it("passes document and field name to the field extractor", () => {
     if (fieldName === "pubDate")
       return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
 
-    // oxlint-disable-next-line unicorn/no-array-reduce
     return fieldName.split(".").reduce(
       // @ts-expect-error: property untyped
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return

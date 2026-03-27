@@ -1,5 +1,5 @@
-import type { SearchIndex } from "./SearchIndex.js";
 import { search } from "./search.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import type { AnyObject, EmptyObject, SearchOptions, Suggestion } from "./typings.js";
 import { byScore } from "./utils.js";
 

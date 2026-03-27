@@ -1,5 +1,5 @@
-import type { SearchIndex } from "./SearchIndex.js";
 import { has } from "./info.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { addTerm } from "./term.js";
 import type { AnyObject, EmptyObject } from "./typings.js";
 
@@ -159,10 +159,9 @@ export const addAllAsync = <ID, Document, Index extends AnyObject = EmptyObject>
     promise: Promise.resolve(),
   };
 
-  // oxlint-disable-next-line unicorn/no-array-reduce
   const { chunk, promise } = documents.reduce(({ chunk, promise }, document, index) => {
     chunk.push(document);
-    if ((index + 1) % chunkSize === 0)
+    if ((index + 1) % chunkSize === 0) {
       return {
         chunk: [],
         promise: promise
@@ -176,6 +175,7 @@ export const addAllAsync = <ID, Document, Index extends AnyObject = EmptyObject>
             addAll(searchIndex, chunk);
           }),
       };
+    }
 
     return { chunk, promise };
   }, acc);

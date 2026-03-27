@@ -1,7 +1,7 @@
+import { fuzzySearch } from "./fuzzySearch.js";
 // oxlint-disable typescript/no-explicit-any
 // oxlint-disable no-undefined
 import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
-import { fuzzySearch } from "./fuzzySearch.js";
 import type { Entry, FuzzyResults, Path, RadixTree } from "./typings.js";
 
 /**
@@ -80,7 +80,7 @@ export class SearchableMap<Value = any> {
     if (node === undefined) {
       const [parentNode, key] = last(path);
 
-      for (const childKey of parentNode.keys())
+      for (const childKey of parentNode.keys()) {
         if (childKey !== LEAF && childKey.startsWith(key)) {
           const node = new Map([
             // oxlint-disable-next-line typescript/no-non-null-assertion
@@ -89,6 +89,7 @@ export class SearchableMap<Value = any> {
 
           return new SearchableMap<Value>(node, prefix);
         }
+      }
     }
 
     return new SearchableMap<Value>(node, prefix);
@@ -334,12 +335,13 @@ const trackDown = <T = any>(
 ): [RadixTree<T> | undefined, Path<T>] => {
   if (key.length === 0 || tree == null) return [tree, path];
 
-  for (const treeKey of tree.keys())
+  for (const treeKey of tree.keys()) {
     if (treeKey !== LEAF && key.startsWith(treeKey)) {
       path.push([tree, treeKey]); // performance: update in place
 
       return trackDown(tree.get(treeKey), key.slice(treeKey.length), path);
     }
+  }
 
   path.push([tree, key]); // performance: update in place
 
@@ -351,10 +353,11 @@ const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefi
   // oxlint-disable-next-line typescript/strict-boolean-expressions
   if (key.length === 0 || !tree) return tree;
 
-  for (const treeKey of tree.keys())
+  for (const treeKey of tree.keys()) {
     if (treeKey !== LEAF && key.startsWith(treeKey))
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return lookup(tree.get(treeKey)!, key.slice(treeKey.length));
+  }
 };
 
 // Create a path in the radix tree for the given key, and returns the deepest
@@ -366,7 +369,7 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
   // oxlint-disable-next-line no-labels, typescript/strict-boolean-expressions
   outer: for (let pos = 0; node && pos < keyLength; ) {
     // Check whether this key is a candidate: the first characters must match.
-    for (const childKey of node.keys())
+    for (const childKey of node.keys()) {
       if (childKey !== LEAF && key[pos] === childKey[0]) {
         const len = Math.min(keyLength - pos, childKey.length);
 
@@ -397,6 +400,7 @@ const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
         // oxlint-disable-next-line no-labels
         continue outer;
       }
+    }
 
     // Create a final child node to contain the final suffix of the key.
     const child = new Map();

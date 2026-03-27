@@ -1,6 +1,6 @@
-import type { FieldTermData, SearchIndex } from "./SearchIndex.js";
 import { OR } from "./constant.js";
 import { defaultSearchOptions } from "./defaults.js";
+import type { FieldTermData, SearchIndex } from "./SearchIndex.js";
 import { WILDCARD } from "./symbols.js";
 import { removeTerm } from "./term.js";
 import type {
@@ -76,7 +76,7 @@ const combineResults = (results: RawResult[], combineWith: CombinationOperator =
 
   if (!(operator in combinators)) throw new Error(`Invalid combination operator: ${combineWith}`);
 
-  // oxlint-disable-next-line unicorn/no-array-callback-reference, unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-callback-reference
   return results.reduce(combinators[operator]);
 };
 
@@ -178,7 +178,6 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
     ...searchOptions,
   };
 
-  // oxlint-disable-next-line unicorn/no-array-reduce
   const boosts = (options.fields ?? searchIndex._options.fields).reduce<Record<string, number>>(
     (boosts, field) => {
       // oxlint-disable-next-line typescript/prefer-nullish-coalescing, typescript/strict-boolean-expressions
@@ -223,7 +222,7 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
     if (maxDistance) fuzzyMatches = searchIndex._index.fuzzyGet(query.term, maxDistance);
   }
 
-  if (prefixMatches)
+  if (prefixMatches) {
     for (const [term, data] of prefixMatches) {
       const distance = term.length - query.term.length;
 
@@ -254,8 +253,9 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
         results,
       );
     }
+  }
 
-  if (fuzzyMatches)
+  if (fuzzyMatches) {
     for (const term of fuzzyMatches.keys()) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const [data, distance] = fuzzyMatches.get(term)!;
@@ -280,6 +280,7 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
         results,
       );
     }
+  }
 
   return results;
 };

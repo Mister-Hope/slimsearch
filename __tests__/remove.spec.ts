@@ -83,7 +83,6 @@ describe("remove()", () => {
     const extractField = (document: Document, fieldName: string): string => {
       const path = fieldName.split(".");
 
-      // oxlint-disable-next-line unicorn/no-array-reduce
       return path.reduce(
         // @ts-expect-error: untyped property
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
