@@ -104,8 +104,8 @@ export const add = <ID, Document, Index extends AnyObject = EmptyObject>(
       uniqueTerms,
     );
 
-    for (const term of tokens) {
-      const processedTerm = processTerm(term, field);
+    for (const token of tokens) {
+      const processedTerm = processTerm(token, field);
 
       if (Array.isArray(processedTerm))
         for (const term of processedTerm) addTerm(searchIndex, fieldId, shortDocumentId, term);
@@ -148,7 +148,7 @@ export const addAll = <ID, Document, Index extends AnyObject = EmptyObject>(
  * @param options  Configuration options
  * @returns A promise resolving when the indexing is done
  */
-export const addAllAsync = <ID, Document, Index extends AnyObject = EmptyObject>(
+export const addAllAsync = async <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
   documents: readonly Document[],
   options: { chunkSize?: number } = {},
@@ -159,28 +159,29 @@ export const addAllAsync = <ID, Document, Index extends AnyObject = EmptyObject>
     promise: Promise.resolve(),
   };
 
-  const { chunk, promise } = documents.reduce(({ chunk, promise }, document, index) => {
-    chunk.push(document);
-    if ((index + 1) % chunkSize === 0) {
-      return {
-        chunk: [],
-        promise: promise
-          .then(
-            () =>
-              new Promise((resolve) => {
-                setTimeout(resolve, 0);
-              }),
-          )
-          .then(() => {
-            addAll(searchIndex, chunk);
+  const { chunk, promise } = documents.reduce(
+    ({ chunk: chunkAcc, promise: promiseAcc }, document, index) => {
+      chunkAcc.push(document);
+
+      if ((index + 1) % chunkSize === 0) {
+        return {
+          chunk: [],
+          // oxlint-disable-next-line promise/always-return
+          promise: promiseAcc.then(async (): Promise<void> => {
+            await new Promise((resolve) => {
+              setTimeout(resolve, 0);
+            });
+            addAll(searchIndex, chunkAcc);
           }),
-      };
-    }
+        };
+      }
 
-    return { chunk, promise };
-  }, acc);
+      return { chunk: chunkAcc, promise: promiseAcc };
+    },
+    acc,
+  );
 
-  return promise.then(() => {
-    addAll(searchIndex, chunk);
-  });
+  await promise;
+
+  addAll(searchIndex, chunk);
 };

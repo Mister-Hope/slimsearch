@@ -61,7 +61,7 @@ describe(loadJSONIndex, () => {
     expect(() => {
       // @ts-expect-error: options is missing
       loadJSONIndex(json);
-    }).toThrowError(
+    }).toThrow(
       "SlimSearch: loadJSONIndex should be given the same options used when serializing the index",
     );
   });
@@ -72,12 +72,12 @@ describe(loadJSONIndex, () => {
 
     expect(() => {
       loadJSONIndex(json, options);
-    }).toThrowError("SlimSearch: cannot deserialize an index created with an incompatible version");
+    }).toThrow("SlimSearch: cannot deserialize an index created with an incompatible version");
   });
 });
 
 describe("loadJSONAsync", () => {
-  const documents = [
+  const documentsForAsync = [
     {
       id: 1,
       title: "Divina Commedia",
@@ -103,7 +103,7 @@ describe("loadJSONAsync", () => {
 
     const index = createIndex<number, Document>(options);
 
-    addAll(index, documents);
+    addAll(index, documentsForAsync);
     const json = JSON.stringify(index);
 
     const deserializedAsync = await loadJSONIndexAsync(json, options);

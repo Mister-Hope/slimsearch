@@ -29,7 +29,7 @@ describe(SearchableMap, () => {
     mem[a.length] = mem[a.length] || [a.length];
     if (typeof mem[a.length][b.length] === "number") return mem[a.length][b.length];
 
-    const d = a[a.length - 1] === b[b.length - 1] ? 0 : 1;
+    const d = a.endsWith(b[b.length - 1]) ? 0 : 1;
     const distance =
       a.length === 1 && b.length === 1
         ? d
@@ -232,10 +232,9 @@ describe(SearchableMap, () => {
     it("sets a value at key applying a function to the previous value", () => {
       const map = new SearchableMap();
       const key = "foo";
-      const fn = vi.fn((x: number) => (x || 0) + 1);
+      const fn = vi.fn<(x: number) => number>((x) => (x || 0) + 1);
 
       map.update(key, fn);
-      // oxlint-disable-next-line unicorn/no-useless-undefined
       expect(fn).toHaveBeenCalledExactlyOnceWith(undefined);
       expect(map.get(key)).toBe(1);
       map.update(key, fn);
@@ -284,13 +283,13 @@ describe(SearchableMap, () => {
       const sum = map.atPrefix("sum");
 
       expect([...sum.keys()].sort()).toEqual(
-        strings.filter((string) => string.startsWith("sum")).sort(),
+        strings.filter((item) => item.startsWith("sum")).sort(),
       );
 
       const summer = sum.atPrefix("summer");
 
       expect([...summer.keys()].sort()).toEqual(
-        strings.filter((string) => string.startsWith("summer")).sort(),
+        strings.filter((item) => item.startsWith("summer")).sort(),
       );
 
       const xyz = map.atPrefix("xyz");
@@ -304,18 +303,18 @@ describe(SearchableMap, () => {
       const map = SearchableMap.from(keyValues);
       const sum = map.atPrefix("sum");
 
-      expect(sum.size).toEqual(strings.filter((string) => string.startsWith("sum")).length);
+      expect(sum.size).toEqual(strings.filter((s) => s.startsWith("sum")).length);
     });
   });
 
   describe("fuzzyGet", () => {
     const terms = ["summer", "acqua", "aqua", "acquire", "poisson", "qua"];
-    const keyValues = terms.map<[string, number]>((key, i) => [key, i]);
-    const map = SearchableMap.from(keyValues);
+    const testKeyValues = terms.map<[string, number]>((key, i) => [key, i]);
+    const testMap = SearchableMap.from(testKeyValues);
 
     it("returns all entries having the given maximum edit distance from the given key", () => {
       [0, 1, 2, 3].forEach((distance) => {
-        const results = map.fuzzyGet("acqua", distance);
+        const results = testMap.fuzzyGet("acqua", distance);
         const entries = [...results];
 
         expect(entries.map(([key, [, dist]]) => [key, dist]).sort()).toEqual(
@@ -324,21 +323,21 @@ describe(SearchableMap, () => {
             .filter(([, d]) => d <= distance)
             .sort(),
         );
-        expect(entries.every(([key, [value]]) => map.get(key) === value)).toBe(true);
+        expect(entries.every(([key, [value]]) => testMap.get(key) === value)).toBe(true);
       });
     });
 
     it("returns an empty object if no matching entries are found", () => {
-      expect(map.fuzzyGet("winter", 1)).toEqual(new Map());
+      expect(testMap.fuzzyGet("winter", 1)).toEqual(new Map());
     });
 
     it("returns entries if edit distance is longer than key", () => {
-      const map = SearchableMap.from([
+      const testMap2 = SearchableMap.from([
         ["x", 1],
         [" x", 2],
       ]);
 
-      expect([...map.fuzzyGet("x", 2).values()]).toEqual([
+      expect([...testMap2.fuzzyGet("x", 2).values()]).toEqual([
         [1, 0],
         [2, 1],
       ]);

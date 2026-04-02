@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 
 import { addAllAsync, createIndex } from "../src/index.js";
 
-it("adds all the documents to the index", () => {
+it("adds all the documents to the index", async () => {
   interface Document {
     id: number;
     text: string;
@@ -24,12 +24,12 @@ it("adds all the documents to the index", () => {
     { id: 13, text: "è cosa dura" },
   ];
 
-  return addAllAsync(index, documents).then(() => {
-    expect(index.documentCount).toEqual(documents.length);
-  });
+  await addAllAsync(index, documents);
+
+  expect(index.documentCount).toEqual(documents.length);
 });
 
-it("accepts a chunkSize option", () => {
+it("accepts a chunkSize option", async () => {
   interface Document {
     id: number;
     text: string;
@@ -51,7 +51,7 @@ it("accepts a chunkSize option", () => {
     { id: 13, text: "è cosa dura" },
   ];
 
-  return addAllAsync(index, documents, { chunkSize: 3 }).then(() => {
-    expect(index.documentCount).toEqual(documents.length);
-  });
+  await addAllAsync(index, documents, { chunkSize: 3 });
+
+  expect(index.documentCount).toEqual(documents.length);
 });
