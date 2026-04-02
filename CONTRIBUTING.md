@@ -39,7 +39,7 @@ setup your development environment:
 4. If you are working on optimizing the performance, you can run the
    performance benchmarks with `pnpm run benchmark`
 
-5. If you are improving the documentation, you can build the docs with `pnpm run build-docs`
+5. If you are improving the documentation, you can build the docs with `pnpm run docs:build`
 
 In order to understand implementation details and design goals, read the [design
 document](https://lucaong.github.io/slimsearch/manual/DESIGN_DOCUMENT.html).
