@@ -32,15 +32,14 @@ setup your development environment:
 
 1. Clone the [repository](https://github.com/Mister-Hope/slimsearch)
 
-2. Install the development dependencies with `pnpm install`
+2. Install the development dependencies with `pnpm install --frozen-lockfile`
 
-3. Run the tests with `pnpm test`.
+3. Run the tests with `pnpm run test`.
 
 4. If you are working on optimizing the performance, you can run the
-   performance benchmarks with `pnpm benchmark`
+   performance benchmarks with `pnpm run benchmark`
 
-5. If you are improving the documentation, you can build the docs with `yarn
-build-docs`
+5. If you are improving the documentation, you can build the docs with `pnpm run docs:build`
 
 In order to understand implementation details and design goals, read the [design
 document](https://lucaong.github.io/slimsearch/manual/DESIGN_DOCUMENT.html).
@@ -57,5 +56,5 @@ Also, please follow these guidelines:
 - Make sure that the full test suite passes before sending the pull request.
 
 - Try to follow the project's code conventions and style when possible. You
-  can run `pnpm lint` to check if your code follows the project style, and
-  linting errors can often be fixed automatically by running `pnpm link --fix`.
+  can run `pnpm run lint:check` to check if your code follows the project style, and
+  linting errors can often be fixed automatically by running `pnpm run lint`.

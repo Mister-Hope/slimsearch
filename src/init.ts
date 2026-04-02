@@ -1,7 +1,7 @@
+import type { DocumentTermFrequencies } from "./results.js";
+import { SearchableMap } from "./SearchableMap/index.js";
 import type { FieldTermData } from "./SearchIndex.js";
 import { SearchIndex } from "./SearchIndex.js";
-import { SearchableMap } from "./SearchableMap/index.js";
-import type { DocumentTermFrequencies } from "./results.js";
 import type { AnyObject, EmptyObject, IndexObject, SearchIndexOptions } from "./typings.js";
 import { objectToNumericMap, objectToNumericMapAsync, wait } from "./utils.js";
 
@@ -84,9 +84,8 @@ const instantiateIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   { documentCount, nextId, fieldIds, averageFieldLength, dirtCount, version }: IndexObject<Index>,
   options: SearchIndexOptions<ID, Document, Index>,
 ): SearchIndex<ID, Document, Index> => {
-  if (version !== 2) {
+  if (version !== 2)
     throw new Error("SlimSearch: cannot deserialize an index created with an incompatible version");
-  }
 
   const searchIndex = createIndex(options);
 
@@ -143,11 +142,12 @@ export const loadIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   for (const [term, data] of index) {
     const dataMap = new Map() as FieldTermData;
 
-    for (const fieldId of Object.keys(data))
+    for (const fieldId of Object.keys(data)) {
       dataMap.set(
         Number.parseInt(fieldId, 10),
         objectToNumericMap(data[fieldId]) as DocumentTermFrequencies,
       );
+    }
 
     searchIndex._index.set(term, dataMap);
   }
@@ -190,14 +190,15 @@ export const loadIndexAsync = async <ID, Document, Index extends AnyObject = Emp
   for (const [term, data] of index) {
     const dataMap = new Map() as FieldTermData;
 
-    for (const fieldId of Object.keys(data))
+    for (const fieldId of Object.keys(data)) {
       dataMap.set(
         Number.parseInt(fieldId, 10),
         // oxlint-disable-next-line no-await-in-loop
         (await objectToNumericMapAsync(data[fieldId])) as DocumentTermFrequencies,
       );
+    }
 
-    // oxlint-disable-next-line no-await-in-loop
+    // oxlint-disable-next-line no-await-in-loop, no-plusplus
     if (++count % 1000 === 0) await wait(0);
 
     searchIndex._index.set(term, dataMap);

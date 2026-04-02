@@ -1,8 +1,140 @@
+import { fuzzySearch } from "./fuzzySearch.js";
 // oxlint-disable typescript/no-explicit-any
 // oxlint-disable no-undefined
 import { ENTRIES, KEYS, LEAF, TreeIterator, VALUES } from "./TreeIterator.js";
-import { fuzzySearch } from "./fuzzySearch.js";
 import type { Entry, FuzzyResults, Path, RadixTree } from "./typings.js";
+import { last } from "./utils.js";
+
+const trackDown = <T = any>(
+  tree: RadixTree<T> | undefined,
+  key: string,
+  path: Path<T> = [],
+): [RadixTree<T> | undefined, Path<T>] => {
+  if (key.length === 0 || tree == null) return [tree, path];
+
+  for (const treeKey of tree.keys()) {
+    if (treeKey !== LEAF && key.startsWith(treeKey)) {
+      path.push([tree, treeKey]); // performance: update in place
+
+      return trackDown(tree.get(treeKey), key.slice(treeKey.length), path);
+    }
+  }
+
+  path.push([tree, key]); // performance: update in place
+
+  // oxlint-disable-next-line no-undefined
+  return trackDown(undefined, "", path);
+};
+
+const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefined => {
+  // oxlint-disable-next-line typescript/strict-boolean-expressions
+  if (key.length === 0 || !tree) return tree;
+
+  for (const treeKey of tree.keys()) {
+    if (treeKey !== LEAF && key.startsWith(treeKey))
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return lookup(tree.get(treeKey)!, key.slice(treeKey.length));
+  }
+};
+
+// Create a path in the radix tree for the given key, and returns the deepest
+// node. This function is in the hot path for indexing. It avoids unnecessary
+// string operations and recursion for performance.
+const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
+  const keyLength = key.length;
+
+  // oxlint-disable-next-line no-labels, typescript/strict-boolean-expressions
+  outer: for (let pos = 0; node && pos < keyLength; ) {
+    // Check whether this key is a candidate: the first characters must match.
+    for (const childKey of node.keys()) {
+      if (childKey !== LEAF && key[pos] === childKey[0]) {
+        const len = Math.min(keyLength - pos, childKey.length);
+
+        // Advance offset to the point where key and k no longer match.
+        let offset = 1;
+
+        while (offset < len && key[pos + offset] === childKey[offset]) offset += 1;
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const child = node.get(childKey)!;
+
+        if (offset === childKey.length) {
+          // The existing key is shorter than the key we need to create.
+          // oxlint-disable-next-line no-param-reassign
+          node = child;
+        } else {
+          // Partial match: we need to insert an intermediate node to contain
+          // both the existing subtree and the new node.
+          const intermediate = new Map([[childKey.slice(offset), child]]) as RadixTree<T>;
+
+          node.set(key.slice(pos, pos + offset), intermediate);
+          node.delete(childKey);
+          // oxlint-disable-next-line no-param-reassign
+          node = intermediate;
+        }
+
+        pos += offset;
+        // oxlint-disable-next-line no-labels
+        continue outer;
+      }
+    }
+
+    // Create a final child node to contain the final suffix of the key.
+    const child = new Map();
+
+    node.set(key.slice(pos), child);
+
+    return child;
+  }
+
+  return node;
+};
+
+const merge = <T = any>(path: Path<T>, key: string, value: RadixTree<T>): void => {
+  if (path.length === 0) return;
+
+  const [node, nodeKey] = last(path);
+
+  node.set(nodeKey + key, value);
+  node.delete(nodeKey);
+};
+
+const cleanup = <T = any>(path: Path<T>): void => {
+  if (path.length === 0) return;
+
+  const [node, keyToDelete] = last(path);
+
+  node.delete(keyToDelete);
+
+  if (node.size === 0) {
+    cleanup(path.slice(0, -1));
+  } else if (node.size === 1) {
+    const [remainingKey, remainingValue] = (
+      node.entries().next() as IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
+    ).value;
+
+    if (remainingKey !== LEAF) merge(path.slice(0, -1), remainingKey, remainingValue);
+  }
+};
+
+const remove = <T = any>(tree: RadixTree<T>, keyToRemove: string): void => {
+  const [node, path] = trackDown(tree, keyToRemove);
+
+  // oxlint-disable-next-line no-undefined
+  if (node === undefined) return;
+
+  node.delete(LEAF);
+
+  if (node.size === 0) {
+    cleanup(path);
+  } else if (node.size === 1) {
+    const [childKey, childValue] = (
+      node.entries().next() as IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
+    ).value;
+
+    merge(path, childKey, childValue);
+  }
+};
 
 /**
  * A class implementing the same interface as a standard JavaScript
@@ -38,6 +170,9 @@ export class SearchableMap<Value = any> {
    *
    * The constructor arguments are for internal use, when creating derived
    * mutable views of a map at a prefix.
+   *
+   * @param tree - The radix tree
+   * @param prefix - The prefix
    */
   constructor(tree: RadixTree<Value> = new Map(), prefix = "") {
     this._tree = tree;
@@ -80,15 +215,16 @@ export class SearchableMap<Value = any> {
     if (node === undefined) {
       const [parentNode, key] = last(path);
 
-      for (const childKey of parentNode.keys())
+      for (const childKey of parentNode.keys()) {
         if (childKey !== LEAF && childKey.startsWith(key)) {
-          const node = new Map([
+          const branchNode = new Map([
             // oxlint-disable-next-line typescript/no-non-null-assertion
             [childKey.slice(key.length), parentNode.get(childKey)!],
           ]) as RadixTree<Value>;
 
-          return new SearchableMap<Value>(node, prefix);
+          return new SearchableMap<Value>(branchNode, prefix);
         }
+      }
     }
 
     return new SearchableMap<Value>(node, prefix);
@@ -234,7 +370,7 @@ export class SearchableMap<Value = any> {
    *
    * ```js
    * // Increment the current value by one
-   * searchableMap.update('somekey', (currentValue) => currentValue == null ? 0 : currentValue + 1)
+   * searchableMap.update('some-key', (currentValue) => currentValue == null ? 0 : currentValue + 1)
    * ```
    *
    * If the value at the given key is or will be an object, it might not require
@@ -264,7 +400,7 @@ export class SearchableMap<Value = any> {
    * ### Example:
    *
    * ```js
-   * const map = searchableMap.fetch('somekey', () => new Map())
+   * const map = searchableMap.fetch('some-key', () => new Map())
    * map.set('foo', 'bar')
    * ```
    *
@@ -326,132 +462,3 @@ export class SearchableMap<Value = any> {
     return SearchableMap.from<T>(Object.entries(object));
   }
 }
-
-const trackDown = <T = any>(
-  tree: RadixTree<T> | undefined,
-  key: string,
-  path: Path<T> = [],
-): [RadixTree<T> | undefined, Path<T>] => {
-  if (key.length === 0 || tree == null) return [tree, path];
-
-  for (const treeKey of tree.keys())
-    if (treeKey !== LEAF && key.startsWith(treeKey)) {
-      path.push([tree, treeKey]); // performance: update in place
-
-      return trackDown(tree.get(treeKey), key.slice(treeKey.length), path);
-    }
-
-  path.push([tree, key]); // performance: update in place
-
-  // oxlint-disable-next-line no-undefined
-  return trackDown(undefined, "", path);
-};
-
-const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefined => {
-  // oxlint-disable-next-line typescript/strict-boolean-expressions
-  if (key.length === 0 || !tree) return tree;
-
-  for (const treeKey of tree.keys())
-    if (treeKey !== LEAF && key.startsWith(treeKey))
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return lookup(tree.get(treeKey)!, key.slice(treeKey.length));
-};
-
-// Create a path in the radix tree for the given key, and returns the deepest
-// node. This function is in the hot path for indexing. It avoids unnecessary
-// string operations and recursion for performance.
-const createPath = <T = any>(node: RadixTree<T>, key: string): RadixTree<T> => {
-  const keyLength = key.length;
-
-  // oxlint-disable-next-line no-labels, typescript/strict-boolean-expressions
-  outer: for (let pos = 0; node && pos < keyLength; ) {
-    // Check whether this key is a candidate: the first characters must match.
-    for (const childKey of node.keys())
-      if (childKey !== LEAF && key[pos] === childKey[0]) {
-        const len = Math.min(keyLength - pos, childKey.length);
-
-        // Advance offset to the point where key and k no longer match.
-        let offset = 1;
-
-        while (offset < len && key[pos + offset] === childKey[offset]) ++offset;
-
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const child = node.get(childKey)!;
-
-        if (offset === childKey.length) {
-          // The existing key is shorter than the key we need to create.
-          // oxlint-disable-next-line no-param-reassign
-          node = child;
-        } else {
-          // Partial match: we need to insert an intermediate node to contain
-          // both the existing subtree and the new node.
-          const intermediate = new Map([[childKey.slice(offset), child]]) as RadixTree<T>;
-
-          node.set(key.slice(pos, pos + offset), intermediate);
-          node.delete(childKey);
-          // oxlint-disable-next-line no-param-reassign
-          node = intermediate;
-        }
-
-        pos += offset;
-        // oxlint-disable-next-line no-labels
-        continue outer;
-      }
-
-    // Create a final child node to contain the final suffix of the key.
-    const child = new Map();
-
-    node.set(key.slice(pos), child);
-
-    return child;
-  }
-
-  return node;
-};
-
-const remove = <T = any>(tree: RadixTree<T>, key: string): void => {
-  const [node, path] = trackDown(tree, key);
-
-  if (node === undefined) return;
-
-  node.delete(LEAF);
-
-  if (node.size === 0) {
-    cleanup(path);
-  } else if (node.size === 1) {
-    const [key, value] = (
-      node.entries().next() as IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
-    ).value;
-
-    merge(path, key, value);
-  }
-};
-
-const cleanup = <T = any>(path: Path<T>): void => {
-  if (path.length === 0) return;
-
-  const [node, key] = last(path);
-
-  node.delete(key);
-
-  if (node.size === 0) {
-    cleanup(path.slice(0, -1));
-  } else if (node.size === 1) {
-    const [key, value] = (
-      node.entries().next() as IteratorResult<[string, RadixTree<T>], [string, RadixTree<T>]>
-    ).value;
-
-    if (key !== LEAF) merge(path.slice(0, -1), key, value);
-  }
-};
-
-const merge = <T = any>(path: Path<T>, key: string, value: RadixTree<T>): void => {
-  if (path.length === 0) return;
-
-  const [node, nodeKey] = last(path);
-
-  node.set(nodeKey + key, value);
-  node.delete(nodeKey);
-};
-
-const last = <T = any>(array: T[]): T => array[array.length - 1];

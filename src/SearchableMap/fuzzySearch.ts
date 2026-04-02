@@ -1,33 +1,6 @@
 import { LEAF } from "./TreeIterator.js";
 import type { FuzzyResults, RadixTree } from "./typings.js";
 
-// oxlint-disable-next-line typescript/no-explicit-any
-export const fuzzySearch = <Value = any>(
-  node: RadixTree<Value>,
-  query: string,
-  maxDistance: number,
-): FuzzyResults<Value> => {
-  const results: FuzzyResults<Value> = new Map();
-
-  if (typeof query !== "string") return results;
-
-  // Number of columns in the Levenshtein matrix.
-  const numCols = query.length + 1;
-
-  // Matching terms can never be longer than numCols + maxDistance.
-  const numRows = numCols + maxDistance;
-
-  // Fill first matrix row and column with numbers: 0 1 2 3 ...
-  const matrix = new Uint8Array(numRows * numCols).fill(maxDistance + 1);
-
-  for (let j = 0; j < numCols; ++j) matrix[j] = j;
-  for (let i = 1; i < numRows; ++i) matrix[i * numCols] = i;
-
-  recurse(node, query, maxDistance, results, matrix, 1, numCols, "");
-
-  return results;
-};
-
 // Modified version of http://stevehanov.ca/blog/?id=114
 
 // This builds a Levenshtein matrix for a given query and continuously updates
@@ -57,7 +30,7 @@ const recurse = <Value = any>(
   const offset = rowIndex * numCols;
 
   // oxlint-disable-next-line no-labels
-  key: for (const key of node.keys())
+  key: for (const key of node.keys()) {
     if (key === LEAF) {
       // We've reached a leaf node. Check if the edit distance acceptable and
       // store the result if it is.
@@ -70,32 +43,32 @@ const recurse = <Value = any>(
       // Iterate over all characters in the key. Update the Levenshtein matrix
       // and check if the minimum distance in the last row is still within the
       // maximum edit distance. If it is, we can recurse over all child nodes.
-      let i = rowIndex;
+      let matrixRow = rowIndex;
 
-      for (let pos = 0; pos < key.length; ++pos, ++i) {
+      for (let pos = 0; pos < key.length; ++pos, ++matrixRow) {
         const char = key[pos];
-        const thisRowOffset = numCols * i;
+        const thisRowOffset = numCols * matrixRow;
         const prevRowOffset = thisRowOffset - numCols;
 
         // Set the first column based on the previous row, and initialize the
         // minimum distance in the current row.
         let minDistance = matrix[thisRowOffset];
 
-        const jmin = Math.max(0, i - maxDistance - 1);
-        const jmax = Math.min(numCols - 1, i + maxDistance);
+        const colStart = Math.max(0, matrixRow - maxDistance - 1);
+        const colEnd = Math.min(numCols - 1, matrixRow + maxDistance);
 
         // Iterate over remaining columns (characters in the query).
-        for (let j = jmin; j < jmax; ++j) {
-          const different = char !== query[j];
+        for (let colIndex = colStart; colIndex < colEnd; ++colIndex) {
+          const different = char !== query[colIndex];
 
           // It might make sense to only read the matrix positions used for
           // deletion/insertion if the characters are different. But we want to
           // avoid conditional reads for performance reasons.
-          const rpl = matrix[prevRowOffset + j] + Number(different);
-          const del = matrix[prevRowOffset + j + 1] + 1;
-          const ins = matrix[thisRowOffset + j] + 1;
+          const rpl = matrix[prevRowOffset + colIndex] + Number(different);
+          const del = matrix[prevRowOffset + colIndex + 1] + 1;
+          const ins = matrix[thisRowOffset + colIndex] + 1;
 
-          const dist = (matrix[thisRowOffset + j + 1] = Math.min(rpl, del, ins));
+          const dist = (matrix[thisRowOffset + colIndex + 1] = Math.min(rpl, del, ins));
 
           if (dist < minDistance) minDistance = dist;
         }
@@ -113,9 +86,37 @@ const recurse = <Value = any>(
         maxDistance,
         results,
         matrix,
-        i,
+        matrixRow,
         numCols,
         prefix + key,
       );
     }
+  }
+};
+
+// oxlint-disable-next-line typescript/no-explicit-any
+export const fuzzySearch = <Value = any>(
+  node: RadixTree<Value>,
+  query: string,
+  maxDistance: number,
+): FuzzyResults<Value> => {
+  const results: FuzzyResults<Value> = new Map();
+
+  if (typeof query !== "string") return results;
+
+  // Number of columns in the Levenshtein matrix.
+  const numCols = query.length + 1;
+
+  // Matching terms can never be longer than numCols + maxDistance.
+  const numRows = numCols + maxDistance;
+
+  // Fill first matrix row and column with numbers: 0 1 2 3 ...
+  const matrix = new Uint8Array(numRows * numCols).fill(maxDistance + 1);
+
+  for (let col = 0; col < numCols; ++col) matrix[col] = col;
+  for (let row = 1; row < numRows; ++row) matrix[row * numCols] = row;
+
+  recurse(node, query, maxDistance, results, matrix, 1, numCols, "");
+
+  return results;
 };

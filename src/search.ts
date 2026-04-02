@@ -1,5 +1,5 @@
-import type { SearchIndex } from "./SearchIndex.js";
 import { executeQuery } from "./results.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import { WILDCARD } from "./symbols.js";
 import type { AnyObject, Query, SearchOptions, SearchResult } from "./typings.js";
 import { byScore } from "./utils.js";

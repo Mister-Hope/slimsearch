@@ -1,4 +1,3 @@
-import { SearchableMap } from "./SearchableMap/index.js";
 import {
   defaultAutoSuggestOptions,
   defaultAutoVacuumOptions,
@@ -7,6 +6,7 @@ import {
   defaultVacuumConditions,
 } from "./defaults.js";
 import type { DocumentTermFrequencies, SearchOptionsWithDefaults } from "./results.js";
+import { SearchableMap } from "./SearchableMap/index.js";
 import type {
   AnyObject,
   AutoVacuumOptions,

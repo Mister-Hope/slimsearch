@@ -1,9 +1,9 @@
-import type { SearchIndex } from "./SearchIndex.js";
 import {
   defaultAutoVacuumOptions,
   defaultVacuumConditions,
   defaultVacuumOptions,
 } from "./defaults.js";
+import type { SearchIndex } from "./SearchIndex.js";
 import type { AnyObject, EmptyObject, VacuumConditions, VacuumOptions } from "./typings.js";
 
 const shouldVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
@@ -33,22 +33,24 @@ const doVacuum = async <ID, Document, Index extends AnyObject = EmptyObject>(
     let i = 1;
 
     for (const [term, fieldsData] of searchIndex._index) {
-      for (const [fieldId, fieldIndex] of fieldsData)
+      for (const [fieldId, fieldIndex] of fieldsData) {
         for (const [shortId] of fieldIndex) {
           if (searchIndex._documentIds.has(shortId)) continue;
 
           if (fieldIndex.size <= 1) fieldsData.delete(fieldId);
           else fieldIndex.delete(shortId);
         }
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (searchIndex._index.get(term)!.size === 0) searchIndex._index.delete(term);
 
-      if (i % batchSize === 0)
+      if (i % batchSize === 0) {
         // oxlint-disable-next-line no-await-in-loop
         await new Promise((resolve) => {
           setTimeout(resolve, batchWait);
         });
+      }
 
       i += 1;
     }
@@ -78,11 +80,11 @@ const conditionalVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
     if (searchIndex._enqueuedVacuum != null) return searchIndex._enqueuedVacuum;
 
     searchIndex._enqueuedVacuum = searchIndex._currentVacuum.then(() => {
-      const conditions = searchIndex._enqueuedVacuumConditions;
+      const enqueuedConditions = searchIndex._enqueuedVacuumConditions;
 
       searchIndex._enqueuedVacuumConditions = defaultVacuumConditions;
 
-      return doVacuum(searchIndex, options, conditions);
+      return doVacuum(searchIndex, options, enqueuedConditions);
     });
 
     return searchIndex._enqueuedVacuum;

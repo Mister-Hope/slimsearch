@@ -1,6 +1,6 @@
-import type { FieldTermData, SearchIndex } from "./SearchIndex.js";
 import { OR } from "./constant.js";
 import { defaultSearchOptions } from "./defaults.js";
+import type { FieldTermData, SearchIndex } from "./SearchIndex.js";
 import { WILDCARD } from "./symbols.js";
 import { removeTerm } from "./term.js";
 import type {
@@ -76,7 +76,7 @@ const combineResults = (results: RawResult[], combineWith: CombinationOperator =
 
   if (!(operator in combinators)) throw new Error(`Invalid combination operator: ${combineWith}`);
 
-  // oxlint-disable-next-line unicorn/no-array-callback-reference, unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-callback-reference
   return results.reduce(combinators[operator]);
 };
 
@@ -178,13 +178,12 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
     ...searchOptions,
   };
 
-  // oxlint-disable-next-line unicorn/no-array-reduce
   const boosts = (options.fields ?? searchIndex._options.fields).reduce<Record<string, number>>(
-    (boosts, field) => {
+    (fieldBoosts, field) => {
       // oxlint-disable-next-line typescript/prefer-nullish-coalescing, typescript/strict-boolean-expressions
-      boosts[field] = (getOwnProperty(options.boost, field) as number | undefined) || 1;
+      fieldBoosts[field] = (getOwnProperty(options.boost, field) as number | undefined) || 1;
 
-      return boosts;
+      return fieldBoosts;
     },
     {},
   );
@@ -223,8 +222,8 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
     if (maxDistance) fuzzyMatches = searchIndex._index.fuzzyGet(query.term, maxDistance);
   }
 
-  if (prefixMatches)
-    for (const [term, data] of prefixMatches) {
+  if (prefixMatches) {
+    for (const [term, prefixData] of prefixMatches) {
       const distance = term.length - query.term.length;
 
       if (!distance) continue;
@@ -247,18 +246,19 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
         term,
         weight,
         query.termBoost,
-        data,
+        prefixData,
         boosts,
         boostDocument,
         bm25params,
         results,
       );
     }
+  }
 
-  if (fuzzyMatches)
+  if (fuzzyMatches) {
     for (const term of fuzzyMatches.keys()) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const [data, distance] = fuzzyMatches.get(term)!;
+      const [fuzzyData, distance] = fuzzyMatches.get(term)!;
 
       if (!distance) continue;
       // Skip exact match.
@@ -273,13 +273,14 @@ const executeQuerySpec = <ID, Document, Index extends AnyObject = EmptyObject>(
         term,
         weight,
         query.termBoost,
-        data,
+        fuzzyData,
         boosts,
         boostDocument,
         bm25params,
         results,
       );
     }
+  }
 
   return results;
 };
@@ -315,9 +316,9 @@ export const executeQuery = <ID, Document, Index extends AnyObject = EmptyObject
   // @ts-expect-error: type is not the same
   // oxlint-disable-next-line unicorn/no-array-callback-reference
   const queries: QuerySpec[] = terms.map(termToQuerySpec(options));
-  const results = queries.map((query) =>
+  const results = queries.map((querySpec) =>
     // @ts-expect-error: type is not the same
-    executeQuerySpec(searchIndex, query, options),
+    executeQuerySpec(searchIndex, querySpec, options),
   );
 
   return combineResults(results, options.combineWith);

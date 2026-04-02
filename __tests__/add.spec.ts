@@ -38,7 +38,7 @@ it("throws error if the document does not have the ID field", () => {
   expect(() => {
     // @ts-expect-error: document does not have ID field
     add(index, { text: "I do not have an ID" });
-  }).toThrowError('SlimSearch: document does not have ID field "foo"');
+  }).toThrow('SlimSearch: document does not have ID field "foo"');
 });
 
 it("throws error on duplicate ID", () => {
@@ -57,7 +57,7 @@ it("throws error on duplicate ID", () => {
 
   expect(() => {
     add(index, { foo: "abc", text: "I have a duplicate ID" });
-  }).toThrowError("SlimSearch: duplicate ID abc");
+  }).toThrow("SlimSearch: duplicate ID abc");
 });
 
 it("extracts the ID field using extractField", () => {
@@ -69,7 +69,6 @@ it("extracts the ID field using extractField", () => {
   const extractField = (document: Document, fieldName: string): string | number => {
     if (fieldName === "id") return document.id.value;
 
-    // oxlint-disable-next-line typescript/no-explicit-any
     return (getDefaultValue("extractField") as (document: any, fieldName: string) => string)(
       document,
       fieldName,
@@ -99,7 +98,7 @@ it("rejects falsy terms", () => {
 
   expect(() => {
     add(index, { id: 123, text: "foo bar" });
-  }).not.toThrowError();
+  }).not.toThrow();
 });
 
 it("turns the field to string before tokenization", () => {
@@ -109,7 +108,7 @@ it("turns the field to string before tokenization", () => {
     isBlinky: boolean;
   }
 
-  const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
+  const tokenize = vi.fn<(x: string) => string[]>((x) => x.split(/\W+/));
   const index = createIndex<number, Document>({
     fields: ["id", "tags", "isBlinky"],
     tokenize,
@@ -118,7 +117,7 @@ it("turns the field to string before tokenization", () => {
   expect(() => {
     add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
     add(index, { id: 321, isBlinky: true });
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(tokenize).toHaveBeenCalledWith("123", "id");
   expect(tokenize).toHaveBeenCalledWith("foo,bar", "tags");
@@ -135,18 +134,13 @@ it("turns the field to string before tokenization using a custom stringifyField 
     isBlinky: boolean;
   }
 
-  const tokenize = vi.fn((x: string): string[] => x.split(/\W+/));
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const stringifyField = vi.fn((value: any, fieldName: string) => {
-    if (fieldName === "tags") {
-      return (value as string[]).join("|");
-    }
+  const tokenize = vi.fn<(x: string) => string[]>((x) => x.split(/\W+/));
+  const stringifyField = vi.fn<(value: any, fieldName: string) => string>((value, fieldName) => {
+    if (fieldName === "tags") return (value as string[]).join("|");
 
-    if (typeof value === "boolean") {
-      return value ? "T" : "F";
-    }
+    if (typeof value === "boolean") return value ? "T" : "F";
 
-    // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return, typescript/no-unsafe-member-access
+    // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return
     return value.toString();
   });
   const index = createIndex<number, Document>({
@@ -158,7 +152,7 @@ it("turns the field to string before tokenization using a custom stringifyField 
   expect(() => {
     add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
     add(index, { id: 321, isBlinky: true });
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(tokenize).toHaveBeenCalledWith("123", "id");
   expect(tokenize).toHaveBeenCalledWith("foo|bar", "tags");
@@ -178,19 +172,20 @@ it("passes document and field name to the field extractor", () => {
     };
     category: string;
   }
-  const extractField = vi.fn((document: Document, fieldName: string): string => {
-    if (fieldName === "pubDate")
-      return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
+  const extractField = vi.fn<(document: Document, fieldName: string) => string>(
+    (document, fieldName) => {
+      if (fieldName === "pubDate")
+        return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
 
-    // oxlint-disable-next-line unicorn/no-array-reduce
-    return fieldName.split(".").reduce(
-      // @ts-expect-error: property untyped
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      (doc, key) => doc[key],
-      document,
-    ) as unknown as string;
-  });
-  const tokenize = vi.fn((token: string): string[] => token.split(/\W+/));
+      return fieldName.split(".").reduce(
+        // @ts-expect-error: property untyped
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        (doc, key) => doc[key],
+        document,
+      ) as unknown as string;
+    },
+  );
+  const tokenize = vi.fn<(token: string) => string[]>((token) => token.split(/\W+/));
   const index = createIndex<number, Document>({
     fields: ["title", "pubDate", "author.name"],
     storeFields: ["category"],
@@ -222,7 +217,7 @@ it("passes field value and name to tokenizer", () => {
     title: string;
     text: string;
   }
-  const tokenize = vi.fn((content: string): string[] => content.split(/\W+/));
+  const tokenize = vi.fn<(content: string) => string[]>((content) => content.split(/\W+/));
   const index = createIndex<number, Document>({
     fields: ["text", "title"],
     tokenize,
@@ -244,7 +239,7 @@ it("passes field value and name to term processor", () => {
     title: string;
     text: string;
   }
-  const processTerm = vi.fn((term: string): string => term.toLowerCase());
+  const processTerm = vi.fn<(term: string) => string>((term) => term.toLowerCase());
   const index = createIndex<number, Document>({
     fields: ["text", "title"],
     processTerm,
@@ -274,7 +269,7 @@ it("allows processTerm to expand a single term into several terms", () => {
 
   expect(() => {
     add(index, { id: 123, text: "foobar" });
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(search(index, "bar")).toHaveLength(1);
 });

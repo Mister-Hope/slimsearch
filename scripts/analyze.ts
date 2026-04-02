@@ -1,4 +1,5 @@
 import { join } from "node:path";
+
 import { createAndUploadReport } from "@codecov/bundle-analyzer";
 
 const analyzerOptions = {

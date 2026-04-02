@@ -14,5 +14,5 @@ it("returns the default value of the given option", () => {
 it("throws an error if there is no option with the given name", () => {
   expect(() => {
     getDefaultValue("foo");
-  }).toThrowError('SlimSearch: unknown option "foo"');
+  }).toThrow('SlimSearch: unknown option "foo"');
 });

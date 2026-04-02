@@ -45,6 +45,7 @@ export const objectToNumericMapAsync = async <Value>(
 
   for (const key of Object.keys(object)) {
     map.set(Number.parseInt(key, 10), object[key]);
+    // oxlint-disable-next-line no-plusplus
     if (++count % 1000 === 0) {
       // oxlint-disable-next-line no-await-in-loop
       await wait(0);

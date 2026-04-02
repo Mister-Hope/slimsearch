@@ -1,4 +1,5 @@
 import type { Entry, LeafType, RadixTree } from "./typings.js";
+import { last } from "./utils.js";
 
 export const ENTRIES = "ENTRIES";
 
@@ -56,13 +57,12 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     // oxlint-disable-next-line no-undefined
     if (this._path.length === 0) return { done: true, value: undefined };
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const { node, keys } = last(this._path)!;
+    const { node, keys } = last(this._path);
 
     if (last(keys) === LEAF) return { done: false, value: this.result() };
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const child = node.get(last(keys)!)!;
+    const child = node.get(last(keys))!;
 
     this._path.push({ node: child, keys: [...child.keys()] });
 
@@ -72,8 +72,7 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
   backtrack(): void {
     if (this._path.length === 0) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const { keys } = last(this._path)!;
+    const { keys } = last(this._path);
 
     keys.pop();
     if (keys.length > 0) return;
@@ -94,7 +93,7 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
 
   value(): T {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return last(this._path)!.node.get(LEAF)!;
+    return last(this._path).node.get(LEAF)!;
   }
 
   result(): Result<T, Key> {
@@ -116,5 +115,3 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     return this;
   }
 }
-
-const last = <T>(array: T[]): T | undefined => array[array.length - 1];

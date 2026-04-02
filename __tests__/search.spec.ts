@@ -76,7 +76,7 @@ describe("search()", () => {
 
     expect(() => {
       results = search(index, "sottomarino aeroplano");
-    }).not.toThrowError();
+    }).not.toThrow();
     expect(results!.length).toEqual(0);
   });
 
@@ -88,14 +88,14 @@ describe("search()", () => {
   });
 
   it("computes a meaningful score when fields are named liked default properties of object", () => {
-    const index = createIndex<number, { id: number; constructor: string }>({
+    const testIndex = createIndex<number, { id: number; constructor: string }>({
       fields: ["constructor"],
     });
 
-    add(index, { id: 1, constructor: "something" });
-    add(index, { id: 2, constructor: "something else" });
+    add(testIndex, { id: 1, constructor: "something" });
+    add(testIndex, { id: 2, constructor: "something else" });
 
-    const results = search(index, "something");
+    const results = search(testIndex, "something");
 
     results.forEach((result) => {
       expect(Number.isFinite(result.score)).toBe(true);
@@ -148,7 +148,7 @@ describe("search()", () => {
     expect(() => {
       // @ts-expect-error: error checking
       search(index, "vita cammin", { combineWith: "XOR" });
-    }).toThrowError("Invalid combination operator: XOR");
+    }).toThrow("Invalid combination operator: XOR");
   });
 
   it("returns empty results for empty search", () => {
@@ -214,21 +214,22 @@ describe("search()", () => {
   });
 
   it("assigns weight lower than exact match to a match that is both a prefix and fuzzy match", () => {
-    interface Document {
+    interface TestDocument {
       id: number;
       text: string;
     }
-    const index = createIndex<number, Document>({ fields: ["text"] });
-    const documents: Document[] = [
+
+    const testIndex = createIndex<number, TestDocument>({ fields: ["text"] });
+    const testDocuments: TestDocument[] = [
       { id: 1, text: "Poi che la gente poverella crebbe" },
       { id: 2, text: "Deus, venerunt gentes" },
     ];
 
-    addAll(index, documents);
-    expect(index.documentCount).toEqual(documents.length);
+    addAll(testIndex, testDocuments);
+    expect(testIndex.documentCount).toEqual(testDocuments.length);
 
-    const exact = search(index, "gente");
-    const combined = search(index, "gente", { fuzzy: 0.2, prefix: true });
+    const exact = search(testIndex, "gente");
+    const combined = search(testIndex, "gente", { fuzzy: 0.2, prefix: true });
 
     expect(combined.map(({ id }) => id)).toEqual([1, 2]);
     expect(combined[0].score).toEqual(exact[0].score);
@@ -236,8 +237,10 @@ describe("search()", () => {
   });
 
   it("accepts a function to compute fuzzy and prefix options from term", () => {
-    const fuzzy = vi.fn((term: string) => (term.length > 4 ? 2 : false));
-    const prefix = vi.fn((term: string) => term.length > 4);
+    const fuzzy = vi.fn<(term: string) => number | boolean>((term: string) =>
+      term.length > 4 ? 2 : false,
+    );
+    const prefix = vi.fn<(term: string) => boolean>((term: string) => term.length > 4);
     const results = search(index, "quel comedia", { fuzzy, prefix });
 
     expect(fuzzy).toHaveBeenNthCalledWith(1, "quel", 0, ["quel", "comedia"]);
@@ -251,7 +254,7 @@ describe("search()", () => {
   it("boosts documents by calling boostDocument with document ID, term, and stored fields", () => {
     const query = "divina commedia nova";
     const boostFactor = 1.234;
-    const boostDocument = vi.fn(() => boostFactor);
+    const boostDocument = vi.fn<() => number>(() => boostFactor);
     const resultsWithoutBoost = search(index, query);
     const results = search(index, query, { boostDocument });
 
@@ -265,8 +268,7 @@ describe("search()", () => {
 
   it("skips document if boostDocument returns a falsy value", () => {
     const query = "vita";
-    // oxlint-disable-next-line typescript/no-explicit-any
-    const boostDocument = vi.fn((id: any) => (id === 3 ? null : 1));
+    const boostDocument = vi.fn<(id: any) => number | null>((id) => (id === 3 ? null : 1));
     const resultsWithoutBoost = search(index, query);
     // @ts-expect-error: boostDocument type issue
     const results = search(index, query, { boostDocument });
@@ -335,73 +337,73 @@ describe("search()", () => {
   });
 
   it("allows customizing BM25+ parameters", () => {
-    interface Document {
+    interface TestDocument {
       id: number;
       text: string;
     }
-    const index = createIndex<number, Document>({
+    const testIndex = createIndex<number, TestDocument>({
       fields: ["text"],
       searchOptions: { bm25: { k: 1.2, b: 0.7, d: 0.5 } },
     });
-    const documents = [
+    const testDocuments = [
       { id: 1, text: "something very very very cool" },
       { id: 2, text: "something cool" },
     ];
 
-    addAll(index, documents);
+    addAll(testIndex, testDocuments);
 
-    expect(search(index, "very")[0].score).toBeGreaterThan(
-      search(index, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score,
+    expect(search(testIndex, "very")[0].score).toBeGreaterThan(
+      search(testIndex, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } })[0].score,
     );
-    expect(search(index, "something")[1].score).toBeGreaterThan(
-      search(index, "something", { bm25: { k: 1.2, b: 1, d: 0.5 } })[1].score,
+    expect(search(testIndex, "something")[1].score).toBeGreaterThan(
+      search(testIndex, "something", { bm25: { k: 1.2, b: 1, d: 0.5 } })[1].score,
     );
-    expect(search(index, "something")[1].score).toBeGreaterThan(
-      search(index, "something", { bm25: { k: 1.2, b: 0.7, d: 0.1 } })[1].score,
+    expect(search(testIndex, "something")[1].score).toBeGreaterThan(
+      search(testIndex, "something", { bm25: { k: 1.2, b: 0.7, d: 0.1 } })[1].score,
     );
 
     // Defaults are taken from the searchOptions passed to the constructor
-    const other = createIndex<number, Document>({
+    const other = createIndex<number, TestDocument>({
       fields: ["text"],
       searchOptions: { bm25: { k: 1, b: 0.7, d: 0.5 } },
     });
 
-    addAll(other, documents);
+    addAll(other, testDocuments);
 
     expect(search(other, "very")).toEqual(
-      search(index, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } }),
+      search(testIndex, "very", { bm25: { k: 1, b: 0.7, d: 0.5 } }),
     );
   });
 
   it("allows searching for the special value `WILDCARD` to match all terms", () => {
-    interface Document {
+    interface TestDocument {
       id: number;
       text: string | null;
       cool: boolean;
     }
-    const index = createIndex<number, Document, { cool: boolean }>({
+    const testIndex = createIndex<number, TestDocument, { cool: boolean }>({
       fields: ["text"],
       storeFields: ["cool"],
     });
-    const documents = [
+    const testDocuments = [
       { id: 1, text: "something cool", cool: true },
       { id: 2, text: "something else", cool: false },
       { id: 3, text: null, cool: true },
     ];
 
-    addAll(index, documents);
+    addAll(testIndex, testDocuments);
 
     // The string "*" is just a normal term
-    expect(search(index, "*")).toEqual([]);
+    expect(search(testIndex, "*")).toEqual([]);
 
     // The empty string is just a normal query
-    expect(search(index, "")).toEqual([]);
+    expect(search(testIndex, "")).toEqual([]);
 
     // The value `WILDCARD` matches all terms
-    expect(search(index, WILDCARD).map(({ id }) => id)).toEqual([1, 2, 3]);
+    expect(search(testIndex, WILDCARD).map(({ id }) => id)).toEqual([1, 2, 3]);
 
     // Filters and document boosting are still applied
-    const results = search(index, WILDCARD, {
+    const results = search(testIndex, WILDCARD, {
       filter: (x) => x.cool,
       boostDocument: (id) => id,
     });
@@ -522,12 +524,12 @@ describe("search()", () => {
   });
 
   describe("match data", () => {
-    interface Document {
+    interface TestDocument {
       id: number;
       title: string;
       text: string;
     }
-    const documents = [
+    const testDocuments = [
       {
         id: 1,
         title: "Divina Commedia",
@@ -544,12 +546,12 @@ describe("search()", () => {
         text: "In quella parte del libro della mia memoria ... vita",
       },
     ];
-    const index = createIndex<number, Document>({ fields: ["title", "text"] });
+    const testIndex = createIndex<number, TestDocument>({ fields: ["title", "text"] });
 
-    addAll(index, documents);
+    addAll(testIndex, testDocuments);
 
     it("reports information about matched terms and fields", () => {
-      const results = search(index, "vita nova");
+      const results = search(testIndex, "vita nova");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.map(({ match }) => match)).toEqual([
@@ -560,7 +562,7 @@ describe("search()", () => {
     });
 
     it("reports correct info when combining terms with AND", () => {
-      const results = search(index, "vita nova", { combineWith: "AND" });
+      const results = search(testIndex, "vita nova", { combineWith: "AND" });
 
       expect(results.map(({ match }) => match)).toEqual([
         { vita: ["title", "text"], nova: ["title"] },
@@ -569,7 +571,7 @@ describe("search()", () => {
     });
 
     it("reports correct info for fuzzy and prefix queries", () => {
-      const results = search(index, "vi nuova", { fuzzy: 0.2, prefix: true });
+      const results = search(testIndex, "vi nuova", { fuzzy: 0.2, prefix: true });
 
       expect(results.map(({ match }) => match)).toEqual([
         { vita: ["title", "text"], nova: ["title"] },
@@ -579,7 +581,7 @@ describe("search()", () => {
     });
 
     it("reports correct info for many fuzzy and prefix queries", () => {
-      const results = search(index, "vi nuova m de", {
+      const results = search(testIndex, "vi nuova m de", {
         fuzzy: 0.2,
         prefix: true,
       });
@@ -604,48 +606,48 @@ describe("search()", () => {
     });
 
     it("passes only the query to tokenize", () => {
-      const tokenize = vi.fn((content: string) => content.split(/\W+/));
-      const index = createIndex({
+      const tokenize = vi.fn<(content: string) => string[]>((content) => content.split(/\W+/));
+      const testIndex2 = createIndex({
         fields: ["text", "title"],
         searchOptions: { tokenize },
       });
       const query = "some search query";
 
-      search(index, query);
+      search(testIndex2, query);
       expect(tokenize).toHaveBeenCalledWith(query);
     });
 
     it("passes only the term to processTerm", () => {
-      const processTerm = vi.fn((term: string) => term.toLowerCase());
-      const index = createIndex({
+      const processTerm = vi.fn<(term: string) => string>((term) => term.toLowerCase());
+      const testIndex2 = createIndex({
         fields: ["text", "title"],
         searchOptions: { processTerm },
       });
       const query = "some search query";
 
-      search(index, query);
+      search(testIndex2, query);
       query.split(/\W+/).forEach((term) => {
         expect(processTerm).toHaveBeenCalledWith(term);
       });
     });
 
     it("does not break when special properties of object are used as a term", () => {
-      interface Document {
+      interface TestDocument2 {
         id: number;
         text: string;
       }
       const specialWords = ["constructor", "hasOwnProperty", "isPrototypeOf"];
-      const index = createIndex<number, Document>({ fields: ["text"] });
+      const testIndex2 = createIndex<number, TestDocument2>({ fields: ["text"] });
       const processTerm = getDefaultValue("processTerm") as (term: string) => string;
 
-      add(index, { id: 1, text: specialWords.join(" ") });
+      add(testIndex2, { id: 1, text: specialWords.join(" ") });
 
       specialWords.forEach((word) => {
         expect(() => {
-          search(index, word);
-        }).not.toThrowError();
+          search(testIndex2, word);
+        }).not.toThrow();
 
-        const results = search(index, word);
+        const results = search(testIndex2, word);
 
         expect(results[0].id).toEqual(1);
         expect(results[0].match[processTerm(word)]).toEqual(["text"]);
@@ -654,7 +656,7 @@ describe("search()", () => {
   });
 
   describe("movie ranking set", () => {
-    const index = createIndex<
+    const testIndex = createIndex<
       string,
       { id: string; title: string; description: string },
       { title: string }
@@ -663,62 +665,62 @@ describe("search()", () => {
       storeFields: ["title"],
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt1487931",
       title: "Khumba",
       description:
         "When half-striped zebra Khumba is blamed for the lack of rain by the rest of his insular, superstitious herd, he embarks on a daring quest to earn his stripes. In his search for the legendary waterhole in which the first zebras got their stripes, Khumba meets a quirky range of characters and teams up with an unlikely duo: overprotective wildebeest Mama V and Bradley, a self-obsessed, flamboyant ostrich. But before he can reunite with his herd, Khumba must confront Phango, a sadistic leopard who controls the waterholes and terrorizes all the animals in the Great Karoo. It's not all black-and-white in this colorful adventure with a difference.",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt8737608",
       title: "Rams",
       description: "A feud between two sheep farmers.",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt0983983",
       title: "Shaun the Sheep",
       description:
         "Shaun is a cheeky and mischievous sheep at Mossy Bottom farm who's the leader of the flock and always plays slapstick jokes, pranks and causes trouble especially on Farmer X and his grumpy guide dog, Bitzer.",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt5174284",
       title: "Shaun the Sheep: The Farmer's Llamas",
       description:
         "At the annual County Fair, three peculiar llamas catch the eye of Shaun, who tricks the unsuspecting Farmer into buying them. At first, it's all fun and games at Mossy Bottom Farm until the trio of unruly animals shows their true colours, wreaking havoc before everyone's eyes. Now, it's up to Bitzer and Shaun to come up with a winning strategy, if they want to reclaim the farm. Can they rid the once-peaceful ranch of the troublemakers?",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt0102926",
       title: "The Silence of the Lambs",
       description:
         "F.B.I. trainee Clarice Starling (Jodie Foster) works hard to advance her career, while trying to hide or put behind her West Virginia roots, of which if some knew, would automatically classify her as being backward or white trash. After graduation, she aspires to work in the agency's Behavioral Science Unit under the leadership of Jack Crawford (Scott Glenn). While she is still a trainee, Crawford asks her to question Dr. Hannibal Lecter (Sir Anthony Hopkins), a psychiatrist imprisoned, thus far, for eight years in maximum security isolation for being a serial killer who cannibalized his victims. Clarice is able to figure out the assignment is to pick Lecter's brains to help them solve another serial murder case, that of someone coined by the media as \"Buffalo Bill\" (Ted Levine), who has so far killed five victims, all located in the eastern U.S., all young women, who are slightly overweight (especially around the hips), all who were drowned in natural bodies of water, and all who were stripped of large swaths of skin. She also figures that Crawford chose her, as a woman, to be able to trigger some emotional response from Lecter. After speaking to Lecter for the first time, she realizes that everything with him will be a psychological game, with her often having to read between the very cryptic lines he provides. She has to decide how much she will play along, as his request in return for talking to him is to expose herself emotionally to him. The case takes a more dire turn when a sixth victim is discovered, this one from who they are able to retrieve a key piece of evidence, if Lecter is being forthright as to its meaning. A potential seventh victim is high profile Catherine Martin (Brooke Smith), the daughter of Senator Ruth Martin (Diane Baker), which places greater scrutiny on the case as they search for a hopefully still alive Catherine. Who may factor into what happens is Dr. Frederick Chilton (Anthony Heald), the warden at the prison, an opportunist who sees the higher profile with Catherine, meaning a higher profile for himself if he can insert himself successfully into the proceedings.",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt0395479",
       title: "Boundin'",
       description:
         "In the not too distant past, a lamb lives in the desert plateau just below the snow line. He is proud of how bright and shiny his coat of wool is, so much so that it makes him want to dance, which in turn makes all the other creatures around him also want to dance. His life changes when one spring day he is captured, his wool shorn, and thrown back out onto the plateau all naked and pink. But a bounding jackalope who wanders by makes the lamb look at life a little differently in seeing that there is always something exciting in life to bound about.",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt9812474",
       title: "Lamb",
       description:
         "Haunted by the indelible mark of loss and silent grief, sad-eyed María and her taciturn husband, Ingvar, seek solace in back-breaking work and the demanding schedule at their sheep farm in the remote, harsh, wind-swept landscapes of mountainous Iceland. Then, with their relationship hanging on by a thread, something unexplainable happens, and just like that, happiness blesses the couple's grim household once more. Now, as a painful ending gives birth to a new beginning, Ingvar's troubled brother, Pétur, arrives at the farmhouse, threatening María and Ingvar's delicate, newfound bliss. But, nature's gifts demand sacrifice. How far are ecstatic María and Ingvar willing to go in the name of love?",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt0306646",
       title: "Ringing Bell",
       description:
         "A baby lamb named Chirin is living an idyllic life on a farm with many other sheep. Chirin is very adventurous and tends to get lost, so he wears a bell around his neck so that his mother can always find him. His mother warns Chirin that he must never venture beyond the fence surrounding the farm, because a huge black wolf lives in the mountains and loves to eat sheep. Chirin is too young and naive to take the advice to heart, until one night the wolf enters the barn and is prepared to kill Chirin, but at the last moment the lamb's mother throws herself in the way and is killed instead. The wolf leaves, and Chirin is horrified to see his mother's body. Unable to understand why his mother was killed, he becomes very angry and swears that he will go into the mountains and kill the wolf.",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "tt1212022",
       title: "The Lion of Judah",
       description:
@@ -729,7 +731,7 @@ describe("search()", () => {
       // This should be fairly easy. We test that exact matches come before
       // prefix matches, and that hits in shorter fields (title) come before
       // hits in longer fields (description)
-      const hits = search(index, "lamb", { fuzzy: 1, prefix: true });
+      const hits = search(testIndex, "lamb", { fuzzy: 1, prefix: true });
 
       expect(hits.map(({ title }) => title)).toEqual([
         // Exact title match.
@@ -756,7 +758,7 @@ describe("search()", () => {
       // title than it does in the description. One result, 'Rams', has a very
       // short description with an exact match, but it should never outrank
       // the result with an exact match in the title AND description.
-      const hits = search(index, "sheep", { fuzzy: 1, prefix: true });
+      const hits = search(testIndex, "sheep", { fuzzy: 1, prefix: true });
 
       expect(hits.map(({ title }) => title)).toEqual([
         // Has 'sheep' in title and once in a description of average length.
@@ -778,8 +780,8 @@ describe("search()", () => {
 
     it("returns best results for shaun", () => {
       // Two movies contain the query in the title. Pick the shorter title.
-      expect(search(index, "shaun the sheep")[0].title).toEqual("Shaun the Sheep");
-      expect(search(index, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
+      expect(search(testIndex, "shaun the sheep")[0].title).toEqual("Shaun the Sheep");
+      expect(search(testIndex, "shaun the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
         "Shaun the Sheep",
       );
     });
@@ -787,8 +789,8 @@ describe("search()", () => {
     it("returns best results for chirin", () => {
       // The title contains neither 'sheep' nor the character name. Movies
       // that have 'sheep' or 'the' in the title should not outrank this.
-      expect(search(index, "chirin the sheep")[0].title).toEqual("Ringing Bell");
-      expect(search(index, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
+      expect(search(testIndex, "chirin the sheep")[0].title).toEqual("Ringing Bell");
+      expect(search(testIndex, "chirin the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
         "Ringing Bell",
       );
     });
@@ -796,8 +798,8 @@ describe("search()", () => {
     it("returns best results for judah", () => {
       // Title contains the character's name, but the word 'sheep' never
       // occurs. Other movies that do contain 'sheep' should not outrank this.
-      expect(search(index, "judah the sheep")[0].title).toEqual("The Lion of Judah");
-      expect(search(index, "judah the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
+      expect(search(testIndex, "judah the sheep")[0].title).toEqual("The Lion of Judah");
+      expect(search(testIndex, "judah the sheep", { fuzzy: 1, prefix: true })[0].title).toEqual(
         "The Lion of Judah",
       );
     });
@@ -808,71 +810,71 @@ describe("search()", () => {
       // specific. Does not contain 'sheep' at all! Because 'sheep' is a
       // slightly more common term in the dataset, that should not cause other
       // results to outrank this.
-      expect(search(index, "bounding sheep", { fuzzy: 1 })[0].title).toEqual("Boundin'");
+      expect(search(testIndex, "bounding sheep", { fuzzy: 1 })[0].title).toEqual("Boundin'");
     });
   });
 
   describe("song ranking set", () => {
-    interface Document {
+    interface TestDocument {
       id: string;
       song: string;
       artist: string;
     }
-    const index = createIndex<string, Document, { song: string }>({
+    const testIndex = createIndex<string, TestDocument, { song: string }>({
       fields: ["song", "artist"],
       storeFields: ["song"],
     });
 
-    add(index, {
+    add(testIndex, {
       id: "1",
       song: "Killer Queen",
       artist: "Queen",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "2",
       song: "The Witch Queen Of New Orleans",
       artist: "Redbone",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "3",
       song: "Waterloo",
       artist: "Abba",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "4",
       song: "Take A Chance On Me",
       artist: "Abba",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "5",
       song: "Help",
       artist: "The Beatles",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "6",
       song: "Yellow Submarine",
       artist: "The Beatles",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "7",
       song: "Dancing Queen",
       artist: "Abba",
     });
 
-    add(index, {
+    add(testIndex, {
       id: "8",
       song: "Bohemian Rhapsody",
       artist: "Queen",
     });
 
     it("returns best results for witch queen", () => {
-      const hits = search(index, "witch queen", { fuzzy: 1, prefix: true });
+      const hits = search(testIndex, "witch queen", { fuzzy: 1, prefix: true });
 
       expect(hits.map(({ song }) => song)).toEqual([
         // The only result that has both terms. This should not be outranked
@@ -892,7 +894,9 @@ describe("search()", () => {
 
     it("returns best results for queen", () => {
       // The only match where both song and artist contain 'queen'.
-      expect(search(index, "queen", { fuzzy: 1, prefix: true })[0].song).toEqual("Killer Queen");
+      expect(search(testIndex, "queen", { fuzzy: 1, prefix: true })[0].song).toEqual(
+        "Killer Queen",
+      );
     });
   });
 });

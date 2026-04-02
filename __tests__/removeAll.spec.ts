@@ -28,7 +28,7 @@ let _warn: (...args: unknown[]) => void;
 beforeEach(() => {
   index = createIndex({ fields: ["title", "text"] });
   _warn = console.warn;
-  console.warn = vi.fn();
+  console.warn = vi.fn<() => void>();
 });
 
 afterEach(() => {
@@ -66,22 +66,21 @@ it("raises an error if called with a falsey argument", () => {
   expect(() => {
     // @ts-expect-error: Wrong param
     removeAll(index, null);
-  }).toThrowError();
+  }).toThrow();
   expect(() => {
-    // oxlint-disable-next-line unicorn/no-useless-undefined
     removeAll(index, undefined);
-  }).toThrowError();
+  }).toThrow();
   expect(() => {
     // @ts-expect-error: Wrong param
     removeAll(index, false);
-  }).toThrowError();
+  }).toThrow();
   expect(() => {
     // @ts-expect-error: Wrong param
     removeAll(index, "");
-  }).toThrowError();
+  }).toThrow();
   expect(() => {
     removeAll(index, []);
-  }).not.toThrowError();
+  }).not.toThrow();
 
   expect(index.documentCount).toEqual(documents.length);
 });
