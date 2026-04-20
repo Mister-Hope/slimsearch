@@ -6,16 +6,14 @@ import { warnDocumentChanged } from "./warning.js";
 /**
  * Adds the given term to the index for the given field and document
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @private
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param searchIndex The search index
  * @param fieldId The field ID
  * @param documentId The document short ID
  * @param term The term to be added
- *
- * @private
  */
 export const addTerm = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
@@ -40,16 +38,14 @@ export const addTerm = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Removes the given term from the index for the given field and document
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @private
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param searchIndex The search index
  * @param fieldId The field ID
  * @param documentId The document short ID
  * @param term The term to be removed
- *
- * @private
  */
 export const removeTerm = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,

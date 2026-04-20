@@ -11,50 +11,46 @@ const getMsg = (method: string): string =>
 /**
  * Create search index with given options
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param options Configuration options
  * @returns A instance of SearchIndex with given options
  *
- * ### Examples:
+ *   ### Examples:
  *
- * ```js
- * // Create a search engine that indexes the 'title' and 'text' fields of your
- * // documents:
- * const searchIndex = createIndex({ fields: ['title', 'text'] })
- * ```
+ *   ```js
+ *   // Create a search engine that indexes the 'title' and 'text' fields of your
+ *   // documents:
+ *   const searchIndex = createIndex({ fields: ["title", "text"] });
+ *   ```
  *
- * ### ID Field:
+ *   ### ID Field:
  *
- * ```js
- * // Your documents are assumed to include a unique 'id' field, but if you want
- * // to use a different field for document identification, you can set the
- * // 'idField' option:
- * const searchIndex = createIndex({ idField: 'key', fields: ['title', 'text'] })
- * ```
+ *   ```js
+ *   // Your documents are assumed to include a unique 'id' field, but if you want
+ *   // to use a different field for document identification, you can set the
+ *   // 'idField' option:
+ *   const searchIndex = createIndex({ idField: "key", fields: ["title", "text"] });
+ *   ```
  *
- * ### Options and defaults:
+ *   ### Options and defaults:
  *
- * ```js
- * // The full set of options (here with their default value) is:
- * const searchIndex = createIndex({
+ *   ```js
+ *   // The full set of options (here with their default value) is:
+ *   const searchIndex = createIndex({
  *   // idField: field that uniquely identifies a document
  *   idField: 'id',
- *
  *   // extractField: function used to get the value of a field in a document.
  *   // By default, it assumes the document is a flat object with field names as
  *   // property keys and field values as string property values, but custom logic
  *   // can be implemented by setting this option to a custom extractor function.
  *   extractField: (document, fieldName) => document[fieldName],
- *
  *   // tokenize: function used to split fields into individual terms. By
  *   // default, it is also used to tokenize search queries, unless a specific
  *   // `tokenize` search option is supplied. When tokenizing an indexed field,
  *   // the field name is passed as the second argument.
  *   tokenize: (string, _fieldName) => string.split(SPACE_OR_PUNCTUATION),
- *
  *   // processTerm: function used to process each tokenized term before
  *   // indexing. It can be used for stemming and normalization. Return a falsy
  *   // value in order to discard a term. By default, it is also used to process
@@ -62,19 +58,16 @@ const getMsg = (method: string): string =>
  *   // search option. When processing a term from a indexed field, the field
  *   // name is passed as the second argument.
  *   processTerm: (term, _fieldName) => term.toLowerCase(),
- *
  *   // searchOptions: default search options, see the `search` method for
  *   // details
  *   searchOptions: undefined,
- *
  *   // fields: document fields to be indexed. Mandatory, but not set by default
  *   fields: undefined
- *
  *   // storeFields: document fields to be stored and returned as part of the
  *   // search results.
  *   storeFields: []
- * })
- * ```
+ *   })
+ *   ```
  */
 export const createIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
   options: SearchIndexOptions<ID, Document, Index>,
@@ -101,28 +94,27 @@ const instantiateIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
 };
 
 /**
- * Instantiates a SearchIndex instance from a JS Object.
- * It should be given the same options originally used when serializing the index.
+ * Instantiates a SearchIndex instance from a JS Object. It should be given the same options
+ * originally used when serializing the index.
  *
  * ### Usage:
  *
  * ```js
  * // If the index was serialized with:
- * let index = createIndex({ fields: ['title', 'text'] })
+ * let index = createIndex({ fields: ["title", "text"] });
  *
- * addAll(index, documents)
+ * addAll(index, documents);
  *
- * const json = index.toJSON()
+ * const json = index.toJSON();
  * // It can later be loaded like this:
- * index = loadJSON(json, { fields: ['title', 'text'] })
+ * index = loadJSON(json, { fields: ["title", "text"] });
  * ```
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param indexObject index object
- * @param options  configuration options, same as the constructor
+ * @param indexObject Index object
+ * @param options Configuration options, same as the constructor
  * @returns An instance of SearchIndex deserialized from the given JS object.
  */
 export const loadIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
@@ -158,19 +150,18 @@ export const loadIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Async equivalent of {@link loadIndex}
  *
- * This function is an alternative to {@link loadIndex} that returns
- * a promise, and loads the index in batches, leaving pauses between them to avoid
- * blocking the main thread. It tends to be slower than the synchronous
- * version, but does not block the main thread, so it can be a better choice
+ * This function is an alternative to {@link loadIndex} that returns a promise, and loads the index
+ * in batches, leaving pauses between them to avoid blocking the main thread. It tends to be slower
+ * than the synchronous version, but does not block the main thread, so it can be a better choice
  * when deserializing very large indexes.
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param indexObject index object
- * @param options  configuration options, same as the constructor
- * @returns A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+ * @param indexObject Index object
+ * @param options Configuration options, same as the constructor
+ * @returns A Promise that will resolve to an instance of MiniSearch deserialized from the given
+ *   JSON.
  */
 export const loadIndexAsync = async <ID, Document, Index extends AnyObject = EmptyObject>(
   indexObject: IndexObject<Index>,
@@ -208,29 +199,28 @@ export const loadIndexAsync = async <ID, Document, Index extends AnyObject = Emp
 };
 
 /**
- * Deserializes a JSON index (serialized with `JSON.stringify(index)`)
- * and instantiates a SearchIndex instance. It should be given the same options
- * originally used when serializing the index.
+ * Deserializes a JSON index (serialized with `JSON.stringify(index)`) and instantiates a
+ * SearchIndex instance. It should be given the same options originally used when serializing the
+ * index.
  *
  * ### Usage:
  *
  * ```js
  * // If the index was serialized with:
- * let index = createIndex({ fields: ['title', 'text'] })
+ * let index = createIndex({ fields: ["title", "text"] });
  *
- * addAll(index, documents)
+ * addAll(index, documents);
  *
- * const json = JSON.stringify(index)
+ * const json = JSON.stringify(index);
  * // It can later be deserialized like this:
- * index = loadJSONIndex(json, { fields: ['title', 'text'] })
+ * index = loadJSONIndex(json, { fields: ["title", "text"] });
  * ```
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param json  JSON-serialized index
- * @param options  configuration options, same as the constructor
+ * @param json JSON-serialized index
+ * @param options Configuration options, same as the constructor
  * @returns An instance of SearchIndex deserialized from the given JSON.
  */
 export const loadJSONIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
@@ -246,19 +236,18 @@ export const loadJSONIndex = <ID, Document, Index extends AnyObject = EmptyObjec
 /**
  * Async equivalent of {@link loadJSONIndex}
  *
- * This function is an alternative to {@link loadJSONIndex} that returns
- * a promise, and loads the index in batches, leaving pauses between them to avoid
- * blocking the main thread. It tends to be slower than the synchronous
- * version, but does not block the main thread, so it can be a better choice
- * when deserializing very large indexes.
+ * This function is an alternative to {@link loadJSONIndex} that returns a promise, and loads the
+ * index in batches, leaving pauses between them to avoid blocking the main thread. It tends to be
+ * slower than the synchronous version, but does not block the main thread, so it can be a better
+ * choice when deserializing very large indexes.
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param json  JSON-serialized index
- * @param options  configuration options, same as the constructor
- * @returns A Promise that will resolve to an instance of MiniSearch deserialized from the given JSON.
+ * @param json JSON-serialized index
+ * @param options Configuration options, same as the constructor
+ * @returns A Promise that will resolve to an instance of MiniSearch deserialized from the given
+ *   JSON.
  */
 export const loadJSONIndexAsync = <ID, Document, Index extends AnyObject = EmptyObject>(
   json: string,

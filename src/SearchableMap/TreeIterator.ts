@@ -28,9 +28,7 @@ export interface IterableSet<T> {
   _prefix: string;
 }
 
-/**
- * @private
- */
+/** @private */
 export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, Key>> {
   set: IterableSet<T>;
   _type: Key;
@@ -97,7 +95,6 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
   }
 
   result(): Result<T, Key> {
-    // oxlint-disable-next-line default-case
     switch (this._type) {
       case VALUES: {
         return this.value() as Result<T, Key>;
@@ -107,6 +104,9 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
       }
       case ENTRIES: {
         return [this.key(), this.value()] as Result<T, Key>;
+      }
+      default: {
+        throw new Error(`Unknown iterator type: ${this._type}`);
       }
     }
   }

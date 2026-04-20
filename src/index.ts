@@ -7,7 +7,7 @@ export * from "./info.js";
 export * from "./init.js";
 export * from "./search.js";
 export * from "./symbols.js";
-export * from "./typings.js";
+export type * from "./typings.js";
 export * from "./remove.js";
 export * from "./replace.js";
 export { vacuum } from "./vacuum.js";

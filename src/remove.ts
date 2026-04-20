@@ -24,50 +24,41 @@ const removeFieldLength = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Discards the document with the given ID, so it won't appear in search results
  *
- * It has the same visible effect of {@link remove} (both cause the
- * document to stop appearing in searches), but a different effect on the
- * internal data structures:
+ * It has the same visible effect of {@link remove} (both cause the document to stop appearing in
+ * searches), but a different effect on the internal data structures:
  *
- *   - {@link remove} requires passing the full document to be removed
- *   as argument, and removes it from the inverted index immediately.
+ * - {@link remove} requires passing the full document to be removed as argument, and removes it from
+ *   the inverted index immediately.
+ * - {@link discard} instead only needs the document ID, and works by marking the current version of
+ *   the document as discarded, so it is immediately ignored by searches. This is faster and more
+ *   convenient than `remove`, but the index is not immediately modified. To take care of that,
+ *   vacuuming is performed after a certain number of documents are discarded, cleaning up the index
+ *   and allowing memory to be released.
  *
- *   - {@link discard} instead only needs the document ID, and works by
- *   marking the current version of the document as discarded, so it is
- *   immediately ignored by searches. This is faster and more convenient than
- *   `remove`, but the index is not immediately modified. To take care of
- *   that, vacuuming is performed after a certain number of documents are
- *   discarded, cleaning up the index and allowing memory to be released.
- *
- * After discarding a document, it is possible to re-add a new version, and
- * only the new version will appear in searches. In other words, discarding
- * and re-adding a document works exactly like removing and re-adding it. The
- * {@link replace} method can also be used to replace a document with a
- * new version.
+ * After discarding a document, it is possible to re-add a new version, and only the new version
+ * will appear in searches. In other words, discarding and re-adding a document works exactly like
+ * removing and re-adding it. The {@link replace} method can also be used to replace a document with
+ * a new version.
  *
  * #### Details about vacuuming
  *
- * Repetitive calls to this method would leave obsolete document references in
- * the index, invisible to searches. Two mechanisms take care of cleaning up:
- * clean up during search, and vacuuming.
+ * Repetitive calls to this method would leave obsolete document references in the index, invisible
+ * to searches. Two mechanisms take care of cleaning up: clean up during search, and vacuuming.
  *
- *   - Upon search, whenever a discarded ID is found (and ignored for the
- *   results), references to the discarded document are removed from the
- *   inverted index entries for the search terms. This ensures that subsequent
- *   searches for the same terms do not need to skip these obsolete references
- *   again.
+ * - Upon search, whenever a discarded ID is found (and ignored for the results), references to the
+ *   discarded document are removed from the inverted index entries for the search terms. This
+ *   ensures that subsequent searches for the same terms do not need to skip these obsolete
+ *   references again.
+ * - In addition, vacuuming is performed automatically by default (see the `autoVacuum` field in
+ *   {@link SearchOptions}) after a certain number of documents are discarded. Vacuuming traverses
+ *   all terms in the index, cleaning up all references to discarded documents. Vacuuming can also
+ *   be triggered manually by calling {@link vacuum}.
  *
- *   - In addition, vacuuming is performed automatically by default (see the
- *   `autoVacuum` field in {@link SearchOptions}) after a certain number of documents
- *   are discarded. Vacuuming traverses all terms in the index, cleaning up
- *   all references to discarded documents. Vacuuming can also be triggered
- *   manually by calling {@link vacuum}.
- *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param searchIndex The search index
- * @param id  The ID of the document to be discarded
+ * @param id The ID of the document to be discarded
  */
 export const discard = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
@@ -97,21 +88,17 @@ export const discard = <ID, Document, Index extends AnyObject = EmptyObject>(
 };
 
 /**
- * Discards the documents with the given IDs, so they won't appear in search
- * results
+ * Discards the documents with the given IDs, so they won't appear in search results
  *
- * It is equivalent to calling {@link discard} for all the given IDs,
- * but with the optimization of triggering at most one automatic vacuuming at
- * the end.
+ * It is equivalent to calling {@link discard} for all the given IDs, but with the optimization of
+ * triggering at most one automatic vacuuming at the end.
  *
- * Note: to remove all documents from the index, it is faster and more
- * convenient to call {@link removeAll} with no argument, instead of
- * passing all IDs to this method.
+ * Note: to remove all documents from the index, it is faster and more convenient to call
+ * {@link removeAll} with no argument, instead of passing all IDs to this method.
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param searchIndex The search index
  * @param ids The IDs of the document to be discarded
  */
@@ -135,21 +122,19 @@ export const discardAll = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Removes the given document from the index.
  *
- * The document to remove must NOT have changed between indexing and removal,
- * otherwise the index will be corrupted.
+ * The document to remove must NOT have changed between indexing and removal, otherwise the index
+ * will be corrupted.
  *
- * This method requires passing the full document to be removed (not just the
- * ID), and immediately removes the document from the inverted index, allowing
- * memory to be released. A convenient alternative is {@link discard},
- * which needs only the document ID, and has the same visible effect, but
- * delays cleaning up the index until the next vacuuming.
+ * This method requires passing the full document to be removed (not just the ID), and immediately
+ * removes the document from the inverted index, allowing memory to be released. A convenient
+ * alternative is {@link discard}, which needs only the document ID, and has the same visible effect,
+ * but delays cleaning up the index until the next vacuuming.
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param searchIndex The search index
- * @param document  The document to be removed
+ * @param document The document to be removed
  */
 export const remove = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
@@ -200,18 +185,16 @@ export const remove = <ID, Document, Index extends AnyObject = EmptyObject>(
 };
 
 /**
- * Removes all the given documents from the index. If called with no arguments,
- * it removes _all_ documents from the index.
+ * Removes all the given documents from the index. If called with no arguments, it removes _all_
+ * documents from the index.
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  * @param searchIndex The search index
- * @param documents  The documents to be removed. If this argument is omitted,
- * all documents are removed. Note that, for removing all documents, it is
- * more efficient to call this method with no arguments than to pass all
- * documents.
+ * @param documents The documents to be removed. If this argument is omitted, all documents are
+ *   removed. Note that, for removing all documents, it is more efficient to call this method with
+ *   no arguments than to pass all documents.
  */
 export const removeAll = function removeAll<ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,

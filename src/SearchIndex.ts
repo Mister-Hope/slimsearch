@@ -60,117 +60,86 @@ export type FieldTermData = Map<number, DocumentTermFrequencies>;
  * const documents = [
  *   {
  *     id: 1,
- *     title: 'Moby Dick',
- *     text: 'Call me Ishmael. Some years ago...',
- *     category: 'fiction'
+ *     title: "Moby Dick",
+ *     text: "Call me Ishmael. Some years ago...",
+ *     category: "fiction",
  *   },
  *   {
  *     id: 2,
- *     title: 'Zen and the Art of Motorcycle Maintenance',
- *     text: 'I can see by my watch...',
- *     category: 'fiction'
+ *     title: "Zen and the Art of Motorcycle Maintenance",
+ *     text: "I can see by my watch...",
+ *     category: "fiction",
  *   },
  *   {
  *     id: 3,
- *     title: 'Neuromancer',
- *     text: 'The sky above the port was...',
- *     category: 'fiction'
+ *     title: "Neuromancer",
+ *     text: "The sky above the port was...",
+ *     category: "fiction",
  *   },
  *   {
  *     id: 4,
- *     title: 'Zen and the Art of Archery',
- *     text: 'At first sight it must seem...',
- *     category: 'non-fiction'
+ *     title: "Zen and the Art of Archery",
+ *     text: "At first sight it must seem...",
+ *     category: "non-fiction",
  *   },
  *   // ...and more
- * ]
+ * ];
  *
  * // Create a search engine that indexes the 'title' and 'text' fields for
  * // full-text search. Search results will include 'title' and 'category' (plus the
  * // id field, that is always stored and returned)
  * const searchIndex = createIndex({
- *   fields: ['title', 'text'],
- *   storeFields: ['title', 'category']
- * })
+ *   fields: ["title", "text"],
+ *   storeFields: ["title", "category"],
+ * });
  *
  * // Add documents to the index
- * addAll(searchIndex, documents)
+ * addAll(searchIndex, documents);
  *
  * // Search for documents:
- * const results = search(searchIndex, 'zen art motorcycle')
+ * const results = search(searchIndex, "zen art motorcycle");
  * // => [
  * //   { id: 2, title: 'Zen and the Art of Motorcycle Maintenance', category: 'fiction', score: 2.77258 },
  * //   { id: 4, title: 'Zen and the Art of Archery', category: 'non-fiction', score: 1.38629 }
  * // ]
  * ```
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
  */
 // oxlint-disable-next-line typescript/no-explicit-any
 export class SearchIndex<ID = any, Document = any, Index extends AnyObject = EmptyObject> {
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _options: OptionsWithDefaults<ID, Document, Index>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _index: SearchableMap<FieldTermData>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _documentCount: number;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _documentIds: Map<number, ID>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _idToShortId: Map<ID, number>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _fieldIds: Record<string, number>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _fieldLength: Map<number, number[]>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _avgFieldLength: number[];
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _nextId: number;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _storedFields: Map<number, Index>;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _dirtCount: number;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _currentVacuum: Promise<void> | null;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _enqueuedVacuum: Promise<void> | null;
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _enqueuedVacuumConditions: VacuumConditions | undefined;
 
-  /**
-   * @param options The options for the search index
-   */
+  /** @param options The options for the search index */
   constructor(options: SearchIndexOptions<ID, Document, Index>) {
     // oxlint-disable-next-line typescript/strict-boolean-expressions
     if (!options?.fields) throw new Error('SlimSearch: option "fields" must be provided');
@@ -227,65 +196,56 @@ export class SearchIndex<ID = any, Document = any, Index extends AnyObject = Emp
     this.addFields(this._options.fields);
   }
 
-  /**
-   * Is `true` if a vacuuming operation is ongoing, `false` otherwise
-   */
+  /** Is `true` if a vacuuming operation is ongoing, `false` otherwise */
   get isVacuuming(): boolean {
     return this._currentVacuum != null;
   }
 
-  /**
-   * The number of documents discarded since the most recent vacuuming
-   */
+  /** The number of documents discarded since the most recent vacuuming */
   get dirtCount(): number {
     return this._dirtCount;
   }
 
   /**
-   * A number between 0 and 1 giving an indication about the proportion of
-   * documents that are discarded, and can therefore be cleaned up by vacuuming.
-   * A value close to 0 means that the index is relatively clean, while a higher
-   * value means that the index is relatively dirty, and vacuuming could release
-   * memory.
+   * A number between 0 and 1 giving an indication about the proportion of documents that are
+   * discarded, and can therefore be cleaned up by vacuuming. A value close to 0 means that the
+   * index is relatively clean, while a higher value means that the index is relatively dirty, and
+   * vacuuming could release memory.
    */
   get dirtFactor(): number {
     return this._dirtCount / (1 + this._documentCount + this._dirtCount);
   }
 
-  /**
-   * Total number of documents available to search
-   */
+  /** Total number of documents available to search */
   get documentCount(): number {
     return this._documentCount;
   }
 
-  /**
-   * Number of terms in the index
-   */
+  /** Number of terms in the index */
   get termCount(): number {
     return this._index.size;
   }
 
   /**
-   * Allows serialization of the index to JSON, to possibly store it and later
-   * deserialize it with {@link loadJSONIndex} or {@link loadJSONIndexAsync}.
+   * Allows serialization of the index to JSON, to possibly store it and later deserialize it with
+   * {@link loadJSONIndex} or {@link loadJSONIndexAsync}.
    *
-   * Normally one does not directly call this method, but rather call the
-   * standard JavaScript `JSON.stringify()` passing the {@link SearchIndex} instance,
-   * and JavaScript will internally call this method. Upon deserialization, one
-   * must pass to {@link loadJSONIndex} or {@link loadJSONIndexAsync} the same options used to create the original
-   * instance that was serialized.
+   * Normally one does not directly call this method, but rather call the standard JavaScript
+   * `JSON.stringify()` passing the {@link SearchIndex} instance, and JavaScript will internally
+   * call this method. Upon deserialization, one must pass to {@link loadJSONIndex} or
+   * {@link loadJSONIndexAsync} the same options used to create the original instance that was
+   * serialized.
    *
    * ### Usage:
    *
    * ```js
    * // Serialize the index:
-   * let searchIndex = createIndex({ fields: ['title', 'text'] })
-   * addAll(searchIndex, documents)
-   * const json = JSON.stringify(index)
+   * let searchIndex = createIndex({ fields: ["title", "text"] });
+   * addAll(searchIndex, documents);
+   * const json = JSON.stringify(index);
    *
    * // Later, to deserialize it:
-   * searchIndex = loadJSONIndex(json, { fields: ['title', 'text'] })
+   * searchIndex = loadJSONIndex(json, { fields: ["title", "text"] });
    * ```
    *
    * @returns A plain-object serializable representation of the search index.
@@ -316,9 +276,7 @@ export class SearchIndex<ID = any, Document = any, Index extends AnyObject = Emp
     };
   }
 
-  /**
-   * @ignore
-   */
+  /** @ignore */
   private addFields(fields: string[]): void {
     for (let i = 0; i < fields.length; i++) this._fieldIds[fields[i]] = i;
   }

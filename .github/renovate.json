@@ -3,6 +3,7 @@
   "extends": ["config:recommended", ":prHourlyLimitNone", ":prConcurrentLimitNone"],
   "dependencyDashboard": true,
   "schedule": ["every weekend"],
+  "forkProcessing": "enabled",
   "packageRules": [
     {
       "matchPackageNames": ["@types/node"],

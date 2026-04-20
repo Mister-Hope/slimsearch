@@ -124,7 +124,9 @@ describe(SearchableMap, () => {
       const fn = (key: string, value: unknown): number => entries.push([key, value]);
       const map = SearchableMap.from(keyValues);
 
-      map.forEach((key, index) => fn(key, index));
+      map.forEach((key, index) => {
+        fn(key, index);
+      });
       expect(entries).toEqual([...map.entries()]);
     });
   });

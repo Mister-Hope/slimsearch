@@ -35,6 +35,8 @@ const lookup = <T = any>(tree: RadixTree<T>, key: string): RadixTree<T> | undefi
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return lookup(tree.get(treeKey)!, key.slice(treeKey.length));
   }
+
+  return undefined;
 };
 
 // Create a path in the radix tree for the given key, and returns the deepest
@@ -139,37 +141,31 @@ const remove = <T = any>(tree: RadixTree<T>, keyToRemove: string): void => {
 /**
  * A class implementing the same interface as a standard JavaScript
  * [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
- * with string keys, but adding support for efficiently searching entries with
- * prefix or fuzzy search. This class is used internally by {@link SearchIndex} as
- * the inverted index data structure. The implementation is a radix tree
- * (compressed prefix tree).
+ * with string keys, but adding support for efficiently searching entries with prefix or fuzzy
+ * search. This class is used internally by {@link SearchIndex} as the inverted index data
+ * structure. The implementation is a radix tree (compressed prefix tree).
  *
- * Since this class can be of general utility beyond _SlimSearch_, it is
- * exported by the `slimsearch` package and can be imported (or required) as
- * `slimsearch/SearchableMap`.
+ * Since this class can be of general utility beyond _SlimSearch_, it is exported by the
+ * `slimsearch` package and can be imported (or required) as `slimsearch/SearchableMap`.
  *
  * @typeParam Value The type of the values stored in the map.
  */
 export class SearchableMap<Value = any> {
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _tree: RadixTree<Value>;
 
-  /**
-   * @ignore
-   */
+  /** @ignore */
   _prefix: string;
 
   private _size: number | undefined = undefined;
 
   /**
-   * The constructor is normally called without arguments, creating an empty
-   * map. In order to create a {@link SearchableMap} from an iterable or from an
-   * object, check {@link SearchableMap.from} and {@link SearchableMap.fromObject}.
+   * The constructor is normally called without arguments, creating an empty map. In order to create
+   * a {@link SearchableMap} from an iterable or from an object, check {@link SearchableMap.from} and
+   * {@link SearchableMap.fromObject}.
    *
-   * The constructor arguments are for internal use, when creating derived
-   * mutable views of a map at a prefix.
+   * The constructor arguments are for internal use, when creating derived mutable views of a map at
+   * a prefix.
    *
    * @param tree - The radix tree
    * @param prefix - The prefix
@@ -180,32 +176,33 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * Creates and returns a mutable view of this {@link SearchableMap}, containing only
-   * entries that share the given prefix.
+   * Creates and returns a mutable view of this {@link SearchableMap}, containing only entries that
+   * share the given prefix.
    *
    * ### Usage:
    *
    * ```js
-   * const map = new SearchableMap()
-   * map.set("unicorn", 1)
-   * map.set("universe", 2)
-   * map.set("university", 3)
-   * map.set("unique", 4)
-   * map.set("hello", 5)
+   * const map = new SearchableMap();
+   * map.set("unicorn", 1);
+   * map.set("universe", 2);
+   * map.set("university", 3);
+   * map.set("unique", 4);
+   * map.set("hello", 5);
    *
-   * const uni = map.atPrefix("uni")
-   * uni.get("unique") // => 4
-   * uni.get("unicorn") // => 1
-   * uni.get("hello") // => undefined
+   * const uni = map.atPrefix("uni");
+   * uni.get("unique"); // => 4
+   * uni.get("unicorn"); // => 1
+   * uni.get("hello"); // => undefined
    *
-   * const univer = map.atPrefix("univer")
-   * univer.get("unique") // => undefined
-   * univer.get("universe") // => 2
-   * univer.get("university") // => 3
+   * const univer = map.atPrefix("univer");
+   * univer.get("unique"); // => undefined
+   * univer.get("universe"); // => 2
+   * univer.get("university"); // => 3
    * ```
    *
-   * @param prefix  The prefix
-   * @returns A {@link SearchableMap} representing a mutable view of the original Map at the given prefix
+   * @param prefix The prefix
+   * @returns A {@link SearchableMap} representing a mutable view of the original Map at the given
+   *   prefix
    */
   atPrefix(prefix: string): SearchableMap<Value> {
     if (!prefix.startsWith(this._prefix)) throw new Error("Mismatched prefix");
@@ -230,17 +227,15 @@ export class SearchableMap<Value = any> {
     return new SearchableMap<Value>(node, prefix);
   }
 
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-   */
+  /** @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear */
   clear(): void {
     this._size = undefined;
     this._tree.clear();
   }
 
   /**
+   * @param key Key to delete
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-   * @param key  Key to delete
    */
   delete(key: string): void {
     this._size = undefined;
@@ -249,38 +244,37 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
    * @returns An iterator iterating through `[key, value]` entries.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
    */
   entries(): TreeIterator<Value, "ENTRIES"> {
     return new TreeIterator(this, ENTRIES);
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
    * @param fn Iteration function
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
    */
   forEach(fn: (key: string, value: Value, map: SearchableMap) => void): void {
     for (const [key, value] of this) fn(key, value, this);
   }
 
   /**
-   * Returns a Map of all the entries that have a key within the given edit
-   * distance from the search key. The keys of the returned Map are the matching
-   * keys, while the values are two-element arrays where the first element is
-   * the value associated to the key, and the second is the edit distance of the
-   * key to the search key.
+   * Returns a Map of all the entries that have a key within the given edit distance from the search
+   * key. The keys of the returned Map are the matching keys, while the values are two-element
+   * arrays where the first element is the value associated to the key, and the second is the edit
+   * distance of the key to the search key.
    *
    * ### Usage:
    *
    * ```js
-   * const map = new SearchableMap()
-   * map.set('hello', 'world')
-   * map.set('hell', 'yeah')
-   * map.set('ciao', 'mondo')
+   * const map = new SearchableMap();
+   * map.set("hello", "world");
+   * map.set("hell", "yeah");
+   * map.set("ciao", "mondo");
    *
    * // Get all entries that match the key 'hallo' with a maximum edit distance of 2
-   * map.fuzzyGet('hallo', 2)
+   * map.fuzzyGet("hallo", 2);
    * // => Map(2) { 'hello' => ['world', 1], 'hell' => ['yeah', 2] }
    *
    * // In the example, the "hello" key has value "world" and edit distance of 1
@@ -288,8 +282,8 @@ export class SearchableMap<Value = any> {
    * // (change "e" to "a", delete "o")
    * ```
    *
-   * @param key  The search key
-   * @param maxEditDistance  The maximum edit distance (Levenshtein)
+   * @param key The search key
+   * @param maxEditDistance The maximum edit distance (Levenshtein)
    * @returns A Map of the matching keys to their value and edit distance
    */
   fuzzyGet(key: string, maxEditDistance: number): FuzzyResults<Value> {
@@ -297,10 +291,10 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
    * @param key Key to get
    * @returns Value associated to the key, or `undefined` if the key is not
    * found.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
    */
   get(key: string): Value | undefined {
     const node = lookup<Value>(this._tree, key);
@@ -310,9 +304,9 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
    * @param key Key
    * @returns True if the key is in the map, false otherwise
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
    */
   has(key: string): boolean {
     const node = lookup(this._tree, key);
@@ -321,18 +315,18 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
    * @returns An `Iterable` iterating through keys
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
    */
   keys(): TreeIterator<Value, "KEYS"> {
     return new TreeIterator(this, KEYS);
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-   * @param key  Key to set
-   * @param value  Value to associate to the key
+   * @param key Key to set
+   * @param value Value to associate to the key
    * @returns The {@link SearchableMap} itself, to allow chaining
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
    */
   set(key: string, value: Value): this {
     if (typeof key !== "string") throw new Error("key must be a string");
@@ -345,9 +339,7 @@ export class SearchableMap<Value = any> {
     return this;
   }
 
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
-   */
+  /** @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size */
   get size(): number {
     if (typeof this._size === "number") return this._size;
 
@@ -362,23 +354,23 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * Updates the value at the given key using the provided function. The function
-   * is called with the current value at the key, and its return value is used as
-   * the new value to be set.
+   * Updates the value at the given key using the provided function. The function is called with the
+   * current value at the key, and its return value is used as the new value to be set.
    *
    * ### Example:
    *
    * ```js
    * // Increment the current value by one
-   * searchableMap.update('some-key', (currentValue) => currentValue == null ? 0 : currentValue + 1)
+   * searchableMap.update("some-key", (currentValue) =>
+   *   currentValue == null ? 0 : currentValue + 1,
+   * );
    * ```
    *
-   * If the value at the given key is or will be an object, it might not require
-   * re-assignment. In that case it is better to use `fetch()`, because it is
-   * faster.
+   * If the value at the given key is or will be an object, it might not require re-assignment. In
+   * that case it is better to use `fetch()`, because it is faster.
    *
-   * @param key  The key to update
-   * @param fn  The function used to compute the new value from the current one
+   * @param key The key to update
+   * @param fn The function used to compute the new value from the current one
    * @returns The {@link SearchableMap} itself, to allow chaining
    */
   update(key: string, fn: (value: Value | undefined) => Value): this {
@@ -393,19 +385,18 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * Fetches the value of the given key. If the value does not exist, calls the
-   * given function to create a new value, which is inserted at the given key
-   * and subsequently returned.
+   * Fetches the value of the given key. If the value does not exist, calls the given function to
+   * create a new value, which is inserted at the given key and subsequently returned.
    *
    * ### Example:
    *
    * ```js
-   * const map = searchableMap.fetch('some-key', () => new Map())
-   * map.set('foo', 'bar')
+   * const map = searchableMap.fetch("some-key", () => new Map());
+   * map.set("foo", "bar");
    * ```
    *
-   * @param key  The key to update
-   * @param initial  A function that creates a new value if the key does not exist
+   * @param key The key to update
+   * @param initial A function that creates a new value if the key does not exist
    * @returns The existing or new value at the given key
    */
   fetch(key: string, initial: () => Value): Value {
@@ -422,17 +413,16 @@ export class SearchableMap<Value = any> {
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
    * @returns An `Iterable` iterating through values.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
    */
   values(): TreeIterator<Value, "VALUES"> {
     return new TreeIterator(this, VALUES);
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Symbol.iterator
-   *
    * @returns An iterator iterating through `[key, value]` entries.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Symbol.iterator
    */
   [Symbol.iterator](): TreeIterator<Value, "ENTRIES"> {
     return this.entries();

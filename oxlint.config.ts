@@ -1,7 +1,7 @@
 import { defineHopeConfig } from "oxc-config-hope/oxlint";
 
 export default defineHopeConfig({
-  ignorePatterns: ["docs/"],
+  ignore: ["docs/"],
   rules: {
     "id-length": [
       "warn",

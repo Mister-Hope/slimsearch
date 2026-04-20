@@ -49,28 +49,27 @@ export const defaultAutoVacuumOptions = {
 };
 
 /**
- * Returns the default value of an option. It will throw an error if no option
- * with the given name exists.
+ * Returns the default value of an option. It will throw an error if no option with the given name
+ * exists.
  *
  * ### Usage:
  *
  * ```js
  * // Get default tokenizer
- * getDefaultValue('tokenize')
+ * getDefaultValue("tokenize");
  *
  * // Get default term processor
- * getDefaultValue('processTerm')
+ * getDefaultValue("processTerm");
  *
  * // Unknown options will throw an error
- * getDefaultValue('notExisting')
+ * getDefaultValue("notExisting");
  * // => throws 'SlimSearch: unknown option "notExisting"'
  * ```
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param optionName  Name of the option
+ * @param optionName Name of the option
  * @returns The default value of the given option
  */
 export const getDefaultValue = (optionName: string): unknown => {

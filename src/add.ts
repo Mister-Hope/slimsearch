@@ -62,12 +62,11 @@ const saveStoredFields = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Adds a document to the index
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param searchIndex  The search index
- * @param document  The document to be indexed
+ * @param searchIndex The search index
+ * @param document The document to be indexed
  */
 export const add = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
@@ -118,12 +117,11 @@ export const add = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Adds all the given documents to the index
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param searchIndex  The search index
- * @param documents  An array of documents to be indexed
+ * @param searchIndex The search index
+ * @param documents An array of documents to be indexed
  */
 export const addAll = <ID, Document, Index extends AnyObject = EmptyObject>(
   searchIndex: SearchIndex<ID, Document, Index>,
@@ -135,17 +133,16 @@ export const addAll = <ID, Document, Index extends AnyObject = EmptyObject>(
 /**
  * Adds all the given documents to the index asynchronously.
  *
- * Returns a promise that resolves (to `undefined`) when the indexing is done.
- * This method is useful when index many documents, to avoid blocking the main
- * thread. The indexing is performed asynchronously and in chunks.
+ * Returns a promise that resolves (to `undefined`) when the indexing is done. This method is useful
+ * when index many documents, to avoid blocking the main thread. The indexing is performed
+ * asynchronously and in chunks.
  *
- * @typeParam ID  The id type of the documents being indexed.
- * @typeParam Document  The type of the documents being indexed.
+ * @typeParam ID The id type of the documents being indexed.
+ * @typeParam Document The type of the documents being indexed.
  * @typeParam Index The type of the documents being indexed.
- *
- * @param searchIndex  The search index
- * @param documents  An array of documents to be indexed
- * @param options  Configuration options
+ * @param searchIndex The search index
+ * @param documents An array of documents to be indexed
+ * @param options Configuration options
  * @returns A promise resolving when the indexing is done
  */
 export const addAllAsync = async <ID, Document, Index extends AnyObject = EmptyObject>(
