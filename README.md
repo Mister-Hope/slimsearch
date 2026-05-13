@@ -6,22 +6,14 @@
 
 [![codecov](https://codecov.io/gh/Mister-Hope/slimsearch/graph/badge.svg?token=YQGZxImdqj)](https://codecov.io/gh/Mister-Hope/slimsearch)
 
-`slimsearch` is a tiny but powerful in-memory full-text search engine written in
-JavaScript. It is respectful of resources, and it can comfortably run both in
-Node and in the browser. It's based on [MiniSearch](https://lucaong.github.io/minisearch/)
+`slimsearch` is a tiny but powerful in-memory full-text search engine written in TypeScript with 100% test coverage.
+It is respectful of resources, and it can comfortably run both in Node and in the browser. It's based on [MiniSearch](https://lucaong.github.io/minisearch/)
 
 ## Use case
 
-`slimsearch` addresses use cases where full-text search features are needed
-(e.g. prefix search, fuzzy search, ranking, boosting of fields…), but the data
-to be indexed can fit locally in the process memory. While you won't index the
-whole Internet with it, there are surprisingly many use cases that are served
-well by `slimsearch`. By storing the index in local memory, `slimsearch` can
-work offline, and can process queries quickly, without network latency.
+`slimsearch` addresses use cases where full-text search features are needed (e.g. prefix search, fuzzy search, ranking, boosting of fields…), but the data to be indexed can fit locally in the process memory. While you won't index the whole Internet with it, there are surprisingly many use cases that are served well by `slimsearch`. By storing the index in local memory, `slimsearch` can work offline, and can process queries quickly, without network latency.
 
-A prominent use-case is real time search "as you type" in web and mobile
-applications, where keeping the index on the client enables fast and reactive
-UIs, removing the need to make requests to a search server.
+A prominent use-case is real time search "as you type" in web and mobile applications, where keeping the index on the client enables fast and reactive UIs, removing the need to make requests to a search server.
 
 ## Features
 
@@ -38,8 +30,7 @@ UIs, removing the need to make requests to a search server.
 
 - Zero external dependencies.
 
-`slimsearch` strives to expose a simple API that provides the building blocks to
-build custom solutions, while keeping a small and well tested codebase.
+`slimsearch` strives to expose a simple API that provides the building blocks to build custom solutions, while keeping a small and well tested codebase.
 
 ## Installation
 
@@ -61,7 +52,7 @@ With `pnpm`:
 pnpm add slimsearch
 ```
 
-Then `require` or `import` it in your project:
+Then `import` it in your project:
 
 ```js
 // If you are using import:
@@ -69,12 +60,6 @@ import {
   createIndex,
   // apis...
 } from "slimsearch";
-
-// If you are using require:
-const {
-  createIndex,
-  // apis...
-} = require("slimsearch");
 ```
 
 ## Usage
