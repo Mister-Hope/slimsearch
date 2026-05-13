@@ -2,6 +2,7 @@ import { assert, array, oneof, string, integer, property } from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { SearchableMap } from "../src/SearchableMap/index.js";
+import { TreeIterator } from "../src/SearchableMap/TreeIterator.js";
 
 describe(SearchableMap, () => {
   const strings = [
@@ -254,6 +255,38 @@ describe(SearchableMap, () => {
     });
   });
 
+  describe("fetch", () => {
+    it("fetches the value at key, creating it if it does not exist", () => {
+      const map = new SearchableMap();
+      const key = "foo";
+
+      const value = map.fetch(key, () => 42);
+
+      expect(value).toBe(42);
+      expect(map.get(key)).toBe(42);
+    });
+
+    it("returns existing value if the key already exists", () => {
+      const map = new SearchableMap();
+
+      map.set("foo", 42);
+
+      const value = map.fetch("foo", () => 123);
+
+      expect(value).toBe(42);
+    });
+
+    it("throws error if the given key is not a string", () => {
+      const map = new SearchableMap();
+
+      expect(() =>
+        // @ts-expect-error: key must be string
+        // oxlint-disable-next-line typescript/no-unsafe-return
+        map.fetch(123, () => 42),
+      ).toThrow("key must be a string");
+    });
+  });
+
   describe("values", () => {
     it("returns an iterator of values", () => {
       const map = SearchableMap.fromObject(object);
@@ -342,6 +375,18 @@ describe(SearchableMap, () => {
         [1, 0],
         [2, 1],
       ]);
+    });
+  });
+
+  describe(TreeIterator, () => {
+    it("throws error for unknown iterator type", () => {
+      const map = new SearchableMap();
+
+      map.set("foo", 42);
+
+      const iter = new TreeIterator(map, "UNKNOWN" as "ENTRIES");
+
+      expect(() => iter.next()).toThrow("Unknown iterator type: UNKNOWN");
     });
   });
 

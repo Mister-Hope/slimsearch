@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { SearchResult } from "../src/index.js";
 import { WILDCARD, add, addAll, createIndex, getDefaultValue, search } from "../src/index.js";
+import { executeQuery } from "../src/results.js";
 
 describe(search, () => {
   interface Document {
@@ -39,6 +40,12 @@ describe(search, () => {
   });
 
   addAll(index, documents);
+
+  it("calls executeQuery with default searchOptions", () => {
+    const results = executeQuery(index, "vita");
+
+    expect(results.size).toBeGreaterThan(0);
+  });
 
   it("returns scored results", () => {
     const results = search(index, "vita");

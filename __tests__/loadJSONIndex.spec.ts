@@ -111,4 +111,69 @@ describe("loadJSONAsync", () => {
 
     expect(deserialized).toStrictEqual(deserializedAsync);
   });
+
+  it("raises an error if called without options", () => {
+    const options = { fields: ["title", "text"] };
+    const index = createIndex<number, Document>(options);
+
+    addAll(index, documentsForAsync);
+    const json = JSON.stringify(index);
+
+    expect(() =>
+      // @ts-expect-error: options is missing
+      loadJSONIndexAsync(json),
+    ).toThrow(
+      "SlimSearch: loadJSONIndexAsync should be given the same options used when serializing the index",
+    );
+  });
+
+  it("handles large index with pauses", async () => {
+    const options = { fields: ["text"] };
+
+    // Construct a valid index object with >1000 terms to trigger
+    // the modulo-1000 pause branch in loadIndexAsync
+    const index: [string, Record<string, Record<string, number>>][] = [];
+
+    for (let i = 0; i < 1001; i++) index.push([`term${i}`, { "0": { "0": 1 } }]);
+
+    const json = JSON.stringify({
+      version: 2,
+      documentCount: 1,
+      nextId: 1,
+      fieldIds: { text: 0 },
+      averageFieldLength: [1],
+      dirtCount: 0,
+      index,
+      documentIds: { "0": "doc1" },
+      fieldLength: { "0": [1] },
+      storedFields: { "0": {} },
+    });
+
+    const result = await loadJSONIndexAsync(json, options);
+
+    expect(result.documentCount).toBe(1);
+    expect(result._index.size).toBe(1001);
+  });
+
+  it("handles missing dirtCount in serialized index", () => {
+    const options = { fields: ["title", "text"] };
+    const index = createIndex<number, Document>(options);
+
+    addAll(index, [
+      {
+        id: 1,
+        title: "Divina Commedia",
+        text: "Nel mezzo del cammin di nostra vita",
+        category: "",
+      },
+    ]);
+
+    const obj = index.toJSON();
+
+    delete obj.dirtCount;
+
+    const deserialized = loadJSONIndex(JSON.stringify(obj), options);
+
+    expect(deserialized._dirtCount).toBe(0);
+  });
 });

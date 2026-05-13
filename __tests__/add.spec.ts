@@ -275,4 +275,18 @@ describe(add, () => {
 
     expect(search(index, "bar")).toHaveLength(1);
   });
+
+  it("reuses existing stored fields entry", () => {
+    const index = createIndex<number, { id: number; text: string }>({
+      fields: ["text"],
+      storeFields: ["text"],
+    });
+
+    // Pre-populate stored fields for the first document ID to hit the
+    // non-null branch in saveStoredFields
+    index._storedFields.set(0, {});
+
+    add(index, { id: 1, text: "hello world" });
+    expect(index._storedFields.get(0)).toHaveProperty("text", "hello world");
+  });
 });
