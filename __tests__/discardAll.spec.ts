@@ -1,79 +1,81 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { add, addAll, createIndex, discardAll, has, search } from "../src/index.js";
 
-it("prevents the documents from appearing in search results", () => {
-  interface Document {
-    id: number;
-    text: string;
-  }
-  const index = createIndex<number, Document>({ fields: ["text"] });
-  const documents = [
-    { id: 1, text: "Some interesting stuff" },
-    { id: 2, text: "Some more interesting stuff" },
-    { id: 3, text: "Some even more interesting stuff" },
-  ];
+describe(discardAll, () => {
+  it("prevents the documents from appearing in search results", () => {
+    interface Document {
+      id: number;
+      text: string;
+    }
+    const index = createIndex<number, Document>({ fields: ["text"] });
+    const documents = [
+      { id: 1, text: "Some interesting stuff" },
+      { id: 2, text: "Some more interesting stuff" },
+      { id: 3, text: "Some even more interesting stuff" },
+    ];
 
-  addAll(index, documents);
+    addAll(index, documents);
 
-  expect(search(index, "stuff").map((doc) => doc.id)).toEqual([1, 2, 3]);
-  expect([1, 2, 3].map((id) => has(index, id))).toEqual([true, true, true]);
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([1, 2, 3]);
+    expect([1, 2, 3].map((id) => has(index, id))).toStrictEqual([true, true, true]);
 
-  discardAll(index, [1, 3]);
+    discardAll(index, [1, 3]);
 
-  expect(search(index, "stuff").map((doc) => doc.id)).toEqual([2]);
-  expect([1, 2, 3].map((id) => has(index, id))).toEqual([false, true, false]);
-});
-
-it("only triggers at most a single auto vacuum at the end", () => {
-  interface Document {
-    id: number;
-    text: string;
-  }
-  const index = createIndex<number, Document>({
-    fields: ["text"],
-    autoVacuum: {
-      minDirtCount: 3,
-      minDirtFactor: 0,
-      batchSize: 1,
-      batchWait: 10,
-    },
-  });
-  const documents: Document[] = [];
-
-  for (let i = 1; i <= 10; i++) documents.push({ id: i, text: `Document ${i}` });
-
-  addAll(index, documents);
-  discardAll(index, [1, 2]);
-  expect(index.isVacuuming).toBe(false);
-
-  discardAll(index, [3, 4, 5, 6, 7, 8, 9, 10]);
-  expect(index.isVacuuming).toBe(true);
-  expect(index._enqueuedVacuum).toEqual(null);
-});
-
-it("does not change auto vacuum settings in case of errors", () => {
-  interface Document {
-    id: number;
-    text: string;
-  }
-  const index = createIndex<number, Document>({
-    fields: ["text"],
-    autoVacuum: {
-      minDirtCount: 1,
-      minDirtFactor: 0,
-      batchSize: 1,
-      batchWait: 10,
-    },
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([2]);
+    expect([1, 2, 3].map((id) => has(index, id))).toStrictEqual([false, true, false]);
   });
 
-  add(index, { id: 1, text: "Some stuff" });
+  it("only triggers at most a single auto vacuum at the end", () => {
+    interface Document {
+      id: number;
+      text: string;
+    }
+    const index = createIndex<number, Document>({
+      fields: ["text"],
+      autoVacuum: {
+        minDirtCount: 3,
+        minDirtFactor: 0,
+        batchSize: 1,
+        batchWait: 10,
+      },
+    });
+    const documents: Document[] = [];
 
-  expect(() => {
-    discardAll(index, [3]);
-  }).toThrow();
-  expect(index.isVacuuming).toBe(false);
+    for (let i = 1; i <= 10; i++) documents.push({ id: i, text: `Document ${i}` });
 
-  discardAll(index, [1]);
-  expect(index.isVacuuming).toBe(true);
+    addAll(index, documents);
+    discardAll(index, [1, 2]);
+    expect(index.isVacuuming).toBe(false);
+
+    discardAll(index, [3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(index.isVacuuming).toBe(true);
+    expect(index._enqueuedVacuum).toBeNull();
+  });
+
+  it("does not change auto vacuum settings in case of errors", () => {
+    interface Document {
+      id: number;
+      text: string;
+    }
+    const index = createIndex<number, Document>({
+      fields: ["text"],
+      autoVacuum: {
+        minDirtCount: 1,
+        minDirtFactor: 0,
+        batchSize: 1,
+        batchWait: 10,
+      },
+    });
+
+    add(index, { id: 1, text: "Some stuff" });
+
+    expect(() => {
+      discardAll(index, [3]);
+    }).toThrow("SlimSearch: cannot discard document with ID 3: it is not in the index");
+    expect(index.isVacuuming).toBe(false);
+
+    discardAll(index, [1]);
+    expect(index.isVacuuming).toBe(true);
+  });
 });

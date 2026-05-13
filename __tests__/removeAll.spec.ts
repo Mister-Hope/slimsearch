@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { SearchIndex } from "../src/index.js";
 import { addAll, createIndex, loadJSONIndex, removeAll, search } from "../src/index.js";
@@ -8,6 +8,7 @@ interface Document {
   text: string;
   title: string;
 }
+
 const documents = [
   {
     id: 1,
@@ -22,65 +23,61 @@ const documents = [
   },
 ];
 
-let index: SearchIndex<number, Document>;
-let _warn: (...args: unknown[]) => void;
+describe(removeAll, () => {
+  let index: SearchIndex<number, Document>;
 
-beforeEach(() => {
-  index = createIndex({ fields: ["title", "text"] });
-  _warn = console.warn;
-  console.warn = vi.fn<() => void>();
-});
-
-afterEach(() => {
-  console.warn = _warn;
-});
-
-it("removes all documents from the index if called with no argument", () => {
-  const empty = loadJSONIndex(JSON.stringify(index), {
-    fields: ["title", "text"],
+  // oxlint-disable-next-line vitest/no-hooks
+  beforeEach(() => {
+    index = createIndex({ fields: ["title", "text"] });
   });
 
-  addAll(index, documents);
-  expect(index.documentCount).toEqual(3);
+  it("removes all documents from the index if called with no argument", () => {
+    const empty = loadJSONIndex(JSON.stringify(index), {
+      fields: ["title", "text"],
+    });
 
-  removeAll(index);
+    addAll(index, documents);
+    expect(index.documentCount).toBe(3);
 
-  expect(index).toEqual(empty);
-});
+    removeAll(index);
 
-it("removes the given documents from the index", () => {
-  addAll(index, documents);
-  expect(index.documentCount).toEqual(3);
+    expect(index).toStrictEqual(empty);
+  });
 
-  removeAll(index, [documents[0], documents[2]]);
+  it("removes the given documents from the index", () => {
+    addAll(index, documents);
+    expect(index.documentCount).toBe(3);
 
-  expect(index.documentCount).toEqual(1);
-  expect(search(index, "commedia").length).toEqual(0);
-  expect(search(index, "vita").length).toEqual(0);
-  expect(search(index, "lago").length).toEqual(1);
-});
+    removeAll(index, [documents[0], documents[2]]);
 
-it("raises an error if called with a falsey argument", () => {
-  addAll(index, documents);
+    expect(index.documentCount).toBe(1);
+    expect(search(index, "commedia")).toHaveLength(0);
+    expect(search(index, "vita")).toHaveLength(0);
+    expect(search(index, "lago")).toHaveLength(1);
+  });
 
-  expect(() => {
-    // @ts-expect-error: Wrong param
-    removeAll(index, null);
-  }).toThrow();
-  expect(() => {
-    removeAll(index, undefined);
-  }).toThrow();
-  expect(() => {
-    // @ts-expect-error: Wrong param
-    removeAll(index, false);
-  }).toThrow();
-  expect(() => {
-    // @ts-expect-error: Wrong param
-    removeAll(index, "");
-  }).toThrow();
-  expect(() => {
-    removeAll(index, []);
-  }).not.toThrow();
+  it("raises an error if called with a falsey argument", () => {
+    addAll(index, documents);
 
-  expect(index.documentCount).toEqual(documents.length);
+    expect(() => {
+      // @ts-expect-error: Wrong param
+      removeAll(index, null);
+    }).toThrow("Expected documents to be present. Omit the argument to remove all documents.");
+    expect(() => {
+      removeAll(index, undefined);
+    }).toThrow("Expected documents to be present. Omit the argument to remove all documents.");
+    expect(() => {
+      // @ts-expect-error: Wrong param
+      removeAll(index, false);
+    }).toThrow("Expected documents to be present. Omit the argument to remove all documents.");
+    expect(() => {
+      // @ts-expect-error: Wrong param
+      removeAll(index, "");
+    }).toThrow("Expected documents to be present. Omit the argument to remove all documents.");
+    expect(() => {
+      removeAll(index, []);
+    }).not.toThrow();
+
+    expect(index.documentCount).toStrictEqual(documents.length);
+  });
 });

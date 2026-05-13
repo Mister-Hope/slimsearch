@@ -4,7 +4,7 @@ export default process.env.BENCHMARK
   ? defineConfig({
       entry: "./benchmarks/index.ts",
       outDir: "./benchmarks/dist",
-      target: "node20",
+      target: "node22",
       format: "cjs",
       external: ["benchmark", "divinaCommedia"],
       platform: "neutral",
@@ -17,7 +17,7 @@ export default process.env.BENCHMARK
         SearchableMap: "./src/SearchableMap/index.ts",
       },
       outDir: "./dist",
-      target: "node20",
+      target: "node22",
       dts: true,
       platform: "neutral",
       fixedExtension: false,

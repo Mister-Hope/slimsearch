@@ -30,11 +30,11 @@ export interface IterableSet<T> {
 
 /** @private */
 export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, Key>> {
-  set: IterableSet<T>;
-  _type: Key;
-  _path: IteratorPath<T>;
+  public set: IterableSet<T>;
+  private readonly _type: Key;
+  private readonly _path: IteratorPath<T>;
 
-  constructor(set: IterableSet<T>, type: Key) {
+  public constructor(set: IterableSet<T>, type: Key) {
     const node = set._tree;
     const keys = [...node.keys()];
 
@@ -43,7 +43,7 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     this._path = keys.length > 0 ? [{ node, keys }] : [];
   }
 
-  next(): IteratorResult<Result<T, Key>> {
+  public next(): IteratorResult<Result<T, Key>> {
     const value = this.dive();
 
     this.backtrack();
@@ -51,35 +51,7 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     return value;
   }
 
-  dive(): IteratorResult<Result<T, Key>> {
-    // oxlint-disable-next-line no-undefined
-    if (this._path.length === 0) return { done: true, value: undefined };
-
-    const { node, keys } = last(this._path);
-
-    if (last(keys) === LEAF) return { done: false, value: this.result() };
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const child = node.get(last(keys))!;
-
-    this._path.push({ node: child, keys: [...child.keys()] });
-
-    return this.dive();
-  }
-
-  backtrack(): void {
-    if (this._path.length === 0) return;
-
-    const { keys } = last(this._path);
-
-    keys.pop();
-    if (keys.length > 0) return;
-
-    this._path.pop();
-    this.backtrack();
-  }
-
-  key(): string {
+  public key(): string {
     return (
       this.set._prefix +
       this._path
@@ -89,12 +61,16 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     );
   }
 
-  value(): T {
+  public value(): T {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return last(this._path).node.get(LEAF)!;
   }
 
-  result(): Result<T, Key> {
+  public [Symbol.iterator](): this {
+    return this;
+  }
+
+  private result(): Result<T, Key> {
     switch (this._type) {
       case VALUES: {
         return this.value() as Result<T, Key>;
@@ -111,7 +87,31 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     }
   }
 
-  [Symbol.iterator](): this {
-    return this;
+  private dive(): IteratorResult<Result<T, Key>> {
+    // oxlint-disable-next-line no-undefined
+    if (this._path.length === 0) return { done: true, value: undefined };
+
+    const { node, keys } = last(this._path);
+
+    if (last(keys) === LEAF) return { done: false, value: this.result() };
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const child = node.get(last(keys))!;
+
+    this._path.push({ node: child, keys: [...child.keys()] });
+
+    return this.dive();
+  }
+
+  private backtrack(): void {
+    if (this._path.length === 0) return;
+
+    const { keys } = last(this._path);
+
+    keys.pop();
+    if (keys.length > 0) return;
+
+    this._path.pop();
+    this.backtrack();
   }
 }

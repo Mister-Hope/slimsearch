@@ -25,8 +25,7 @@ describe(SearchableMap, () => {
   const object = Object.fromEntries(keyValues);
 
   const editDistance = (a: string, b: string, mem = [[0]]): number => {
-    // oxlint-disable-next-line typescript/strict-boolean-expressions
-    mem[a.length] = mem[a.length] || [a.length];
+    mem[a.length] ||= [a.length];
     if (typeof mem[a.length][b.length] === "number") return mem[a.length][b.length];
 
     const d = a.endsWith(b[b.length - 1]) ? 0 : 1;
@@ -51,7 +50,7 @@ describe(SearchableMap, () => {
       const map = SearchableMap.from(keyValues);
 
       map.clear();
-      expect([...map.entries()]).toEqual([]);
+      expect([...map.entries()]).toStrictEqual([]);
     });
   });
 
@@ -71,7 +70,7 @@ describe(SearchableMap, () => {
       const sizeBefore = map.size;
 
       map.delete("summertime");
-      expect(map.size).toEqual(sizeBefore - 1);
+      expect(map.size).toStrictEqual(sizeBefore - 1);
     });
 
     it("does nothing if the entry did not exist", () => {
@@ -91,7 +90,7 @@ describe(SearchableMap, () => {
       map.set("help", 2);
       map.delete("help");
 
-      expect(map).toEqual(before);
+      expect(map).toStrictEqual(before);
     });
   });
 
@@ -100,21 +99,21 @@ describe(SearchableMap, () => {
       const map = SearchableMap.from(keyValues);
       const entries = Array.from({ [Symbol.iterator]: () => map.entries() });
 
-      expect(entries.sort()).toEqual(keyValues.sort());
+      expect(entries.sort()).toStrictEqual(keyValues.sort());
     });
 
     it("returns an iterable of entries", () => {
       const map = SearchableMap.from(keyValues);
       const entries = [...map.entries()];
 
-      expect(entries.sort()).toEqual(keyValues.sort());
+      expect(entries.sort()).toStrictEqual(keyValues.sort());
     });
 
     it("returns empty iterator, if the map is empty", () => {
       const map = new SearchableMap();
       const entries = [...map.entries()];
 
-      expect(entries).toEqual([]);
+      expect(entries).toStrictEqual([]);
     });
   });
 
@@ -127,7 +126,7 @@ describe(SearchableMap, () => {
       map.forEach((key, index) => {
         fn(key, index);
       });
-      expect(entries).toEqual([...map.entries()]);
+      expect(entries).toStrictEqual([...map.entries()]);
     });
   });
 
@@ -143,7 +142,7 @@ describe(SearchableMap, () => {
     it("returns undefined if the key is not present", () => {
       const map = new SearchableMap();
 
-      expect(map.get("not-existent")).toBe(undefined);
+      expect(map.get("not-existent")).toBeUndefined();
     });
   });
 
@@ -171,21 +170,21 @@ describe(SearchableMap, () => {
       const map = SearchableMap.from(keyValues);
       const keys = Array.from({ [Symbol.iterator]: () => map.keys() });
 
-      expect(keys.sort()).toEqual(strings.sort());
+      expect(keys.sort()).toStrictEqual(strings.sort());
     });
 
     it("returns an iterable of keys", () => {
       const map = SearchableMap.from(keyValues);
       const keys = [...map.keys()];
 
-      expect(keys.sort()).toEqual(strings.sort());
+      expect(keys.sort()).toStrictEqual(strings.sort());
     });
 
     it("returns empty iterator, if the map is empty", () => {
       const map = new SearchableMap();
       const keys = [...map.keys()];
 
-      expect(keys).toEqual([]);
+      expect(keys).toStrictEqual([]);
     });
   });
 
@@ -220,13 +219,13 @@ describe(SearchableMap, () => {
     it("is a property containing the size of the map", () => {
       const map = SearchableMap.from(keyValues);
 
-      expect(map.size).toEqual(keyValues.length);
+      expect(map.size).toStrictEqual(keyValues.length);
       map.set("foo", 42);
-      expect(map.size).toEqual(keyValues.length + 1);
+      expect(map.size).toStrictEqual(keyValues.length + 1);
       map.delete("border");
-      expect(map.size).toEqual(keyValues.length);
+      expect(map.size).toStrictEqual(keyValues.length);
       map.clear();
-      expect(map.size).toEqual(0);
+      expect(map.size).toBe(0);
     });
   });
 
@@ -260,21 +259,21 @@ describe(SearchableMap, () => {
       const map = SearchableMap.fromObject(object);
       const values = Array.from({ [Symbol.iterator]: () => map.values() });
 
-      expect(values.sort()).toEqual(Object.values(object).sort());
+      expect(values.sort()).toStrictEqual(Object.values(object).sort());
     });
 
     it("returns an iterable of values", () => {
       const map = SearchableMap.fromObject(object);
       const values = [...map.values()];
 
-      expect(values.sort()).toEqual(Object.values(object).sort());
+      expect(values.sort()).toStrictEqual(Object.values(object).sort());
     });
 
     it("returns empty iterator, if the map is empty", () => {
       const map = new SearchableMap();
       const values = [...map.values()];
 
-      expect(values).toEqual([]);
+      expect(values).toStrictEqual([]);
     });
   });
 
@@ -284,28 +283,28 @@ describe(SearchableMap, () => {
 
       const sum = map.atPrefix("sum");
 
-      expect([...sum.keys()].sort()).toEqual(
+      expect([...sum.keys()].sort()).toStrictEqual(
         strings.filter((item) => item.startsWith("sum")).sort(),
       );
 
       const summer = sum.atPrefix("summer");
 
-      expect([...summer.keys()].sort()).toEqual(
+      expect([...summer.keys()].sort()).toStrictEqual(
         strings.filter((item) => item.startsWith("summer")).sort(),
       );
 
       const xyz = map.atPrefix("xyz");
 
-      expect([...xyz.keys()]).toEqual([]);
+      expect([...xyz.keys()]).toStrictEqual([]);
 
-      expect(() => sum.atPrefix("xyz")).toThrow();
+      expect(() => sum.atPrefix("xyz")).toThrow("Mismatched prefix");
     });
 
     it("correctly computes the size", () => {
       const map = SearchableMap.from(keyValues);
       const sum = map.atPrefix("sum");
 
-      expect(sum.size).toEqual(strings.filter((s) => s.startsWith("sum")).length);
+      expect(sum.size).toStrictEqual(strings.filter((s) => s.startsWith("sum")).length);
     });
   });
 
@@ -319,7 +318,7 @@ describe(SearchableMap, () => {
         const results = testMap.fuzzyGet("acqua", distance);
         const entries = [...results];
 
-        expect(entries.map(([key, [, dist]]) => [key, dist]).sort()).toEqual(
+        expect(entries.map(([key, [, dist]]) => [key, dist]).sort()).toStrictEqual(
           terms
             .map<[string, number]>((term) => [term, editDistance("acqua", term)])
             .filter(([, d]) => d <= distance)
@@ -330,7 +329,7 @@ describe(SearchableMap, () => {
     });
 
     it("returns an empty object if no matching entries are found", () => {
-      expect(testMap.fuzzyGet("winter", 1)).toEqual(new Map());
+      expect(testMap.fuzzyGet("winter", 1)).toStrictEqual(new Map());
     });
 
     it("returns entries if edit distance is longer than key", () => {
@@ -339,7 +338,7 @@ describe(SearchableMap, () => {
         [" x", 2],
       ]);
 
-      expect([...testMap2.fuzzyGet("x", 2).values()]).toEqual([
+      expect([...testMap2.fuzzyGet("x", 2).values()]).toStrictEqual([
         [1, 0],
         [2, 1],
       ]);
@@ -367,19 +366,19 @@ describe(SearchableMap, () => {
             map.set(term, i);
             standardMap.set(term, i);
             expect(map.has(term)).toBe(true);
-            expect(standardMap.get(term)).toEqual(i);
+            expect(standardMap.get(term)).toStrictEqual(i);
           });
 
-          expect(map.size).toEqual(standardMap.size);
-          expect([...map.entries()].sort()).toEqual([...standardMap.entries()].sort());
+          expect(map.size).toStrictEqual(standardMap.size);
+          expect([...map.entries()].sort()).toStrictEqual([...standardMap.entries()].sort());
 
-          expect([...map.atPrefix(prefix).keys()].sort()).toEqual(
+          expect([...map.atPrefix(prefix).keys()].sort()).toStrictEqual(
             [...new Set(terms)].filter((t) => t.startsWith(prefix)).sort(),
           );
 
           const fuzzy = map.fuzzyGet(terms[0], maxDist);
 
-          expect(Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort()).toEqual(
+          expect(Array.from(fuzzy, ([key, [, dist]]) => [key, dist]).sort()).toStrictEqual(
             uniqueTerms
               .map<[string, number]>((term) => [term, editDistance(terms[0], term)])
               .filter(([, dist]) => dist <= maxDist)
@@ -389,10 +388,10 @@ describe(SearchableMap, () => {
           terms.forEach((term) => {
             map.delete(term);
             expect(map.has(term)).toBe(false);
-            expect(map.get(term)).toEqual(undefined);
+            expect(map.get(term)).toBeUndefined();
           });
 
-          expect(map.size).toEqual(0);
+          expect(map.size).toBe(0);
         }),
       );
     });

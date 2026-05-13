@@ -12,7 +12,7 @@ import {
   vacuum,
 } from "../src/index.js";
 
-describe("discard()", () => {
+describe(discard, () => {
   interface Document {
     id: number;
     text: string;
@@ -26,13 +26,13 @@ describe("discard()", () => {
 
     addAll(index, documents);
 
-    expect(search(index, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
-    expect([1, 2].map((id) => has(index, id))).toEqual([true, true]);
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([1, 2]);
+    expect([1, 2].map((id) => has(index, id))).toStrictEqual([true, true]);
 
     discard(index, 1);
 
-    expect(search(index, "stuff").map((doc) => doc.id)).toEqual([2]);
-    expect([1, 2].map((id) => has(index, id))).toEqual([false, true]);
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([2]);
+    expect([1, 2].map((id) => has(index, id))).toStrictEqual([false, true]);
   });
 
   it("raises error if a document with the given ID does not exist", () => {
@@ -58,13 +58,13 @@ describe("discard()", () => {
     discard(index, 1);
     remove(clone, { id: 1, text: "Some interesting stuff" });
 
-    expect(index._idToShortId).toEqual(clone._idToShortId);
-    expect(index._documentIds).toEqual(clone._documentIds);
-    expect(index._fieldLength).toEqual(clone._fieldLength);
-    expect(index._storedFields).toEqual(clone._storedFields);
-    expect(index._avgFieldLength).toEqual(clone._avgFieldLength);
-    expect(index._documentCount).toEqual(clone._documentCount);
-    expect(index._dirtCount).toEqual(1);
+    expect(index._idToShortId).toStrictEqual(clone._idToShortId);
+    expect(index._documentIds).toStrictEqual(clone._documentIds);
+    expect(index._fieldLength).toStrictEqual(clone._fieldLength);
+    expect(index._storedFields).toStrictEqual(clone._storedFields);
+    expect(index._avgFieldLength).toStrictEqual(clone._avgFieldLength);
+    expect(index._documentCount).toStrictEqual(clone._documentCount);
+    expect(index._dirtCount).toBe(1);
   });
 
   it("allows adding a new version of the document afterwards", () => {
@@ -82,16 +82,16 @@ describe("discard()", () => {
     discard(index, 1);
     add(index, { id: 1, text: "Some new stuff" });
 
-    expect(search(index, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
-    expect(search(index, "new").map((doc) => doc.id)).toEqual([1]);
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([1, 2]);
+    expect(search(index, "new").map((doc) => doc.id)).toStrictEqual([1]);
 
     discard(index, 1);
-    expect(search(index, "stuff").map((doc) => doc.id)).toEqual([2]);
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([2]);
 
     add(index, { id: 1, text: "Some newer stuff" });
-    expect(search(index, "stuff").map((doc) => doc.id)).toEqual([1, 2]);
-    expect(search(index, "new").map((doc) => doc.id)).toEqual([]);
-    expect(search(index, "newer").map((doc) => doc.id)).toEqual([1]);
+    expect(search(index, "stuff").map((doc) => doc.id)).toStrictEqual([1, 2]);
+    expect(search(index, "new").map((doc) => doc.id)).toStrictEqual([]);
+    expect(search(index, "newer").map((doc) => doc.id)).toStrictEqual([1]);
   });
 
   it("leaves the index in the same state as removal when all terms are searched at least once", () => {
@@ -110,14 +110,14 @@ describe("discard()", () => {
     discard(index, 1);
     remove(clone, { id: 1, text: "Some stuff" });
 
-    expect(index).not.toEqual(clone);
+    expect(index).not.toStrictEqual(clone);
 
     const results = search(index, "some stuff");
 
-    expect(index._index).toEqual(clone._index);
+    expect(index._index).toStrictEqual(clone._index);
 
     // Results are the same after the first search
-    expect(search(index, "stuff")).toEqual(results);
+    expect(search(index, "stuff")).toStrictEqual(results);
   });
 
   it("triggers auto vacuum by default", () => {
@@ -231,7 +231,7 @@ describe("discard()", () => {
 
     addAll(index, documents);
 
-    expect(index._dirtCount).toEqual(0);
+    expect(index._dirtCount).toBe(0);
 
     // Calling discard multiple times should start an auto-vacuum and enqueue
     // another, so that the remaining dirt count afterwards is always below

@@ -111,36 +111,36 @@ export type FieldTermData = Map<number, DocumentTermFrequencies>;
 // oxlint-disable-next-line typescript/no-explicit-any
 export class SearchIndex<ID = any, Document = any, Index extends AnyObject = EmptyObject> {
   /** @ignore */
-  _options: OptionsWithDefaults<ID, Document, Index>;
+  public _options: OptionsWithDefaults<ID, Document, Index>;
   /** @ignore */
-  _index: SearchableMap<FieldTermData>;
+  public _index: SearchableMap<FieldTermData>;
   /** @ignore */
-  _documentCount: number;
+  public _documentCount: number;
   /** @ignore */
-  _documentIds: Map<number, ID>;
+  public _documentIds: Map<number, ID>;
   /** @ignore */
-  _idToShortId: Map<ID, number>;
+  public _idToShortId: Map<ID, number>;
   /** @ignore */
-  _fieldIds: Record<string, number>;
+  public _fieldIds: Record<string, number>;
   /** @ignore */
-  _fieldLength: Map<number, number[]>;
+  public _fieldLength: Map<number, number[]>;
   /** @ignore */
-  _avgFieldLength: number[];
+  public _avgFieldLength: number[];
   /** @ignore */
-  _nextId: number;
+  public _nextId: number;
   /** @ignore */
-  _storedFields: Map<number, Index>;
+  public _storedFields: Map<number, Index>;
   /** @ignore */
-  _dirtCount: number;
+  public _dirtCount: number;
   /** @ignore */
-  _currentVacuum: Promise<void> | null;
+  public _currentVacuum: Promise<void> | null;
   /** @ignore */
-  _enqueuedVacuum: Promise<void> | null;
+  public _enqueuedVacuum: Promise<void> | null;
   /** @ignore */
-  _enqueuedVacuumConditions: VacuumConditions | undefined;
+  public _enqueuedVacuumConditions: VacuumConditions | undefined;
 
   /** @param options The options for the search index */
-  constructor(options: SearchIndexOptions<ID, Document, Index>) {
+  public constructor(options: SearchIndexOptions<ID, Document, Index>) {
     // oxlint-disable-next-line typescript/strict-boolean-expressions
     if (!options?.fields) throw new Error('SlimSearch: option "fields" must be provided');
 
@@ -197,12 +197,12 @@ export class SearchIndex<ID = any, Document = any, Index extends AnyObject = Emp
   }
 
   /** Is `true` if a vacuuming operation is ongoing, `false` otherwise */
-  get isVacuuming(): boolean {
+  public get isVacuuming(): boolean {
     return this._currentVacuum != null;
   }
 
   /** The number of documents discarded since the most recent vacuuming */
-  get dirtCount(): number {
+  public get dirtCount(): number {
     return this._dirtCount;
   }
 
@@ -212,17 +212,17 @@ export class SearchIndex<ID = any, Document = any, Index extends AnyObject = Emp
    * index is relatively clean, while a higher value means that the index is relatively dirty, and
    * vacuuming could release memory.
    */
-  get dirtFactor(): number {
+  public get dirtFactor(): number {
     return this._dirtCount / (1 + this._documentCount + this._dirtCount);
   }
 
   /** Total number of documents available to search */
-  get documentCount(): number {
+  public get documentCount(): number {
     return this._documentCount;
   }
 
   /** Number of terms in the index */
-  get termCount(): number {
+  public get termCount(): number {
     return this._index.size;
   }
 
@@ -250,7 +250,7 @@ export class SearchIndex<ID = any, Document = any, Index extends AnyObject = Emp
    *
    * @returns A plain-object serializable representation of the search index.
    */
-  toJSON(): IndexObject<Index> {
+  public toJSON(): IndexObject<Index> {
     const index: [string, Record<string, SerializedIndexEntry>][] = [];
 
     for (const [term, fieldIndex] of this._index) {

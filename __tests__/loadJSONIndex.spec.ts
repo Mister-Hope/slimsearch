@@ -39,7 +39,7 @@ describe(loadJSONIndex, () => {
     const json = JSON.stringify(index);
     const deserialized = loadJSONIndex(json, options);
 
-    expect(search(index, "vita")).toEqual(search(deserialized, "vita"));
+    expect(search(index, "vita")).toStrictEqual(search(deserialized, "vita"));
 
     const original = index.toJSON();
     const final = deserialized.toJSON();
@@ -48,7 +48,7 @@ describe(loadJSONIndex, () => {
     original.index.sort();
     final.index.sort();
 
-    expect(original).toEqual(final);
+    expect(original).toStrictEqual(final);
   });
 
   it("raises an error if called without options", () => {
@@ -109,6 +109,6 @@ describe("loadJSONAsync", () => {
     const deserializedAsync = await loadJSONIndexAsync(json, options);
     const deserialized = loadJSONIndex(json, options);
 
-    expect(deserialized).toEqual(deserializedAsync);
+    expect(deserialized).toStrictEqual(deserializedAsync);
   });
 });

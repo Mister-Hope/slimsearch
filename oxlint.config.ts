@@ -25,7 +25,9 @@ export default defineHopeConfig({
       },
     ],
     "no-console": "off",
+    "no-underscore-dangle": "off",
     "max-depth": ["warn", 5],
     "jsdoc/check-tag-names": ["warn", { definedTags: ["typeParam"] }],
+    "vitest/no-conditional-in-test": "off",
   },
 });

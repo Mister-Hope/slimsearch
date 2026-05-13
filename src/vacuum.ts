@@ -76,7 +76,7 @@ const conditionalVacuum = <ID, Document, Index extends AnyObject = EmptyObject>(
   // enqueue another on top, but make sure that the conditions are the
   // broadest.
   if (searchIndex._currentVacuum) {
-    searchIndex._enqueuedVacuumConditions = searchIndex._enqueuedVacuumConditions && conditions;
+    searchIndex._enqueuedVacuumConditions &&= conditions;
     if (searchIndex._enqueuedVacuum != null) return searchIndex._enqueuedVacuum;
 
     searchIndex._enqueuedVacuum = searchIndex._currentVacuum.then(() => {

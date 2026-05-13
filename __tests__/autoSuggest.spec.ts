@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { Suggestion } from "../src/index.js";
 import { addAll, autoSuggest, createIndex } from "../src/index.js";
@@ -35,93 +35,96 @@ const index = createIndex<number, Document, { category: string }>({
   storeFields: ["category"],
 });
 
+// oxlint-disable-next-line vitest/require-hook
 addAll(index, documents);
 
-it("returns scored suggestions", () => {
-  const results = autoSuggest(index, "com");
+describe(autoSuggest, () => {
+  it("returns scored suggestions", () => {
+    const results = autoSuggest(index, "com");
 
-  expect(results.length).toBeGreaterThan(0);
-  expect(results.map(({ suggestion }) => suggestion)).toEqual(["como", "commedia"]);
-  expect(results[0].score).toBeGreaterThan(results[1].score);
-});
-
-it("returns empty array if there is no match", () => {
-  const results = autoSuggest(index, "paguro");
-
-  expect(results).toEqual([]);
-});
-
-it("returns empty array for empty search", () => {
-  const results = autoSuggest(index, "");
-
-  expect(results).toEqual([]);
-});
-
-it("returns scored suggestions for multi-word queries", () => {
-  const results = autoSuggest(index, "vita no");
-
-  expect(results.length).toBeGreaterThan(0);
-  expect(results.map(({ suggestion }) => suggestion)).toEqual(["vita nova", "vita nostra"]);
-  expect(results[0].score).toBeGreaterThan(results[1].score);
-});
-
-it("respects the order of the terms in the query", () => {
-  const results = autoSuggest(index, "nostra vi");
-
-  expect(results.map(({ suggestion }) => suggestion)).toEqual(["nostra vita"]);
-});
-
-it("returns empty suggestions for terms that are not in the index", () => {
-  let results: Suggestion[] | null = null;
-
-  expect(() => {
-    results = autoSuggest(index, "sottomarino aeroplano");
-  }).not.toThrow();
-  expect(results!.length).toEqual(0);
-});
-
-it("does not duplicate suggested terms", () => {
-  const results = autoSuggest(index, "vita", { fuzzy: true, prefix: true });
-
-  expect(results[0].suggestion).toEqual("vita");
-  expect(results[0].terms).toEqual(["vita"]);
-});
-
-it("applies the given custom filter", () => {
-  let results = autoSuggest(index, "que", {
-    filter: ({ category }) => category === "fiction",
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.map(({ suggestion }) => suggestion)).toStrictEqual(["como", "commedia"]);
+    expect(results[0].score).toBeGreaterThan(results[1].score);
   });
 
-  expect(results[0].suggestion).toEqual("quel");
-  expect(results).toHaveLength(1);
+  it("returns empty array if there is no match", () => {
+    const results = autoSuggest(index, "paguro");
 
-  results = autoSuggest(index, "que", {
-    filter: ({ category }) => category === "poetry",
-  });
-  expect(results[0].suggestion).toEqual("quella");
-  expect(results).toHaveLength(1);
-});
-
-it("respects the custom defaults set in the constructor", () => {
-  const testIndex = createIndex<number, Document>({
-    fields: ["title", "text"],
-    autoSuggestOptions: { combineWith: "OR", fuzzy: true },
+    expect(results).toStrictEqual([]);
   });
 
-  addAll(testIndex, documents);
-  const results = autoSuggest(testIndex, "nosta vi");
+  it("returns empty array for empty search", () => {
+    const results = autoSuggest(index, "");
 
-  expect(results.map(({ suggestion }) => suggestion)).toEqual(["nostra vita", "vita"]);
-});
-
-it("applies the default search options if not overridden by the auto suggest defaults", () => {
-  const testIndex = createIndex<number, Document>({
-    fields: ["title", "text"],
-    searchOptions: { combineWith: "OR", fuzzy: true },
+    expect(results).toStrictEqual([]);
   });
 
-  addAll(testIndex, documents);
-  const results = autoSuggest(testIndex, "nosta vi");
+  it("returns scored suggestions for multi-word queries", () => {
+    const results = autoSuggest(index, "vita no");
 
-  expect(results.map(({ suggestion }) => suggestion)).toEqual(["nostra vita"]);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.map(({ suggestion }) => suggestion)).toStrictEqual(["vita nova", "vita nostra"]);
+    expect(results[0].score).toBeGreaterThan(results[1].score);
+  });
+
+  it("respects the order of the terms in the query", () => {
+    const results = autoSuggest(index, "nostra vi");
+
+    expect(results.map(({ suggestion }) => suggestion)).toStrictEqual(["nostra vita"]);
+  });
+
+  it("returns empty suggestions for terms that are not in the index", () => {
+    let results: Suggestion[] | null = null;
+
+    expect(() => {
+      results = autoSuggest(index, "sottomarino aeroplano");
+    }).not.toThrow();
+    expect(results!).toHaveLength(0);
+  });
+
+  it("does not duplicate suggested terms", () => {
+    const results = autoSuggest(index, "vita", { fuzzy: true, prefix: true });
+
+    expect(results[0].suggestion).toBe("vita");
+    expect(results[0].terms).toStrictEqual(["vita"]);
+  });
+
+  it("applies the given custom filter", () => {
+    let results = autoSuggest(index, "que", {
+      filter: ({ category }) => category === "fiction",
+    });
+
+    expect(results[0].suggestion).toBe("quel");
+    expect(results).toHaveLength(1);
+
+    results = autoSuggest(index, "que", {
+      filter: ({ category }) => category === "poetry",
+    });
+    expect(results[0].suggestion).toBe("quella");
+    expect(results).toHaveLength(1);
+  });
+
+  it("respects the custom defaults set in the constructor", () => {
+    const testIndex = createIndex<number, Document>({
+      fields: ["title", "text"],
+      autoSuggestOptions: { combineWith: "OR", fuzzy: true },
+    });
+
+    addAll(testIndex, documents);
+    const results = autoSuggest(testIndex, "nosta vi");
+
+    expect(results.map(({ suggestion }) => suggestion)).toStrictEqual(["nostra vita", "vita"]);
+  });
+
+  it("applies the default search options if not overridden by the auto suggest defaults", () => {
+    const testIndex = createIndex<number, Document>({
+      fields: ["title", "text"],
+      searchOptions: { combineWith: "OR", fuzzy: true },
+    });
+
+    addAll(testIndex, documents);
+    const results = autoSuggest(testIndex, "nosta vi");
+
+    expect(results.map(({ suggestion }) => suggestion)).toStrictEqual(["nostra vita"]);
+  });
 });

@@ -1,80 +1,82 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { addAll, createIndex, discard, has, remove } from "../src/index.js";
 
-it("returns true if a document with the given ID was added to the index, false otherwise", () => {
-  interface Document {
-    id: number;
-    text: string;
-    title: string;
-  }
-  const documents = [
-    {
+describe(has, () => {
+  it("returns true if a document with the given ID was added to the index, false otherwise", () => {
+    interface Document {
+      id: number;
+      text: string;
+      title: string;
+    }
+    const documents = [
+      {
+        id: 1,
+        title: "Divina Commedia",
+        text: "Nel mezzo del cammin di nostra vita",
+      },
+      {
+        id: 2,
+        title: "I Promessi Sposi",
+        text: "Quel ramo del lago di Como",
+      },
+    ];
+    const index = createIndex<number, Document>({ fields: ["title", "text"] });
+
+    addAll(index, documents);
+
+    expect(has(index, 1)).toBe(true);
+    expect(has(index, 2)).toBe(true);
+    expect(has(index, 3)).toBe(false);
+
+    remove(index, {
       id: 1,
       title: "Divina Commedia",
       text: "Nel mezzo del cammin di nostra vita",
-    },
-    {
-      id: 2,
-      title: "I Promessi Sposi",
-      text: "Quel ramo del lago di Como",
-    },
-  ];
-  const index = createIndex<number, Document>({ fields: ["title", "text"] });
+    });
+    discard(index, 2);
 
-  addAll(index, documents);
-
-  expect(has(index, 1)).toBe(true);
-  expect(has(index, 2)).toBe(true);
-  expect(has(index, 3)).toBe(false);
-
-  remove(index, {
-    id: 1,
-    title: "Divina Commedia",
-    text: "Nel mezzo del cammin di nostra vita",
+    expect(has(index, 1)).toBe(false);
+    expect(has(index, 2)).toBe(false);
   });
-  discard(index, 2);
 
-  expect(has(index, 1)).toBe(false);
-  expect(has(index, 2)).toBe(false);
-});
+  it("works well with custom ID fields", () => {
+    interface Document {
+      uid: number;
+      text: string;
+      title: string;
+    }
+    const documents = [
+      {
+        uid: 1,
+        title: "Divina Commedia",
+        text: "Nel mezzo del cammin di nostra vita",
+      },
+      {
+        uid: 2,
+        title: "I Promessi Sposi",
+        text: "Quel ramo del lago di Como",
+      },
+    ];
+    const index = createIndex<number, Document>({
+      fields: ["title", "text"],
+      idField: "uid",
+    });
 
-it("works well with custom ID fields", () => {
-  interface Document {
-    uid: number;
-    text: string;
-    title: string;
-  }
-  const documents = [
-    {
+    addAll(index, documents);
+
+    expect(has(index, 1)).toBe(true);
+    expect(has(index, 2)).toBe(true);
+    expect(has(index, 3)).toBe(false);
+
+    remove(index, {
       uid: 1,
       title: "Divina Commedia",
       text: "Nel mezzo del cammin di nostra vita",
-    },
-    {
-      uid: 2,
-      title: "I Promessi Sposi",
-      text: "Quel ramo del lago di Como",
-    },
-  ];
-  const index = createIndex<number, Document>({
-    fields: ["title", "text"],
-    idField: "uid",
+    });
+    discard(index, 2);
+
+    expect(has(index, 1)).toBe(false);
+    expect(has(index, 2)).toBe(false);
   });
-
-  addAll(index, documents);
-
-  expect(has(index, 1)).toBe(true);
-  expect(has(index, 2)).toBe(true);
-  expect(has(index, 3)).toBe(false);
-
-  remove(index, {
-    uid: 1,
-    title: "Divina Commedia",
-    text: "Nel mezzo del cammin di nostra vita",
-  });
-  discard(index, 2);
-
-  expect(has(index, 1)).toBe(false);
-  expect(has(index, 2)).toBe(false);
 });

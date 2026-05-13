@@ -1,4 +1,4 @@
-import { expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { add, createIndex, getDefaultValue, search } from "../src/index.js";
 
@@ -7,269 +7,272 @@ interface Index {
   text: string;
 }
 
-it("adds the document to the index", () => {
-  const index = createIndex<number, Index>({
-    fields: ["text"],
+describe(add, () => {
+  it("adds the document to the index", () => {
+    const index = createIndex<number, Index>({
+      fields: ["text"],
+    });
+
+    add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
+    expect(index.documentCount).toBe(1);
   });
 
-  add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
-  expect(index.documentCount).toEqual(1);
-});
+  it("does not throw error if a field is missing", () => {
+    const index = createIndex<number, Index>({ fields: ["title", "text"] });
 
-it("does not throw error if a field is missing", () => {
-  const index = createIndex<number, Index>({ fields: ["title", "text"] });
-
-  add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
-  expect(index.documentCount).toEqual(1);
-});
-
-it("throws error if the document does not have the ID field", () => {
-  interface Document {
-    foo: string;
-    text: string;
-    title?: string;
-  }
-
-  const index = createIndex<string, Document>({
-    idField: "foo",
-    fields: ["title", "text"],
+    add(index, { id: 1, text: "Nel mezzo del cammin di nostra vita" });
+    expect(index.documentCount).toBe(1);
   });
 
-  expect(() => {
-    // @ts-expect-error: document does not have ID field
-    add(index, { text: "I do not have an ID" });
-  }).toThrow('SlimSearch: document does not have ID field "foo"');
-});
+  it("throws error if the document does not have the ID field", () => {
+    interface Document {
+      foo: string;
+      text: string;
+      title?: string;
+    }
 
-it("throws error on duplicate ID", () => {
-  interface Document {
-    foo: string;
-    text: string;
-    title?: string;
-  }
+    const index = createIndex<string, Document>({
+      idField: "foo",
+      fields: ["title", "text"],
+    });
 
-  const index = createIndex<string, Document>({
-    idField: "foo",
-    fields: ["title", "text"],
+    expect(() => {
+      // @ts-expect-error: document does not have ID field
+      add(index, { text: "I do not have an ID" });
+    }).toThrow('SlimSearch: document does not have ID field "foo"');
   });
 
-  add(index, { foo: "abc", text: "Something" });
+  it("throws error on duplicate ID", () => {
+    interface Document {
+      foo: string;
+      text: string;
+      title?: string;
+    }
 
-  expect(() => {
-    add(index, { foo: "abc", text: "I have a duplicate ID" });
-  }).toThrow("SlimSearch: duplicate ID abc");
-});
+    const index = createIndex<string, Document>({
+      idField: "foo",
+      fields: ["title", "text"],
+    });
 
-it("extracts the ID field using extractField", () => {
-  interface Document {
-    id: { value: number };
-    text: string;
-  }
+    add(index, { foo: "abc", text: "Something" });
 
-  const extractField = (document: Document, fieldName: string): string | number => {
-    if (fieldName === "id") return document.id.value;
-
-    return (getDefaultValue("extractField") as (document: any, fieldName: string) => string)(
-      document,
-      fieldName,
-    );
-  };
-  const index = createIndex({
-    fields: ["text"],
-    extractField,
+    expect(() => {
+      add(index, { foo: "abc", text: "I have a duplicate ID" });
+    }).toThrow("SlimSearch: duplicate ID abc");
   });
 
-  add(index, {
-    id: { value: 123 },
-    text: "Nel mezzo del cammin di nostra vita",
-  });
+  it("extracts the ID field using extractField", () => {
+    interface Document {
+      id: { value: number };
+      text: string;
+    }
 
-  const results = search(index, "vita");
+    const extractField = (document: Document, fieldName: string): string | number => {
+      if (fieldName === "id") return document.id.value;
 
-  expect(results[0].id).toEqual(123);
-});
-
-it("rejects falsy terms", () => {
-  const processTerm = (term: string): string | null => (term === "foo" ? null : term);
-  const index = createIndex<number, { id: number; text: string }>({
-    fields: ["title", "text"],
-    processTerm,
-  });
-
-  expect(() => {
-    add(index, { id: 123, text: "foo bar" });
-  }).not.toThrow();
-});
-
-it("turns the field to string before tokenization", () => {
-  interface Document {
-    id: number;
-    tags?: string[];
-    isBlinky: boolean;
-  }
-
-  const tokenize = vi.fn<(x: string) => string[]>((x) => x.split(/\W+/));
-  const index = createIndex<number, Document>({
-    fields: ["id", "tags", "isBlinky"],
-    tokenize,
-  });
-
-  expect(() => {
-    add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
-    add(index, { id: 321, isBlinky: true });
-  }).not.toThrow();
-
-  expect(tokenize).toHaveBeenCalledWith("123", "id");
-  expect(tokenize).toHaveBeenCalledWith("foo,bar", "tags");
-  expect(tokenize).toHaveBeenCalledWith("false", "isBlinky");
-
-  expect(tokenize).toHaveBeenCalledWith("321", "id");
-  expect(tokenize).toHaveBeenCalledWith("true", "isBlinky");
-});
-
-it("turns the field to string before tokenization using a custom stringifyField function, if given", () => {
-  interface Document {
-    id: number;
-    tags?: string[];
-    isBlinky: boolean;
-  }
-
-  const tokenize = vi.fn<(x: string) => string[]>((x) => x.split(/\W+/));
-  const stringifyField = vi.fn<(value: any, fieldName: string) => string>((value, fieldName) => {
-    if (fieldName === "tags") return (value as string[]).join("|");
-
-    if (typeof value === "boolean") return value ? "T" : "F";
-
-    // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return
-    return value.toString();
-  });
-  const index = createIndex<number, Document>({
-    fields: ["id", "tags", "isBlinky"],
-    tokenize,
-    stringifyField,
-  });
-
-  expect(() => {
-    add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
-    add(index, { id: 321, isBlinky: true });
-  }).not.toThrow();
-
-  expect(tokenize).toHaveBeenCalledWith("123", "id");
-  expect(tokenize).toHaveBeenCalledWith("foo|bar", "tags");
-  expect(tokenize).toHaveBeenCalledWith("F", "isBlinky");
-
-  expect(tokenize).toHaveBeenCalledWith("321", "id");
-  expect(tokenize).toHaveBeenCalledWith("T", "isBlinky");
-});
-
-it("passes document and field name to the field extractor", () => {
-  interface Document {
-    id: number;
-    title: string;
-    pubDate: Date;
-    author: {
-      name: string;
-    };
-    category: string;
-  }
-  const extractField = vi.fn<(document: Document, fieldName: string) => string>(
-    (document, fieldName) => {
-      if (fieldName === "pubDate")
-        return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
-
-      return fieldName.split(".").reduce(
-        // @ts-expect-error: property untyped
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        (doc, key) => doc[key],
+      return (getDefaultValue("extractField") as (document: any, fieldName: string) => string)(
         document,
-      ) as unknown as string;
-    },
-  );
-  const tokenize = vi.fn<(token: string) => string[]>((token) => token.split(/\W+/));
-  const index = createIndex<number, Document>({
-    fields: ["title", "pubDate", "author.name"],
-    storeFields: ["category"],
-    extractField,
-    tokenize,
-  });
-  const document = {
-    id: 1,
-    title: "Divina Commedia",
-    pubDate: new Date(1320, 0, 1),
-    author: { name: "Dante Alighieri" },
-    category: "poetry",
-  };
+        fieldName,
+      );
+    };
+    const index = createIndex({
+      fields: ["text"],
+      extractField,
+    });
 
-  add(index, document);
-  expect(extractField).toHaveBeenCalledWith(document, "title");
-  expect(extractField).toHaveBeenCalledWith(document, "pubDate");
-  expect(extractField).toHaveBeenCalledWith(document, "author.name");
-  expect(extractField).toHaveBeenCalledWith(document, "category");
-  expect(tokenize).toHaveBeenCalledWith(document.title, "title");
-  expect(tokenize).toHaveBeenCalledWith("1320/1/1", "pubDate");
-  expect(tokenize).toHaveBeenCalledWith(document.author.name, "author.name");
-  expect(tokenize).not.toHaveBeenCalledWith(document.category, "category");
-});
+    add(index, {
+      id: { value: 123 },
+      text: "Nel mezzo del cammin di nostra vita",
+    });
 
-it("passes field value and name to tokenizer", () => {
-  interface Document {
-    id: number;
-    title: string;
-    text: string;
-  }
-  const tokenize = vi.fn<(content: string) => string[]>((content) => content.split(/\W+/));
-  const index = createIndex<number, Document>({
-    fields: ["text", "title"],
-    tokenize,
-  });
-  const document = {
-    id: 1,
-    title: "Divina Commedia",
-    text: "Nel mezzo del cammin di nostra vita",
-  };
+    const results = search(index, "vita");
 
-  add(index, document);
-  expect(tokenize).toHaveBeenCalledWith(document.text, "text");
-  expect(tokenize).toHaveBeenCalledWith(document.title, "title");
-});
-
-it("passes field value and name to term processor", () => {
-  interface Document {
-    id: number;
-    title: string;
-    text: string;
-  }
-  const processTerm = vi.fn<(term: string) => string>((term) => term.toLowerCase());
-  const index = createIndex<number, Document>({
-    fields: ["text", "title"],
-    processTerm,
-  });
-  const document = {
-    id: 1,
-    title: "Divina Commedia",
-    text: "Nel mezzo del cammin di nostra vita",
-  };
-
-  add(index, document);
-  document.text.split(/\W+/).forEach((term) => {
-    expect(processTerm).toHaveBeenCalledWith(term, "text");
-  });
-  document.title.split(/\W+/).forEach((term) => {
-    expect(processTerm).toHaveBeenCalledWith(term, "title");
-  });
-});
-
-it("allows processTerm to expand a single term into several terms", () => {
-  const processTerm = (term: string): string[] | string =>
-    term === "foobar" ? ["foo", "bar"] : term;
-  const index = createIndex<number, { id: number; text: string }>({
-    fields: ["title", "text"],
-    processTerm,
+    expect(results[0].id).toBe(123);
   });
 
-  expect(() => {
-    add(index, { id: 123, text: "foobar" });
-  }).not.toThrow();
+  it("rejects falsy terms", () => {
+    const processTerm = (term: string): string | null => (term === "foo" ? null : term);
 
-  expect(search(index, "bar")).toHaveLength(1);
+    const index = createIndex<number, { id: number; text: string }>({
+      fields: ["title", "text"],
+      processTerm,
+    });
+
+    expect(() => {
+      add(index, { id: 123, text: "foo bar" });
+    }).not.toThrow();
+  });
+
+  it("turns the field to string before tokenization", () => {
+    interface Document {
+      id: number;
+      tags?: string[];
+      isBlinky: boolean;
+    }
+
+    const tokenize = vi.fn<(x: string) => string[]>((x) => x.split(/\W+/u));
+    const index = createIndex<number, Document>({
+      fields: ["id", "tags", "isBlinky"],
+      tokenize,
+    });
+
+    expect(() => {
+      add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
+      add(index, { id: 321, isBlinky: true });
+    }).not.toThrow();
+
+    expect(tokenize).toHaveBeenCalledWith("123", "id");
+    expect(tokenize).toHaveBeenCalledWith("foo,bar", "tags");
+    expect(tokenize).toHaveBeenCalledWith("false", "isBlinky");
+
+    expect(tokenize).toHaveBeenCalledWith("321", "id");
+    expect(tokenize).toHaveBeenCalledWith("true", "isBlinky");
+  });
+
+  it("turns the field to string before tokenization using a custom stringifyField function, if given", () => {
+    interface Document {
+      id: number;
+      tags?: string[];
+      isBlinky: boolean;
+    }
+
+    const tokenize = vi.fn<(x: string) => string[]>((x) => x.split(/\W+/u));
+    const stringifyField = vi.fn<(value: any, fieldName: string) => string>((value, fieldName) => {
+      if (fieldName === "tags") return (value as string[]).join("|");
+
+      if (typeof value === "boolean") return value ? "T" : "F";
+
+      // oxlint-disable-next-line typescript/no-unsafe-call, typescript/no-unsafe-return
+      return value.toString();
+    });
+    const index = createIndex<number, Document>({
+      fields: ["id", "tags", "isBlinky"],
+      tokenize,
+      stringifyField,
+    });
+
+    expect(() => {
+      add(index, { id: 123, tags: ["foo", "bar"], isBlinky: false });
+      add(index, { id: 321, isBlinky: true });
+    }).not.toThrow();
+
+    expect(tokenize).toHaveBeenCalledWith("123", "id");
+    expect(tokenize).toHaveBeenCalledWith("foo|bar", "tags");
+    expect(tokenize).toHaveBeenCalledWith("F", "isBlinky");
+
+    expect(tokenize).toHaveBeenCalledWith("321", "id");
+    expect(tokenize).toHaveBeenCalledWith("T", "isBlinky");
+  });
+
+  it("passes document and field name to the field extractor", () => {
+    interface Document {
+      id: number;
+      title: string;
+      pubDate: Date;
+      author: {
+        name: string;
+      };
+      category: string;
+    }
+    const extractField = vi.fn<(document: Document, fieldName: string) => string>(
+      (document, fieldName) => {
+        if (fieldName === "pubDate")
+          return `${document[fieldName].getFullYear()}/${document[fieldName].getMonth() + 1}/${document[fieldName].getDate()}`;
+
+        return fieldName.split(".").reduce(
+          // @ts-expect-error: property untyped
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          (doc, key) => doc[key],
+          document,
+        ) as unknown as string;
+      },
+    );
+    const tokenize = vi.fn<(token: string) => string[]>((token) => token.split(/\W+/u));
+    const index = createIndex<number, Document>({
+      fields: ["title", "pubDate", "author.name"],
+      storeFields: ["category"],
+      extractField,
+      tokenize,
+    });
+    const document = {
+      id: 1,
+      title: "Divina Commedia",
+      pubDate: new Date(1320, 0, 1),
+      author: { name: "Dante Alighieri" },
+      category: "poetry",
+    };
+
+    add(index, document);
+    expect(extractField).toHaveBeenCalledWith(document, "title");
+    expect(extractField).toHaveBeenCalledWith(document, "pubDate");
+    expect(extractField).toHaveBeenCalledWith(document, "author.name");
+    expect(extractField).toHaveBeenCalledWith(document, "category");
+    expect(tokenize).toHaveBeenCalledWith(document.title, "title");
+    expect(tokenize).toHaveBeenCalledWith("1320/1/1", "pubDate");
+    expect(tokenize).toHaveBeenCalledWith(document.author.name, "author.name");
+    expect(tokenize).not.toHaveBeenCalledWith(document.category, "category");
+  });
+
+  it("passes field value and name to tokenizer", () => {
+    interface Document {
+      id: number;
+      title: string;
+      text: string;
+    }
+    const tokenize = vi.fn<(content: string) => string[]>((content) => content.split(/\W+/u));
+    const index = createIndex<number, Document>({
+      fields: ["text", "title"],
+      tokenize,
+    });
+    const document = {
+      id: 1,
+      title: "Divina Commedia",
+      text: "Nel mezzo del cammin di nostra vita",
+    };
+
+    add(index, document);
+    expect(tokenize).toHaveBeenCalledWith(document.text, "text");
+    expect(tokenize).toHaveBeenCalledWith(document.title, "title");
+  });
+
+  it("passes field value and name to term processor", () => {
+    interface Document {
+      id: number;
+      title: string;
+      text: string;
+    }
+    const processTerm = vi.fn<(term: string) => string>((term) => term.toLowerCase());
+    const index = createIndex<number, Document>({
+      fields: ["text", "title"],
+      processTerm,
+    });
+    const document = {
+      id: 1,
+      title: "Divina Commedia",
+      text: "Nel mezzo del cammin di nostra vita",
+    };
+
+    add(index, document);
+    document.text.split(/\W+/u).forEach((term) => {
+      expect(processTerm).toHaveBeenCalledWith(term, "text");
+    });
+    document.title.split(/\W+/u).forEach((term) => {
+      expect(processTerm).toHaveBeenCalledWith(term, "title");
+    });
+  });
+
+  it("allows processTerm to expand a single term into several terms", () => {
+    const processTerm = (term: string): string[] | string =>
+      term === "foobar" ? ["foo", "bar"] : term;
+    const index = createIndex<number, { id: number; text: string }>({
+      fields: ["title", "text"],
+      processTerm,
+    });
+
+    expect(() => {
+      add(index, { id: 123, text: "foobar" });
+    }).not.toThrow();
+
+    expect(search(index, "bar")).toHaveLength(1);
+  });
 });

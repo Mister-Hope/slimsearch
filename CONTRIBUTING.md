@@ -32,7 +32,7 @@ setup your development environment:
 
 1. Clone the [repository](https://github.com/Mister-Hope/slimsearch)
 
-2. Install the development dependencies with `pnpm install --frozen-lockfile`
+2. Install the development dependencies with `pnpm ci`
 
 3. Run the tests with `pnpm run test`.
 
