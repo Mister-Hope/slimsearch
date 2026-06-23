@@ -32,7 +32,7 @@ export const createMap = <Key, Value>(): Map<Key, Value> => new Map<Key, Value>(
 export const objectToNumericMap = <Value>(object: Record<string, Value>): Map<number, Value> => {
   const map = new Map<number, Value>();
 
-  for (const key of Object.keys(object)) map.set(Number.parseInt(key, 10), object[key]);
+  for (const key of Object.keys(object)) map.set(Math.trunc(Number(key)), object[key]);
 
   return map;
 };
@@ -44,7 +44,7 @@ export const objectToNumericMapAsync = async <Value>(
   let count = 0;
 
   for (const key of Object.keys(object)) {
-    map.set(Number.parseInt(key, 10), object[key]);
+    map.set(Math.trunc(Number(key)), object[key]);
     // oxlint-disable-next-line no-plusplus
     if (++count % 1000 === 0) {
       // oxlint-disable-next-line no-await-in-loop

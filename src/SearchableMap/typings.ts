@@ -1,3 +1,4 @@
+// oxlint-disable typescript/method-signature-style
 export type LeafType = "" & { readonly __tag: unique symbol };
 
 export interface RadixTree<T> extends Map<string, T | RadixTree<T>> {

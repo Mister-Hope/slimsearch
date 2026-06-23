@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import path from "node:path";
 
 import { createAndUploadReport } from "@codecov/bundle-analyzer";
 
@@ -9,7 +9,7 @@ const analyzerOptions = {
 
 try {
   const report = await createAndUploadReport(
-    [join(import.meta.dirname, "../dist")],
+    [path.join(import.meta.dirname, "../dist")],
     {
       enableBundleAnalysis: true,
       bundleName: "slimsearch",

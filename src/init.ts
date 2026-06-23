@@ -136,7 +136,7 @@ export const loadIndex = <ID, Document, Index extends AnyObject = EmptyObject>(
 
     for (const fieldId of Object.keys(data)) {
       dataMap.set(
-        Number.parseInt(fieldId, 10),
+        Math.trunc(Number(fieldId)),
         objectToNumericMap(data[fieldId]) as DocumentTermFrequencies,
       );
     }
@@ -183,7 +183,7 @@ export const loadIndexAsync = async <ID, Document, Index extends AnyObject = Emp
 
     for (const fieldId of Object.keys(data)) {
       dataMap.set(
-        Number.parseInt(fieldId, 10),
+        Math.trunc(Number(fieldId)),
         // oxlint-disable-next-line no-await-in-loop
         (await objectToNumericMapAsync(data[fieldId])) as DocumentTermFrequencies,
       );

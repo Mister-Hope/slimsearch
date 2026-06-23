@@ -30,11 +30,11 @@ export interface IterableSet<T> {
 
 /** @private */
 export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, Key>> {
-  public set: IterableSet<T>;
+  set: IterableSet<T>;
   private readonly _type: Key;
   private readonly _path: IteratorPath<T>;
 
-  public constructor(set: IterableSet<T>, type: Key) {
+  constructor(set: IterableSet<T>, type: Key) {
     const node = set._tree;
     const keys = [...node.keys()];
 
@@ -43,7 +43,7 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     this._path = keys.length > 0 ? [{ node, keys }] : [];
   }
 
-  public next(): IteratorResult<Result<T, Key>> {
+  next(): IteratorResult<Result<T, Key>> {
     const value = this.dive();
 
     this.backtrack();
@@ -51,7 +51,7 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     return value;
   }
 
-  public key(): string {
+  key(): string {
     return (
       this.set._prefix +
       this._path
@@ -61,12 +61,12 @@ export class TreeIterator<T, Key extends Kind<T>> implements Iterator<Result<T, 
     );
   }
 
-  public value(): T {
+  value(): T {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return last(this._path).node.get(LEAF)!;
   }
 
-  public [Symbol.iterator](): this {
+  [Symbol.iterator](): this {
     return this;
   }
 
