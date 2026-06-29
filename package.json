@@ -51,8 +51,8 @@
   },
   "devDependencies": {
     "@codecov/bundle-analyzer": "2.0.1",
-    "@commitlint/cli": "21.0.2",
-    "@commitlint/config-conventional": "21.0.2",
+    "@commitlint/cli": "21.1.0",
+    "@commitlint/config-conventional": "21.1.0",
     "@mr-hope/tsconfig": "0.0.4",
     "@types/benchmark": "2.1.5",
     "@types/node": "22.20.0",
@@ -82,7 +82,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "11.8.0",
+      "version": "11.9.0",
       "onFail": "download"
     },
     "runtime": {
